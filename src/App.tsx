@@ -5,18 +5,27 @@ import Home from "./pages/Home"
 import Tecnicos from "./pages/Tecnicos"
 import Ordenes from "./pages/Ordenes"
 import Clientes from "./pages/Clientes"
+import { useAuth } from "./Components/AuthProvider"
+import LoginForm from "./pages/LoginForm"
+import SignupForm from "./pages/Signupform"
 function App() {
+  const { isAuthenticated } = useAuth();
 
   return (
     <>
-     <Navbar/>
-     <Routes>
-      <Route path="/" element={<Home/>}></Route>
-      <Route path="/products" element={<Productos/>}></Route>
-      <Route path="/taller/tecnicos" element={<Tecnicos/>}></Route>
-      <Route path="/taller/ordenes" element={<Ordenes/>}></Route>
-      <Route path="/taller/clientes" element={<Clientes/>}></Route>
-     </Routes>
+     {isAuthenticated && <Navbar />}
+      <Routes>
+        <Route path="/" element={isAuthenticated ? <Home /> : <LoginForm />} />
+        <Route path="/sign-up" element={<SignupForm />} />
+        {isAuthenticated && (
+          <>
+            <Route path="/products" element={<Productos />} />
+            <Route path="/taller/tecnicos" element={<Tecnicos />} />
+            <Route path="/taller/ordenes" element={<Ordenes />} />
+            <Route path="/taller/clientes" element={<Clientes />} />
+          </>
+        )}
+      </Routes>
     </>
   )
 }
