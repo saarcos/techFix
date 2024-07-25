@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom"
+import { Route, Routes, Navigate} from "react-router-dom"
 import Navbar from "./Components/Navbar"
 import Productos from "./pages/Productos"
 import Home from "./pages/Home"
@@ -8,23 +8,62 @@ import Clientes from "./pages/Clientes"
 import { useAuth } from "./Components/AuthProvider"
 import LoginForm from "./pages/LoginForm"
 import SignupForm from "./pages/Signupform"
+import ProtectedRoute from "./Components/ProtectedRoute"
 function App() {
   const { isAuthenticated } = useAuth();
 
   return (
     <>
-     {isAuthenticated && <Navbar />}
       <Routes>
-        <Route path="/" element={isAuthenticated ? <Home /> : <LoginForm />} />
-        <Route path="/sign-up" element={<SignupForm />} />
-        {isAuthenticated && (
-          <>
-            <Route path="/products" element={<Productos />} />
-            <Route path="/taller/tecnicos" element={<Tecnicos />} />
-            <Route path="/taller/ordenes" element={<Ordenes />} />
-            <Route path="/taller/clientes" element={<Clientes />} />
-          </>
-        )}
+        <Route 
+            path="/login" 
+            element={isAuthenticated ? <Navigate to="/" /> : <LoginForm />} 
+          />
+          <Route 
+            path="/sign-up" 
+            element={isAuthenticated ? <Navigate to="/" /> : <SignupForm />} 
+          />
+          {isAuthenticated && <Route path="*" element={<Navbar />} />}
+      </Routes>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? <Home /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/products"
+          element={
+            <ProtectedRoute>
+              <Productos />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/taller/tecnicos"
+          element={
+            <ProtectedRoute>
+              <Tecnicos />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/taller/ordenes"
+          element={
+            <ProtectedRoute>
+              <Ordenes />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/taller/clientes"
+          element={
+            <ProtectedRoute>
+              <Clientes />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </>
   )

@@ -7,9 +7,15 @@ const LoginForm = () => {
   const [password, setPassword] = useState('');
   const { login } = useAuth();
   const navigate=useNavigate();
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    login();
+    try {
+      await login(email, password);
+      navigate('/'); 
+    } catch (error) {
+      console.error('Error de inicio de sesión', error);
+      alert('Error de inicio de sesión');
+    }
   };
   const goToSignUp=()=>{
     navigate('/sign-up');
