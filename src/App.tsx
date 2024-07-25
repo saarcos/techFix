@@ -9,11 +9,14 @@ import { useAuth } from "./Components/AuthProvider"
 import LoginForm from "./pages/LoginForm"
 import SignupForm from "./pages/Signupform"
 import ProtectedRoute from "./Components/ProtectedRoute"
+import Menu from "./Components/Menu"
 function App() {
   const { isAuthenticated } = useAuth();
 
   return (
     <>
+      {isAuthenticated && <Menu />} 
+      {isAuthenticated && <Navbar />} 
       <Routes>
         <Route 
             path="/login" 
@@ -23,7 +26,6 @@ function App() {
             path="/sign-up" 
             element={isAuthenticated ? <Navigate to="/" /> : <SignupForm />} 
           />
-          {isAuthenticated && <Route path="*" element={<Navbar />} />}
       </Routes>
       <Routes>
         <Route
