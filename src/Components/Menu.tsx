@@ -49,7 +49,7 @@ const Menu = ({toggleNavbar, isNavbarVisible}: Props) => {
                 {user && (
                   <div className="px-4 py-2 text-white border-b border-gray-200 flex items-center bg-customGray rounded-t-md">
                     <p className="text-customGreen mr-2">Bienvenido,</p> 
-                    <span className="font-semibold">{user.name}</span>
+                    <span className="font-semibold">{user.nombre}</span>
                   </div>
                 )}
                 <Link to="/profile" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">Perfil</Link>

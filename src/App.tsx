@@ -11,6 +11,8 @@ import SignupForm from "./pages/Signupform"
 import ProtectedRoute from "./Components/ProtectedRoute"
 import Menu from "./Components/Menu"
 import { useEffect, useState } from "react"
+import { Toaster } from "sonner"
+
 function App() {
   const { isAuthenticated } = useAuth();
   const [isNavbarVisible, setNavbarVisible] = useState(true);
@@ -36,6 +38,7 @@ function App() {
 
   return (
     <div>
+      <Toaster position="top-center" richColors  />
       {isAuthenticated && <Menu toggleNavbar={toggleNavbar} isNavbarVisible={isNavbarVisible} />}
       {isAuthenticated && <Navbar isVisible={isNavbarVisible} toggleNavbar={toggleNavbar} />}
       {isNavbarVisible && window.innerWidth < 1024 && (
