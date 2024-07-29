@@ -2,17 +2,26 @@ import { Link, useLocation } from "react-router-dom"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTools, faBox, faConciergeBell, faWarehouse,  faGear, faChevronDown, faHouseChimney, faPersonDigging, faPeopleGroup, faClipboardCheck} from '@fortawesome/free-solid-svg-icons';
 import { useState } from "react";
+import useWindowSize from '../hooks/useWindowSize'; // Asegúrate de importar el hook
+
 interface Props {
   isVisible: boolean;
   toggleNavbar: () => void;
 }
 const Navbar = ({isVisible, toggleNavbar}:Props) => {
     const location = useLocation();
+    const { width } = useWindowSize();
+
     const getLinkClass = (path:string) => {
         return location.pathname === path
           ? "flex items-center text-black py-2 px-4 bg-customGreen rounded-full"
           : "flex items-center text-gray-300 py-2 px-4 hover:bg-gray-950 hover:text-gray-100 rounded-full";
       };
+    const handleLinkClick = () => {
+      if (width < 1024) {
+        toggleNavbar();
+      }
+    };
     const [isDropdownOpen, setDropdownOpen] = useState(false);
 
     const toggleDropdown = () => {
@@ -26,7 +35,7 @@ const Navbar = ({isVisible, toggleNavbar}:Props) => {
             </Link>
         <ul className="mt-4">
             <li className="mb-2 ">
-            <Link to="/" className={getLinkClass("/")} onClick={toggleNavbar}>
+            <Link to="/" className={getLinkClass("/")} onClick={handleLinkClick}>
                 <FontAwesomeIcon icon={faHouseChimney} className="mr-3 text-lg" />
                     <span className="text-sm">Inicio</span>
             </Link>
@@ -45,7 +54,7 @@ const Navbar = ({isVisible, toggleNavbar}:Props) => {
                        <Link
                          to="/taller/ordenes"
                          className={`${getLinkClass("/taller/ordenes")}`}
-                         onClick={toggleNavbar}
+                         onClick={handleLinkClick}
                        >
                         <FontAwesomeIcon icon={faClipboardCheck } />                        
                         <span className="text-sm ml-1">Órdenes de trabajo</span>
@@ -55,7 +64,7 @@ const Navbar = ({isVisible, toggleNavbar}:Props) => {
                        <Link
                          to="/taller/tecnicos"
                          className={`${getLinkClass("/taller/tecnicos")}`}
-                         onClick={toggleNavbar}
+                         onClick={handleLinkClick}
                        >
                         <FontAwesomeIcon icon={faPersonDigging} />                        
                         <span className="text-sm ml-1">Técnicos</span>
@@ -65,7 +74,7 @@ const Navbar = ({isVisible, toggleNavbar}:Props) => {
                        <Link
                          to="/taller/clientes"
                          className={`${getLinkClass("/taller/clientes")}`}
-                         onClick={toggleNavbar}
+                         onClick={handleLinkClick}
                        >
                         <FontAwesomeIcon icon={faPeopleGroup} />                        
                         <span className="text-sm ml-1">Clientes</span>
@@ -75,19 +84,19 @@ const Navbar = ({isVisible, toggleNavbar}:Props) => {
                 )}
             </li>
             <li className="mb-2 ">
-            <Link to="/products" className={getLinkClass("/products")} onClick={toggleNavbar}>
+            <Link to="/products" className={getLinkClass("/products")} onClick={handleLinkClick}>
                 <FontAwesomeIcon icon={faBox} className="mr-3 text-lg" />
                     <span className="text-sm">Productos</span>
             </Link>
             </li>
             <li className="mb-2">
-            <Link to="/" className="flex items-center text-gray-300 py-2 px-4 hover:bg-gray-950 hover:text-gray-100  rounded-full" onClick={toggleNavbar}>
+            <Link to="/" className="flex items-center text-gray-300 py-2 px-4 hover:bg-gray-950 hover:text-gray-100  rounded-full" onClick={handleLinkClick}>
                 <FontAwesomeIcon icon={faConciergeBell} className="mr-3 text-lg" />
                 <span className="text-sm">Servicios</span>
             </Link>
             </li>
             <li className="mb-2">
-            <Link to="/" className="flex items-center text-gray-300 py-2 px-4 hover:bg-gray-950 hover:text-gray-100  rounded-full" onClick={toggleNavbar}>
+            <Link to="/" className="flex items-center text-gray-300 py-2 px-4 hover:bg-gray-950 hover:text-gray-100  rounded-full" onClick={handleLinkClick}>
                 <FontAwesomeIcon icon={faWarehouse} className="mr-3 text-lg" />
                 <span className="text-sm">Inventario</span>
             </Link>

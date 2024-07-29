@@ -48,7 +48,7 @@ const Menu = ({toggleNavbar, isNavbarVisible}: Props) => {
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-20">
                 {user && (
                   <div className="px-4 py-2 text-white border-b border-gray-200 flex items-center bg-customGray rounded-t-md">
-                    <p className="text-customGreen mr-2">Bienvenido,</p> 
+                    <p className="text-customGreen mr-2">Bienvenido/a,</p> 
                     <span className="font-semibold">{user.nombre}</span>
                   </div>
                 )}
