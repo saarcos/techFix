@@ -28,7 +28,7 @@ const Navbar = ({isVisible, toggleNavbar}:Props) => {
         setDropdownOpen(!isDropdownOpen);
     };
   return (
-    <div className={`fixed left-0 top-0 w-64 h-full bg-customGray p-4 font-inter transition-transform transform ${isVisible ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+    <div className={`fixed left-0 top-0 w-64 h-full bg-customGray p-4 font-inter transition-transform transform ${isVisible ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 z-50`}>
             <Link to="/" className="flex items-center pb-4 border-b border-b-gray-600 align-middle">
             <FontAwesomeIcon icon={faGear} className='w-8 h-8 text-customGreen'/>
             <span className="text-md font-bold text-customGreen  ml-3"> TechFix Manager</span>
@@ -67,7 +67,7 @@ const Navbar = ({isVisible, toggleNavbar}:Props) => {
                          onClick={handleLinkClick}
                        >
                         <FontAwesomeIcon icon={faPersonDigging} />                        
-                        <span className="text-sm ml-1">Técnicos</span>
+                        <span className="text-sm ml-1">Usuarios del sistema</span>
                        </Link>
                      </li>
                      <li>

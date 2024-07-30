@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'sonner';
+import { useState } from 'react';
+import Spinner from '../Components/Spinner'; // Asegúrate de ajustar la ruta
 
 const LoginForm = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
-
+  const [isLoading, setIsLoading] = useState(false);
   const formik = useFormik({
     initialValues: {
       email: '',
@@ -23,9 +25,12 @@ const LoginForm = () => {
     }),
     onSubmit: async (values, { setSubmitting }) => {
       try {
+        setIsLoading(true);
         await login(values.email, values.password);
+        setIsLoading(false);
         navigate('/');
       } catch (error) {
+        setIsLoading(false);
         console.error('Error de inicio de sesión', error);
         toast.error(`Error al iniciar sesión: ${error}`);
       } finally {
@@ -72,10 +77,15 @@ const LoginForm = () => {
             <div className='mt-8 flex flex-col gap-y-4'>
               <button
                 type='submit'
-                className='active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-full bg-customGreen text-lg font-bold'
+                className='flex justify-center items-center active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-full bg-customGreen text-lg font-bold '
                 disabled={formik.isSubmitting}
               >
-                Iniciar sesión
+                  {isLoading ? (
+                    <Spinner />
+                ) : (
+                  "Iniciar Sesión"
+                )}
+                
               </button>
               <button
                 type='button'
