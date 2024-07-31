@@ -8,6 +8,9 @@ export interface User {
   apellido: string;
   id_rol: number;
   email: string;
+  rol: {
+    nombrerol: string;
+  };
 }
 
 export const getUsers = async (): Promise<User[]> => {
