@@ -12,17 +12,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu"
-
+import DatatableColumnHeader from '@/Components/datatable-column-header'
 
 export const columns: ColumnDef<User>[]=[
     {
         accessorKey: "nombre",
-        header: "Nombre",
+        header: ({column})=>(
+          <DatatableColumnHeader title="Nombre" column={column}/>
+        ),
         cell: info => `${info.row.original.nombre} ${info.row.original.apellido}`
     },
     {
         accessorKey: "rol.nombrerol", // Acceder al nombre del rol
-        header: "Rol"
+        header: ({column})=>(
+          <DatatableColumnHeader title="Rol" column={column}/>
+        ),
     },
     {
         accessorKey: "email",

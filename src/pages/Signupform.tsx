@@ -3,7 +3,7 @@ import * as Yup from 'yup';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import {toast} from 'sonner'
-
+import { createUsuario } from '@/api/userService';
 const SignupForm = () => {
   const navigate = useNavigate();
 
@@ -28,15 +28,14 @@ const SignupForm = () => {
     }),
     onSubmit: async (values) => {
       try {
-        console.log('Valores enviados:', values); // Agrega esta línea para depuración
-        const response = await axios.post('http://localhost:3000/api/usuarios', {
+        const response = await createUsuario({
           nombre: values.nombre,
           apellido: values.apellido,
           email: values.email,
-          password_hash: values.password, // Asegúrate de enviar `password_hash`
-          id_rol: 1, // Asigna el rol según tu lógica
+          password_hash: values.password, 
+          id_rol: 1, //Rol de admin
         });
-        console.log('Usuario creado:', response.data);
+        console.log('Usuario creado:', response);
         toast.success('Registro exitoso');
         navigate('/login');
       } catch (error) {
@@ -61,7 +60,8 @@ const SignupForm = () => {
         <div className='font-inter bg-customGray px-10 py-20 rounded-3xl border-2 border-gray-200'>
           <h1 className='text-5xl font-semibold text-customGreen'>¡Bienvenido!</h1>
           <p className='font-medium text-lg text-gray-50 mt-4'>Por favor, ingresa tu información para crear una cuenta</p>
-          <form onSubmit={formik.handleSubmit} className='mt-8'>
+          <small className='font-medium text-lg text-gray-400 '>Tu rol será de Administrador</small>
+          <form onSubmit={formik.handleSubmit} className='mt-4'>
             <div>
               <label className='text-lg font-medium text-white'>Nombre</label>
               <input
