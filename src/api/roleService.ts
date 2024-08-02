@@ -3,7 +3,7 @@ import axiosInstance from '../api/axiosInstance';
 // import axios from 'axios';
 
 export interface Role{
-    id: number;
+    id_rol: number;
     nombrerol:string;
     descripcion: string;
 }
