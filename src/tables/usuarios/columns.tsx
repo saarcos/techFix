@@ -1,21 +1,14 @@
-import { User } from "@/api/userService";
-import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {  User } from "@/api/userService";
+
 import { ColumnDef } from "@tanstack/table-core";
-import { MoreHorizontal } from "lucide-react";
-import { Button } from "@/Components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/Components/ui/dropdown-menu"
+
 import DatatableColumnHeader from '@/Components/datatable-column-header'
 
-export const columns: ColumnDef<User>[]=[
-    {
+import { DataTableRowActions } from "./data-table-row-actions";
+
+
+export const columns: ColumnDef<User>[] = [
+  {
         accessorKey: "nombre",
         header: ({column})=>(
           <DatatableColumnHeader title="Nombre" column={column}/>
@@ -39,23 +32,7 @@ export const columns: ColumnDef<User>[]=[
         ),
     },
     {
-      id: "actions",
-      enableHiding: false,
-      cell: () => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Más opciones</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer"><FontAwesomeIcon icon={faPencil} className="mr-1"/> Modificar</DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer"><FontAwesomeIcon icon={faTrash} className="mr-1"/> Eliminar</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+      id: 'actions',
+      cell: ({ row }) => <DataTableRowActions row={row} />,
     }
 ];

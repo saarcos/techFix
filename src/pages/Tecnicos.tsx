@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import {  useRef } from 'react';
 import Spinner from '../assets/tube-spinner.svg';
 import { toast } from 'sonner';
 import { createUsuario, getUsers, User } from '@/api/userService';
 import { DataTable } from '@/Components/data-table';
-import {columns} from '../tables/usuarios/columns'
 import { Button } from '@/Components/ui/button';
+import {columns} from '../tables/usuarios/columns'
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/Components/ui/dialog";
-import { Input } from "@/Components/ui/input"
+import { Input } from '@/Components/ui/input';
 import { Label } from "@/Components/ui/label"
 import { 
   PlusCircle,
@@ -23,37 +23,46 @@ import {
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { getRoles, Role } from '@/api/roleService';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
 const Tecnicos = () => {
-  const [data, setData] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [roles, setRoles] = useState<Role[]>();
+  const queryClient = useQueryClient();
   const dialogRef = useRef<HTMLButtonElement>(null);
 
-  const fetchUsers = async () => {
-    try {
-      const users = await getUsers();
-      setData(users);
-      setLoading(false);
-    } catch (error) {
-      setError(error as Error);
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const roles = await getRoles();
-        setRoles(roles);
-      } catch (error) {
-        setError(error as Error);
+  const { data: users = [], isLoading, error } = useQuery<User[]>({
+    queryKey: ['users'],
+    queryFn: getUsers,
+  });
+  const { data: roles = [], isError: rolesError } = useQuery<Role[]>({
+    queryKey: ['roles'],
+    queryFn: getRoles,
+  });
+  const mutation = useMutation({
+    mutationFn: createUsuario,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success('Usuario creado exitosamente');
+      if (dialogRef.current) {
+        dialogRef.current.click();
       }
-    };
+    },
+    onError: (error) => {
+      toast.error('Error al crear el usuario');
+      console.error('Error de creación de usuario:', error);
+    },
+  });
+  // const deleteMutation = useMutation({
+  //   mutationFn: deleteUser,
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ['users'] });
+  //     toast.success('Usuario eliminado exitosamente');
+  //   },
+  //   onError: (error) => {
+  //     toast.error('Error al eliminar el usuario');
+  //     console.error('Error al eliminar el usuario:', error);
+  //   },
+  // });
 
-    fetchUsers();
-    fetchData();
-  }, []);
 
   const formik = useFormik({
     initialValues: {
@@ -75,30 +84,19 @@ const Tecnicos = () => {
       role: Yup.string().required('El rol es obligatorio'),
     }),
     onSubmit: async (values, { resetForm }) => {
-      try {
-        const response = await createUsuario({
-          nombre: values.nombre,
-          apellido: values.apellido,
-          email: values.email,
-          password_hash: values.password,
-          id_rol: parseInt(values.role, 10),
-        });
-        console.log('Usuario creado:', response);
-        toast.success('Usuario creado exitosamente');
-        resetForm();
-        fetchUsers()
-        if (dialogRef.current) {
-          dialogRef.current.click(); //Para cerrar el dialog
-        }
-      } catch (error) {
-        toast.error('Error al crear el usuario');
-        console.error('Error de creación de usuario:', error);
-      }
+      mutation.mutate({
+        nombre: values.nombre,
+        apellido: values.apellido,
+        email: values.email,
+        password_hash: values.password,
+        id_rol: parseInt(values.role, 10),
+      });
+      resetForm();
     },
   });
 
-  if (loading) return  <div className="flex justify-center items-center h-28"> <img src={Spinner} className="w-16 h-16"/> </div>;
-  if (error) return toast.error('Error al recuperar los datos');
+  if (isLoading) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
+  if (error || rolesError) return toast.error('Error al recuperar los datos');
 
   return (
     <div>
@@ -220,7 +218,7 @@ const Tecnicos = () => {
             </DialogContent>
           </Dialog>
         </div>
-        <DataTable data={data} columns={columns} globalFilterColumn='nombre'/>
+        <DataTable data={users ?? []} columns={columns} globalFilterColumn='nombre' />
       </div>
     </div>
   );
