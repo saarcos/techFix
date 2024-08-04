@@ -13,15 +13,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { useQuery } from '@tanstack/react-query';
-import { getUserById, User } from '@/api/userService';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getUserById, updateUsuario, User } from '@/api/userService';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   nombre: z.string().min(1, 'Nombre es requerido'),
   apellido: z.string().min(1, 'Apellido es requerido'),
   email: z.string().email('Correo inválido'),
   role: z.string().min(1, 'Rol es requerido'),
-  password: z.string().min(6, 'Contraseña debe tener al menos 6 caracteres'),
+  password_hash: z.string().min(6, 'Contraseña debe tener al menos 6 caracteres'),
 });
 
 interface Role {
@@ -43,23 +44,35 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
       apellido: '',
       email: '',
       role: '',
-      password: '',
+      password_hash: '',
     },
   });
-
+  const queryClient=useQueryClient();
   const { data: user, isLoading: isUserLoading, isError, error } = useQuery<User>({
     queryKey: ['user', userId],
     queryFn: () => getUserById(userId),
   });
+  const mutation = useMutation({
+    mutationFn: updateUsuario,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success('Usuario actualizado exitosamente');
+    },
+    onError: (error) => {
+      toast.error('Error al actualizar el usuario');
+      console.error('Error de actualización de usuario:', error);
+    },
+  });
 
   useEffect(() => {
     if (user) {
+      console.log(user);
       form.reset({
         nombre: user.nombre,
         apellido: user.apellido,
         email: user.email,
         role: user.id_rol.toString(),
-        password: '',
+        password_hash: '',
       });
     }
 
@@ -71,7 +84,15 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
   const isLoading = form.formState.isSubmitting;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-    console.log('Submitting values:', values);
+      console.log('Submitting values:', values);
+      mutation.mutate({
+        id_usuario: userId,
+        nombre: values.nombre,
+        apellido: values.apellido,
+        email: values.email,
+        password_hash: values.password_hash,
+        id_rol: parseInt(values.role, 10),
+      });
       setIsOpen(false);
     } catch (error) {
       console.log(error);
@@ -173,7 +194,7 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
           )}
         />
         <FormField
-          name="password"
+          name="password_hash"
           control={form.control}
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">

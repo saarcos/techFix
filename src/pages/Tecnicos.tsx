@@ -51,18 +51,6 @@ const Tecnicos = () => {
       console.error('Error de creación de usuario:', error);
     },
   });
-  // const deleteMutation = useMutation({
-  //   mutationFn: deleteUser,
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({ queryKey: ['users'] });
-  //     toast.success('Usuario eliminado exitosamente');
-  //   },
-  //   onError: (error) => {
-  //     toast.error('Error al eliminar el usuario');
-  //     console.error('Error al eliminar el usuario:', error);
-  //   },
-  // });
-
 
   const formik = useFormik({
     initialValues: {
