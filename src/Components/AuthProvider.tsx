@@ -12,6 +12,7 @@ interface User {
   id: number;
   nombre: string;
   email: string;
+  id_rol: number;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

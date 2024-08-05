@@ -17,12 +17,16 @@ const Menu = ({toggleNavbar, isNavbarVisible}: Props) => {
   return (
     <header className={`fixed top-0 left-0 w-full lg:w-[calc(100%-256px)] ${isNavbarVisible ? 'lg:ml-64' : 'ml-0'} bg-gray-50 z-10`}>
         <div className="py-3 px-6 bg-white flex items-center shadow-md shadow-black/5">
-            <button type="button" className="text-lg text-gray-600" onClick={toggleNavbar} >
-                 <FontAwesomeIcon icon={faBars}/>
-            </button>
+            {!isNavbarVisible &&(
+              <>
+                <button type="button" className="text-lg text-gray-600" onClick={toggleNavbar} >
+                    <FontAwesomeIcon icon={faBars}/>
+                </button>
+              </>
+            )}
             <ul className=" flex items-center text-sm ml-4">
                 <li className="mr-2">
-                    <Link to={"/"} className="text-gray-400 font-medium hover:text-gray-600"> Dashboard</Link>
+                    <Link to={"/"} className="text-gray-400 font-medium hover:text-gray-600 text-lg"> Dashboard</Link>
                 </li>
             </ul>
             <ul className="ml-auto flex items-center">

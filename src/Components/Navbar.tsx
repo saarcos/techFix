@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTools, faBox, faConciergeBell, faWarehouse,  faGear, faChevronDown, faHouseChimney, faPersonDigging, faPeopleGroup, faClipboardCheck} from '@fortawesome/free-solid-svg-icons';
 import { useState } from "react";
 import useWindowSize from '../hooks/useWindowSize'; // Asegúrate de importar el hook
+import { useAuth } from "./AuthProvider";
 
 interface Props {
   isVisible: boolean;
@@ -11,7 +12,7 @@ interface Props {
 const Navbar = ({isVisible, toggleNavbar}:Props) => {
     const location = useLocation();
     const { width } = useWindowSize();
-
+    const {isAuthenticated, user} =useAuth();
     const getLinkClass = (path:string) => {
         return location.pathname === path
           ? "flex items-center text-black py-2 px-4 bg-customGreen rounded-full"
@@ -50,36 +51,42 @@ const Navbar = ({isVisible, toggleNavbar}:Props) => {
                 </div>
                 {isDropdownOpen && (
                      <ul className="left-0 mt-2 ml-4 w-48 bg-gray-800 rounded-lg overflow-hidden">
-                     <li>
-                       <Link
-                         to="/taller/ordenes"
-                         className={`${getLinkClass("/taller/ordenes")}`}
-                         onClick={handleLinkClick}
-                       >
-                        <FontAwesomeIcon icon={faClipboardCheck } />                        
-                        <span className="text-sm ml-1">Órdenes de trabajo</span>
-                       </Link>
-                     </li>
-                     <li>
-                       <Link
-                         to="/taller/tecnicos"
-                         className={`${getLinkClass("/taller/tecnicos")}`}
-                         onClick={handleLinkClick}
-                       >
-                        <FontAwesomeIcon icon={faPersonDigging} />                        
-                        <span className="text-sm ml-1">Usuarios del sistema</span>
-                       </Link>
-                     </li>
-                     <li>
-                       <Link
-                         to="/taller/clientes"
-                         className={`${getLinkClass("/taller/clientes")}`}
-                         onClick={handleLinkClick}
-                       >
-                        <FontAwesomeIcon icon={faPeopleGroup} />                        
-                        <span className="text-sm ml-1">Clientes</span>
-                       </Link>
-                     </li>
+                        {
+                          isAuthenticated && user && user?.id_rol===1 &&( 
+                            <>
+                            <li>
+                              <Link
+                                to="/taller/tecnicos"
+                                className={`${getLinkClass("/taller/tecnicos")}`}
+                                onClick={handleLinkClick}
+                              >
+                                <FontAwesomeIcon icon={faPersonDigging} />                        
+                                <span className="text-sm ml-1">Usuarios del sistema</span>
+                              </Link>
+                            </li>
+                            </>
+                          )
+                        }   
+                      <li>
+                        <Link
+                          to="/taller/ordenes"
+                          className={`${getLinkClass("/taller/ordenes")}`}
+                          onClick={handleLinkClick}
+                        >
+                          <FontAwesomeIcon icon={faClipboardCheck } />                        
+                          <span className="text-sm ml-1">Órdenes de trabajo</span>
+                        </Link>
+                      </li>                       
+                      <li>
+                        <Link
+                          to="/taller/clientes"
+                          className={`${getLinkClass("/taller/clientes")}`}
+                          onClick={handleLinkClick}
+                        >
+                          <FontAwesomeIcon icon={faPeopleGroup} />                        
+                          <span className="text-sm ml-1">Clientes</span>
+                        </Link>
+                      </li>
                     </ul>
                 )}
             </li>

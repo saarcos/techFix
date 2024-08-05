@@ -33,7 +33,7 @@ const SignupForm = () => {
           apellido: values.apellido,
           email: values.email,
           password_hash: values.password, 
-          id_rol: 1, //Rol de admin
+          id_rol: 2, //Rol de técnico
         });
         console.log('Usuario creado:', response);
         toast.success('Registro exitoso');
@@ -60,7 +60,7 @@ const SignupForm = () => {
         <div className='font-inter bg-customGray px-10 py-20 rounded-3xl border-2 border-gray-200'>
           <h1 className='text-5xl font-semibold text-customGreen'>¡Bienvenido!</h1>
           <p className='font-medium text-lg text-gray-50 mt-4'>Por favor, ingresa tu información para crear una cuenta</p>
-          <small className='font-medium text-lg text-gray-400 '>Tu rol será de Administrador</small>
+          <small className='font-medium text-lg text-gray-400 '>Tu rol será de Técnico</small>
           <form onSubmit={formik.handleSubmit} className='mt-4'>
             <div>
               <label className='text-lg font-medium text-white'>Nombre</label>

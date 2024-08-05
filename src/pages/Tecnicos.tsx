@@ -18,8 +18,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from "@/Components/ui/label"
 import { 
   PlusCircle,
-  UserPen
- } from 'lucide-react';
+} from 'lucide-react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { getRoles, Role } from '@/api/roleService';
@@ -90,12 +89,12 @@ const Tecnicos = () => {
     <div>
       <div className='container py-10 mx-auto'>
       <div className="ml-auto flex items-center gap-2">     
-        <Button size="sm" variant="outline" className="h-8 gap-1">
+        {/* <Button size="sm" variant="outline" className="h-8 gap-1">
           <UserPen className="h-3.5 w-3.5" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
             Roles y niveles de acceso
           </span>
-        </Button>
+        </Button> */}
         <Dialog>
             <DialogTrigger asChild>
               <Button
