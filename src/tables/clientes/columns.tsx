@@ -1,19 +1,28 @@
-import {  User } from "@/api/userService";
+import {  Client } from "@/api/clientService";
 
 import { ColumnDef } from "@tanstack/table-core";
 
 import DatatableColumnHeader from '@/Components/datatable-column-header'
 
 import { DataTableRowActions } from "./data-table-row-actions";
-
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/Components/ui/tooltip"
-export const columns: ColumnDef<User>[] = [
-  {
+import { faBuilding, faUser } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+export const columns: ColumnDef<Client>[] = [
+    {
+      accessorKey: "tipo_cliente",
+      header: "",
+      cell: ({ row }) => (
+        <FontAwesomeIcon icon={row.original.tipo_cliente === "Empresa" ? faBuilding : faUser} />
+      ),
+    },
+    {
         accessorKey: "nombre",
         header: ({column})=>(
           <DatatableColumnHeader title="Nombre" column={column}/>
@@ -21,21 +30,21 @@ export const columns: ColumnDef<User>[] = [
         cell: info => `${info.row.original.nombre} ${info.row.original.apellido}`
     },
     {
-        accessorKey: "rol.nombrerol", // Acceder al nombre del rol
+        accessorKey: "cedula", 
         header: ({column})=>(
-          <DatatableColumnHeader title="Rol" column={column}/>
+          <DatatableColumnHeader title="Cedula" column={column}/>
         ),
     },
     {
-        accessorKey: "email",
+        accessorKey: "correo",
         header: "Correo",
         cell: ({row})=>(
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-              <a href={`mailto:${row.getValue("email")}`}
+              <a href={`mailto:${row.getValue("correo")}`}
               className="font-medium text-blue-600 hover:underline">
-                {row.getValue("email")}
+                {row.getValue("correo")}
               </a>
               </TooltipTrigger>
               <TooltipContent className="bg-customGray text-white">
@@ -43,8 +52,11 @@ export const columns: ColumnDef<User>[] = [
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          
         ),
+    },
+    {
+      accessorKey: "celular", 
+      header:"Celular"
     },
     {
       id: 'actions',
