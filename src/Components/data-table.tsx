@@ -62,24 +62,25 @@ export function DataTable<TData, TValue>({
     <div className="space-y-4">
         {
             globalFilterColumn &&(
-                <Input placeholder="Buscar por nombre..."
+                <Input placeholder={`Buscar por ${globalFilterColumn}...`}
                 value={(table.getColumn(globalFilterColumn)?.getFilterValue() as string)??""}
                 onChange={(event)=>
                     table
                         .getColumn(globalFilterColumn)
                         ?.setFilterValue(event.target.value)
                 }
-                className="max-w-sm mt-3 ml-1"/>
+                className="max-w-sm mt-3"/>
             )
         }
-        <div className="rounded-md border">
-        <Table>
-            <TableHeader>
+      <div className="overflow-x-auto w-full rounded-md border">
+        <Table className="min-w-full divide-y divide-gray-200">
+            <TableHeader className="bg-gray-100">
             {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                     return (
-                    <TableHead key={header.id}>
+                    <TableHead 
+                    key={header.id}>
                         {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -92,15 +93,19 @@ export function DataTable<TData, TValue>({
                 </TableRow>
             ))}
             </TableHeader>
-            <TableBody>
+            <TableBody className="bg-white divide-y divide-gray-200">
             {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                 <TableRow
                     key={row.id}
+                    className="hover:cursor-pointer"
                     data-state={row.getIsSelected() && "selected"}
                 >
                     {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell 
+                        key={cell.id}
+                        className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 "
+                    >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                     ))}
@@ -108,7 +113,7 @@ export function DataTable<TData, TValue>({
                 ))
             ) : (
                 <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={columns.length} className="h-24 text-center text-gray-500">
                     No hubo resultados.
                 </TableCell>
                 </TableRow>

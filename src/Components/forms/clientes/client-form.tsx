@@ -18,11 +18,15 @@ import { getClientById, updateCliente, createCliente, Client } from '@/api/clien
 import { toast } from 'sonner';
 
 const formSchema = z.object({
-  nombre: z.string().min(1, 'Nombre es requerido'),
-  apellido: z.string().min(1, 'Apellido es requerido'),
-  cedula: z.string().min(10, 'Cédula inválida').max(13,'Cédula inválida'),
+  nombre: z.string().min(1, 'Nombre es requerido').max(50, 'Ingresa menos de 50 caracteres'),
+  apellido: z.string().min(1, 'Apellido es requerido').max(100, 'Ingresa menos de 50 caracteres'),
+  cedula: z.string()
+  .regex(/^\d+$/, { message: 'La cédula solo puede contener números' })
+  .refine((val) => val.length === 10 || val.length === 13, {
+    message: 'Cédula inválida, debe tener 10 o 13 caracteres',
+  }), 
   correo: z.string().email('Correo inválido'),
-  celular: z.string().min(1, 'Celular es requerido'),
+  celular: z.string().min(10, 'Número telefónico inválido').max(10,'Número telefónico inválido'),
   tipo_cliente: z.string().min(1, 'Tipo de cliente es requerido'),
 });
 
@@ -175,8 +179,9 @@ export default function UserForm({ clienteId, setIsOpen }: UserFormProps) {
               <FormControl>
                 <Input
                   id="cedula"
-                  placeholder="1234567890123"
+                  placeholder="1751200713"
                   className="col-span-3"
+                  maxLength={13}
                   {...field}
                   disabled={isClienteLoading}
                 />
@@ -220,6 +225,7 @@ export default function UserForm({ clienteId, setIsOpen }: UserFormProps) {
                   id="celular"
                   placeholder="1234567890"
                   className="col-span-3"
+                  maxLength={10}
                   {...field}
                   disabled={isClienteLoading}
                 />

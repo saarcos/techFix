@@ -12,6 +12,7 @@ import ProtectedRoute from "./Components/ProtectedRoute"
 import Menu from "./Components/Menu"
 import { useEffect, useState } from "react"
 import { Toaster } from "sonner"
+import Equipos from "./pages/Equipos"
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -53,6 +54,7 @@ function App() {
           <Route path="/taller/tecnicos" element={<ProtectedRoute><Tecnicos /></ProtectedRoute>} />
           <Route path="/taller/ordenes" element={<ProtectedRoute><Ordenes /></ProtectedRoute>} />
           <Route path="/taller/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
+          <Route path="/taller/equipos" element={<ProtectedRoute><Equipos /></ProtectedRoute>} />
         </Routes>
       </div>
     </div>

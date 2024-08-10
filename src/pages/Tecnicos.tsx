@@ -23,6 +23,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { getRoles, Role } from '@/api/roleService';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 
 const Tecnicos = () => {
   const queryClient = useQueryClient();
@@ -86,127 +87,129 @@ const Tecnicos = () => {
   if (error || rolesError) return toast.error('Error al recuperar los datos');
 
   return (
-    <div>
-      <div className='container py-10 mx-auto'>
-      <div className="ml-auto flex items-center gap-2">     
-        {/* <Button size="sm" variant="outline" className="h-8 gap-1">
-          <UserPen className="h-3.5 w-3.5" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            Roles y niveles de acceso
-          </span>
-        </Button> */}
-        <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                size="sm"
-                className="h-8 gap-1 bg-customGreen hover:bg-customGreenHover"
-                ref={dialogRef}
-              >
-                <PlusCircle className="h-3.5 w-3.5 text-black" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap text-black">
-                  Nuevo usuario
-                </span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Creación de usuarios</DialogTitle>
-                <DialogDescription>
-                  Crea un nuevo usuario para el sistema
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={formik.handleSubmit} className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="nombre" className="text-right">
-                    Nombre
-                  </Label>
-                  <Input
-                    id="nombre"
-                    placeholder="Pedro"
-                    className="col-span-3"
-                    {...formik.getFieldProps('nombre')}
-                  />
-                  {formik.touched.nombre && formik.errors.nombre ? (
-                    <div className="text-red-500 col-span-4 text-right text-sm">{formik.errors.nombre}</div>
-                  ) : null}
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="apellido" className="text-right">
-                    Apellido
-                  </Label>
-                  <Input
-                    id="apellido"
-                    placeholder="Duarte"
-                    className="col-span-3"
-                    {...formik.getFieldProps('apellido')}
-                  />
-                  {formik.touched.apellido && formik.errors.apellido ? (
-                    <div className="text-red-500 col-span-4 text-right text-sm">{formik.errors.apellido}</div>
-                  ) : null}
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="email" className="text-right">
-                    Correo
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="pedro@mail.com"
-                    className="col-span-3"
-                    {...formik.getFieldProps('email')}
-                  />
-                  {formik.touched.email && formik.errors.email ? (
-                    <div className="text-red-500 col-span-4 text-right text-sm">{formik.errors.email}</div>
-                  ) : null}
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="role" className="text-right">
-                    Rol
-                  </Label>
-                  <select
-                    id="role"
-                    className="col-span-3 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
-                    {...formik.getFieldProps('role')}
-                  >
-                    <option value="">Seleccione un rol</option>
-                    {roles &&
-                      roles.map((role) => (
-                        <option key={role.id_rol} value={role.id_rol}>
-                          {role.nombrerol}
-                        </option>
-                      ))}
-                  </select>
-                  {formik.touched.role && formik.errors.role ? (
-                    <div className="text-red-500 col-span-4 text-right text-sm">{formik.errors.role}</div>
-                  ) : null}
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="password" className="text-right">
-                    Contraseña
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="*********"
-                    className="col-span-3"
-                    {...formik.getFieldProps('password')}
-                  />
-                  {formik.touched.password && formik.errors.password ? (
-                    <div className="text-red-500 col-span-4 text-right text-sm">{formik.errors.password}</div>
-                  ) : null}
-                </div>
-                
-                <DialogFooter>
-                  <Button type="submit" className="bg-customGreen text-white hover:bg-customGreenHover">
-                    Guardar
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-        <DataTable data={users ?? []} columns={columns} globalFilterColumn='nombre' />
-      </div>
+    <div className="flex min-h-screen w-full flex-col bg-muted/40 mt-5">
+      <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+        <Card className="w-full max-w-9xl overflow-x-auto">
+          <CardHeader>
+            <CardTitle>Usuarios del sistema</CardTitle>
+            <CardDescription>
+              Administra quién tiene acceso al sistema.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+          <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  size="sm"
+                  className="h-8 gap-1 bg-customGreen hover:bg-customGreenHover"
+                  ref={dialogRef}
+                >
+                  <PlusCircle className="h-3.5 w-3.5 text-black" />
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap text-black">
+                    Nuevo usuario
+                  </span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Creación de usuarios</DialogTitle>
+                  <DialogDescription>
+                    Crea un nuevo usuario para el sistema
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={formik.handleSubmit} className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="nombre" className="text-right">
+                      Nombre
+                    </Label>
+                    <Input
+                      id="nombre"
+                      placeholder="Pedro"
+                      className="col-span-3"
+                      {...formik.getFieldProps('nombre')}
+                    />
+                    {formik.touched.nombre && formik.errors.nombre ? (
+                      <div className="text-red-500 col-span-4 text-right text-sm">{formik.errors.nombre}</div>
+                    ) : null}
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="apellido" className="text-right">
+                      Apellido
+                    </Label>
+                    <Input
+                      id="apellido"
+                      placeholder="Duarte"
+                      className="col-span-3"
+                      {...formik.getFieldProps('apellido')}
+                    />
+                    {formik.touched.apellido && formik.errors.apellido ? (
+                      <div className="text-red-500 col-span-4 text-right text-sm">{formik.errors.apellido}</div>
+                    ) : null}
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="email" className="text-right">
+                      Correo
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="pedro@mail.com"
+                      className="col-span-3"
+                      {...formik.getFieldProps('email')}
+                    />
+                    {formik.touched.email && formik.errors.email ? (
+                      <div className="text-red-500 col-span-4 text-right text-sm">{formik.errors.email}</div>
+                    ) : null}
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="role" className="text-right">
+                      Rol
+                    </Label>
+                    <select
+                      id="role"
+                      className="col-span-3 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
+                      {...formik.getFieldProps('role')}
+                    >
+                      <option value="">Seleccione un rol</option>
+                      {roles &&
+                        roles.map((role) => (
+                          <option key={role.id_rol} value={role.id_rol}>
+                            {role.nombrerol}
+                          </option>
+                        ))}
+                    </select>
+                    {formik.touched.role && formik.errors.role ? (
+                      <div className="text-red-500 col-span-4 text-right text-sm">{formik.errors.role}</div>
+                    ) : null}
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="password" className="text-right">
+                      Contraseña
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="*********"
+                      className="col-span-3"
+                      {...formik.getFieldProps('password')}
+                    />
+                    {formik.touched.password && formik.errors.password ? (
+                      <div className="text-red-500 col-span-4 text-right text-sm">{formik.errors.password}</div>
+                    ) : null}
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button type="submit" className="bg-customGreen text-white hover:bg-customGreenHover">
+                      Guardar
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          <DataTable data={users ?? []} columns={columns} globalFilterColumn='nombre' />
+        </CardContent>  
+        </Card>
+        </main>
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { faTools, faBox, faConciergeBell, faWarehouse,  faGear, faChevronDown, f
 import { useState } from "react";
 import useWindowSize from '../hooks/useWindowSize'; // Asegúrate de importar el hook
 import { useAuth } from "./AuthProvider";
-
+import { MonitorSmartphone } from "lucide-react";
 interface Props {
   isVisible: boolean;
   toggleNavbar: () => void;
@@ -51,22 +51,6 @@ const Navbar = ({isVisible, toggleNavbar}:Props) => {
                 </div>
                 {isDropdownOpen && (
                      <ul className="left-0 mt-2 ml-4 w-48 bg-gray-800 rounded-lg overflow-hidden">
-                        {
-                          isAuthenticated && user && user?.id_rol===1 &&( 
-                            <>
-                            <li>
-                              <Link
-                                to="/taller/tecnicos"
-                                className={`${getLinkClass("/taller/tecnicos")}`}
-                                onClick={handleLinkClick}
-                              >
-                                <FontAwesomeIcon icon={faPersonDigging} />                        
-                                <span className="text-sm ml-1">Usuarios del sistema</span>
-                              </Link>
-                            </li>
-                            </>
-                          )
-                        }   
                       <li>
                         <Link
                           to="/taller/ordenes"
@@ -87,6 +71,32 @@ const Navbar = ({isVisible, toggleNavbar}:Props) => {
                           <span className="text-sm ml-1">Clientes</span>
                         </Link>
                       </li>
+                      <li>
+                        <Link
+                          to="/taller/equipos"
+                          className={`${getLinkClass("/taller/equipos")}`}
+                          onClick={handleLinkClick}
+                        >
+                          <MonitorSmartphone />                          
+                          <span className="text-sm ml-1">Equipos</span>
+                        </Link>
+                      </li>
+                      {
+                          isAuthenticated && user && user?.id_rol===1 &&( 
+                            <>
+                            <li>
+                              <Link
+                                to="/taller/tecnicos"
+                                className={`${getLinkClass("/taller/tecnicos")}`}
+                                onClick={handleLinkClick}
+                              >
+                                <FontAwesomeIcon icon={faPersonDigging} />                        
+                                <span className="text-sm ml-1">Usuarios del sistema</span>
+                              </Link>
+                            </li>
+                            </>
+                          )
+                        }   
                     </ul>
                 )}
             </li>
