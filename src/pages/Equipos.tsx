@@ -20,6 +20,7 @@ import { Brand, getBrands } from "@/api/marcasService";
 import { getModels, Model } from "@/api/modeloService";
 import { Client, getClients } from "@/api/clientService";
 import { DeviceType, getDeviceTypes } from "@/api/tipoEquipoService";
+
 const Equipos = () => {
   
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -45,6 +46,7 @@ const Equipos = () => {
   });
   if (isLoading) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
   if (error || marcasError || modelsError || ownersError || deviceTypesError) return toast.error('Error al recuperar los datos');
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40 mt-5">
     <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
