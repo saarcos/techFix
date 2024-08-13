@@ -20,10 +20,13 @@ import { Brand, getBrands } from "@/api/marcasService";
 import { getModels, Model } from "@/api/modeloService";
 import { Client, getClients } from "@/api/clientService";
 import { DeviceType, getDeviceTypes } from "@/api/tipoEquipoService";
+import BrandModelForm from "@/Components/forms/brandModel/brand-model-from";
 
 const Equipos = () => {
   
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isAddingBrand, setIsAddingBrand] = useState(false); // Nuevo estado para alternar el formulario
+
   const { data: devices = [], isLoading, error } = useQuery<Equipo[]>({
     queryKey: ['devices'],
     queryFn: getEquipos,
@@ -59,13 +62,27 @@ const Equipos = () => {
         </CardHeader>
         <CardContent>
         <ResponsiveDialogExtended
-                isOpen={isCreateOpen}
-                setIsOpen={setIsCreateOpen}
-                title={`Nuevo equipo`}
-                description='Por favor, ingresa la información solicitada'
-              >
-        <EquipoForm setIsOpen={setIsCreateOpen} brands={marcas} models={modelos} owners={propietarios} deviceTypes={tiposEquipo}/>
-        </ResponsiveDialogExtended>
+              isOpen={isCreateOpen}
+              setIsOpen={(open) => {
+                setIsCreateOpen(open);
+                if (!open) setIsAddingBrand(false); // Resetear el estado al cerrar el diálogo
+              }}
+              title={isAddingBrand ? 'Nueva marca y modelo' : 'Nuevo equipo'}  // Título dinámico
+              description={isAddingBrand ? 'Por favor, ingrese la información de la nueva marca y modelo' : 'Por favor, ingresa la información solicitada'}
+            >
+              {isAddingBrand ? (
+                <BrandModelForm setIsOpen={setIsCreateOpen} setIsAddingBrand={setIsAddingBrand} />
+              ) : (
+                <EquipoForm
+                  setIsOpen={setIsCreateOpen}
+                  brands={marcas}
+                  models={modelos}
+                  owners={propietarios}
+                  deviceTypes={tiposEquipo}
+                  setIsAddingBrand={setIsAddingBrand} 
+                />
+              )}
+            </ResponsiveDialogExtended>
           <div className="ml-auto flex items-center gap-2">
             <Button 
                   size="sm"

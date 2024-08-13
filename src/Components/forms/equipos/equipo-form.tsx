@@ -36,6 +36,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/Components/ui/popover"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/Components/ui/tooltip"
 
 const formSchema = z.object({
   id_cliente: z.number().min(1, 'ID de cliente es requerido'),
@@ -56,6 +62,7 @@ interface EquipoFormProps {
   models: Model[];
   owners: Client[];
   deviceTypes: DeviceType[];
+  setIsAddingBrand: Dispatch<SetStateAction<boolean>>; // Nueva prop
 }
 
   // Interfaz para el combo box de propietarios (clientes)
@@ -66,7 +73,7 @@ interface EquipoFormProps {
   }
   
   // Componente para el combo box de propietarios
-  function ClienteCombobox({ field, owners, isEquipoLoading }: ClienteComboboxProps) {
+  function ClienteCombobox({ field, owners, isEquipoLoading}: ClienteComboboxProps) {
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState<string>(field.value?.toString() || "");
     const [searchTerm, setSearchTerm] = useState("");
@@ -130,7 +137,9 @@ interface EquipoFormProps {
       </Popover>
     );
   }
-export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners, deviceTypes}: EquipoFormProps) {
+export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners, deviceTypes, setIsAddingBrand}: EquipoFormProps) {
+  const [selectedBrand, setSelectedBrand] = useState<number | null>(null);  // Estado para la marca seleccionada
+  const [filteredModels, setFilteredModels] = useState<Model[]>([]);  // Estado para los modelos filtrados
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -197,6 +206,13 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
       console.error('Error fetching equipo data:', error);
     }
   }, [equipo, isError, error, form]);
+  useEffect(() => {
+    if (selectedBrand) {
+      setFilteredModels(models.filter(model => model.id_marca === selectedBrand));
+    } else {
+      setFilteredModels([]);
+    }
+  }, [selectedBrand, models]);
 
   const generateSerialNumber = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -244,7 +260,11 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
                 className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-customGray shadow-sm cursor-pointer"
                 {...field}
                 value={field.value.toString()} // Convierte el valor a string para mostrar en el select
-                onChange={(e) => field.onChange(parseInt(e.target.value, 10))} // Convierte el valor de vuelta a número al seleccionar
+                onChange={(e) => {
+                  const selectedValue = parseInt(e.target.value, 10);
+                  field.onChange(selectedValue);
+                  setSelectedBrand(selectedValue);
+                }}                
                 disabled={isEquipoLoading}
               >
                 <option value="">Seleccionar Marca</option>
@@ -255,7 +275,23 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
                 ))}
               </select>
               </FormControl>
-              <Button className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'><FontAwesomeIcon icon={faPlus}/> </Button>
+              <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                    <Button 
+                      className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'
+                      type="button" 
+                      onClick={() => {
+                        setIsAddingBrand(true); 
+                      }}>
+                      <FontAwesomeIcon icon={faPlus}/> 
+                    </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className='bg-customGray text-white border-none font-semibold'>
+                      <p>Añade una nueva marca y modelo</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
             </div>
             <FormMessage className="text-right text-sm text-red-500" />
           </FormItem>
@@ -266,26 +302,52 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
           control={form.control}
           render={({ field }) => (
             <FormItem className="col-span-1">
-              <FormLabel htmlFor="id_modelo">
-                Modelo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
+              <FormLabel 
+                htmlFor="id_modelo" 
+                className={cn(
+                  "",
+                  !selectedBrand ? "text-gray-400" : "text-black" 
+                )}
+              >
+                Modelo <span className={cn("text-red-500", !selectedBrand && "opacity-50")}>
+                  <FontAwesomeIcon icon={faAsterisk} className="w-3 h-3" />
+                </span>
               </FormLabel>
               <div className="flex items-center gap-1">
-                <FormControl>
+              <FormControl>
                   <select
                     id="id_modelo"
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
-                    {...field}
+                    className={cn(
+                      "h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background cursor-pointer",
+                      !selectedBrand || isEquipoLoading ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-background text-black cursor-pointer"
+                    )}                    {...field}
                     value={field.value.toString()} // Convierte el valor a string para mostrar en el select
                     onChange={(e) => field.onChange(parseInt(e.target.value, 10))} // Convierte el valor de vuelta a número al seleccionar
-                    disabled={isEquipoLoading}
+                    disabled={!selectedBrand || isEquipoLoading}  // Deshabilitado si no hay marca seleccionada
                   >
-                    <option value="">Seleccionar Modelo</option>
-                    {models.map((model)=>(
+                    <option value="">{!selectedBrand ?("Selecciona una marca primero"):"Seleccionar modelo"} </option>
+                    {filteredModels.map((model)=>(
                       <option key={model.id_modelo} value={model.id_modelo}>{model.nombre}</option>
                     ))}
                   </select>
                 </FormControl>
-                <Button className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'><FontAwesomeIcon icon={faPlus}/> </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                    <Button 
+                      className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'
+                      type="button" 
+                      onClick={() => {
+                        setIsAddingBrand(true); 
+                      }}>
+                      <FontAwesomeIcon icon={faPlus}/> 
+                    </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className='bg-customGray text-white border-none font-semibold'>
+                      <p>Añade una nueva marca y modelo</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
               <FormMessage className="text-right text-sm text-red-500" />
             </FormItem>
@@ -315,8 +377,21 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
                     ))}
                   </select>
                 </FormControl>
-                <Button className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'><FontAwesomeIcon icon={faPlus}/> </Button>
-              </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                    <Button 
+                      className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'
+                      type="button" 
+                      >
+                      <FontAwesomeIcon icon={faPlus}/> 
+                    </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className='bg-customGray text-white border-none font-semibold'>
+                      <p>Añade un nuevo tipo de equipo</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>              </div>
               <FormMessage className="text-right text-sm text-red-500" />
             </FormItem>
           )}

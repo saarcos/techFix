@@ -22,6 +22,7 @@ import EquipoForm from '@/Components/forms/equipos/equipo-form';
 import { ResponsiveDialogExtended } from '@/Components/responsive-dialog-extended';
 import DeleteForm from '@/Components/forms/equipos/equipo-delete-form';
 import { ResponsiveDialog } from '@/Components/responsive-dialog';
+import BrandModelForm from '@/Components/forms/brandModel/brand-model-from';
 interface DataTableRowActionsProps {
   row: Row<Equipo>;
 }
@@ -29,6 +30,7 @@ interface DataTableRowActionsProps {
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isAddingBrand, setIsAddingBrand] = useState(false); 
   const {data: marcas=[],  isLoadingError: marcasError} = useQuery<Brand[]>({
     queryKey: ['brands'],
     queryFn: getBrands,
@@ -51,12 +53,28 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   return (
     <>
       <ResponsiveDialogExtended
-        isOpen={isEditOpen}
-        setIsOpen={setIsEditOpen}
-        title={`Editar información de ${row.original.modelo.nombre} ${row.original.nserie}`}
-      >
-        <EquipoForm equipoId={deviceId} setIsOpen={setIsEditOpen} brands={marcas} models={modelos} owners={propietarios} deviceTypes={tiposEquipo} />
-      </ResponsiveDialogExtended>
+              isOpen={isEditOpen}
+              setIsOpen={(open) => {
+                setIsEditOpen(open);
+                if (!open) setIsAddingBrand(false); // Resetear el estado al cerrar el diálogo
+              }}
+              title={isAddingBrand ? 'Nueva marca y modelo' : `Equipo de ${row.original.cliente.nombre} ${row.original.cliente.apellido}`}  // Título dinámico
+              description={isAddingBrand ? 'Por favor, ingrese la información de la nueva marca y modelo' : 'Por favor, ingresa la información solicitada'}
+            >
+              {isAddingBrand ? (
+                <BrandModelForm setIsOpen={setIsEditOpen} setIsAddingBrand={setIsAddingBrand} />
+              ) : (
+                <EquipoForm
+                equipoId={deviceId}
+                  setIsOpen={setIsEditOpen}
+                  brands={marcas}
+                  models={modelos}
+                  owners={propietarios}
+                  deviceTypes={tiposEquipo}
+                  setIsAddingBrand={setIsAddingBrand} 
+                />
+              )}
+            </ResponsiveDialogExtended>
       <ResponsiveDialog
         isOpen={isDeleteOpen}
         setIsOpen={setIsDeleteOpen}

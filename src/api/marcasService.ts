@@ -17,7 +17,7 @@ export const getBrandById = async (BrandId: number): Promise<Brand> => {
   return response.data;
 };
 //Método para crear nuevas marcas
-export const createBrande = async (BrandData: { nombre: string}) => {
+export const createBrand = async (BrandData: { nombre: string}) => {
   try {
     const response = await axiosInstance.post('/marcas', BrandData);
     return response.data;
@@ -30,9 +30,9 @@ export const createBrande = async (BrandData: { nombre: string}) => {
   }
 };
 //Método para actualizar marcas
-export const updateBrande = async (BrandData: { id_brand:number, nombre: string;}) => {
+export const updateBrand = async (BrandData: { id_marca:number, nombre: string;}) => {
   try {
-    const response = await axiosInstance.put(`/marcas/${BrandData.id_brand}`, BrandData);
+    const response = await axiosInstance.put(`/marcas/${BrandData.id_marca}`, BrandData);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
