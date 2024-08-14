@@ -6,44 +6,56 @@ import DatatableColumnHeader from '@/Components/datatable-column-header'
 import { DataTableRowActions } from "./data-table-row-actions";
 
 import { Equipo } from "@/api/equipoService";
+
 import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/Components/ui/hover-card";
-import { Info } from 'lucide-react';  // Puedes usar otros íconos de lucide-react o FontAwesome
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/Components/ui/popover";
+
+import { Info } from "lucide-react";
 
 export const columns: ColumnDef<Equipo>[] = [
   {
     accessorKey: "nserie",
-    header:"N° Serie",
+    header: ({ column }) => (
+      <DatatableColumnHeader title="N° Serie" column={column} />
+    ),
     cell: ({ row }) => {
-      const descripcion = row.original.descripcion;
-      const nserie = row.original.nserie;
+      const description = row.original.descripcion;
 
-      return descripcion ? (
-          <HoverCard>
-              <HoverCardTrigger className="flex items-center font-medium text-customGreen hover:underline cursor-pointer">
-                  {nserie}
-                  <Info className="ml-2 h-4 w-4 text-customGreen" />  
-              </HoverCardTrigger>
-              <HoverCardContent className="max-w-xs p-4 bg-customGreen/10 rounded-xl shadow-xl border border-customGreen text-darkGreen">
-                  <div className="flex items-start space-x-2">
-                      <Info className="h-5 w-5 text-customGreen mt-1.5" />  
-                      <p className="text-sm text-darkGreen break-words overflow-hidden">
-                          {descripcion}
-                      </p>
-                  </div>
-              </HoverCardContent>
-          </HoverCard>
-      ) : (
-          <span className="flex items-center">
-              {nserie}
-              <Info className="ml-2 h-4 w-4 text-gray-400" />  {/* Ícono gris si no hay descripción */}
-          </span>
+      return (
+        <div className="flex items-center">
+          {description ? (
+            <Popover >
+              <PopoverTrigger asChild>
+                <button
+                  className="text-darkGreen hover:text-customGreenHover underline flex items-center"
+                  style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
+                >
+                  {row.original.nserie}
+                  <Info className="ml-2 text-darkGreen"  />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                className="p-4 rounded-lg shadow-lg border-s-customGray bg-customGray"
+                
+              >
+                <h3
+                  className="font-bold mb-2 text-customGreen"
+                >
+                  Descripción
+                </h3>
+                <p className="text-white font-thin">{description}</p>
+              </PopoverContent>
+            </Popover>
+          ) : (
+            <span>{row.original.nserie}</span>
+          )}
+        </div>
       );
-    },    
-},
+    },
+  },
     {
         accessorKey: "cliente.nombre", 
         header: ({column})=>(

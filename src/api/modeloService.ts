@@ -18,7 +18,7 @@ export const getModelById = async (ModelId: number): Promise<Model> => {
   return response.data;
 };
 //Método para crear nuevos modelos
-export const createModele = async (ModelData: { id_marca: number; nombre: string}) => {
+export const createModel = async (ModelData: { id_marca: number; nombre: string}) => {
   try {
     const response = await axiosInstance.post('/modelos', ModelData);
     return response.data;
@@ -31,7 +31,7 @@ export const createModele = async (ModelData: { id_marca: number; nombre: string
   }
 };
 //Método para actualizar modelos
-export const updateModele = async (ModelData: {id_modelo:number; id_marca: number; nombre: string}) => {
+export const updateModel = async (ModelData: {id_modelo:number; id_marca: number; nombre: string}) => {
   try {
     const response = await axiosInstance.put(`/modelos/${ModelData.id_modelo}`, ModelData);
     return response.data;

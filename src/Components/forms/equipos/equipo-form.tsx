@@ -62,7 +62,8 @@ interface EquipoFormProps {
   models: Model[];
   owners: Client[];
   deviceTypes: DeviceType[];
-  setIsAddingBrand: Dispatch<SetStateAction<boolean>>; // Nueva prop
+  setIsAddingBrand: Dispatch<SetStateAction<boolean>>; 
+  setIsAddingTipoEquipo: Dispatch<SetStateAction<boolean>>;
 }
 
   // Interfaz para el combo box de propietarios (clientes)
@@ -137,7 +138,7 @@ interface EquipoFormProps {
       </Popover>
     );
   }
-export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners, deviceTypes, setIsAddingBrand}: EquipoFormProps) {
+export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners, deviceTypes, setIsAddingBrand, setIsAddingTipoEquipo}: EquipoFormProps) {
   const [selectedBrand, setSelectedBrand] = useState<number | null>(null);  // Estado para la marca seleccionada
   const [filteredModels, setFilteredModels] = useState<Model[]>([]);  // Estado para los modelos filtrados
   const form = useForm<z.infer<typeof formSchema>>({
@@ -192,6 +193,9 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
 
   useEffect(() => {
     if (equipo) {
+      if (equipo.id_marca) {
+        setSelectedBrand(equipo.id_marca);
+      }
       form.reset({
         id_cliente: equipo.id_cliente,
         id_tipoe: equipo.id_tipoe,
@@ -383,6 +387,9 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
                     <Button 
                       className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'
                       type="button" 
+                      onClick={() => {
+                        setIsAddingTipoEquipo(true); 
+                      }}
                       >
                       <FontAwesomeIcon icon={faPlus}/> 
                     </Button>

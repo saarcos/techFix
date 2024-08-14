@@ -21,11 +21,14 @@ import { getModels, Model } from "@/api/modeloService";
 import { Client, getClients } from "@/api/clientService";
 import { DeviceType, getDeviceTypes } from "@/api/tipoEquipoService";
 import BrandModelForm from "@/Components/forms/brandModel/brand-model-from";
+import TipoEquipoForm from "@/Components/forms/tiposEquipo/tipo-equipo-form";
 
 const Equipos = () => {
   
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isAddingBrand, setIsAddingBrand] = useState(false); // Nuevo estado para alternar el formulario
+  const [isAddingBrand, setIsAddingBrand] = useState(false); 
+  const [isAddingTipoEquipo, setIsAddingTipoEquipo] = useState(false); 
+
 
   const { data: devices = [], isLoading, error } = useQuery<Equipo[]>({
     queryKey: ['devices'],
@@ -65,13 +68,26 @@ const Equipos = () => {
               isOpen={isCreateOpen}
               setIsOpen={(open) => {
                 setIsCreateOpen(open);
-                if (!open) setIsAddingBrand(false); // Resetear el estado al cerrar el diálogo
+                if (!open) {
+                  setIsAddingBrand(false); // Resetear el estado al cerrar el diálogo
+                  setIsAddingTipoEquipo(false); // Resetear el estado al cerrar el diálogo
+                }
               }}
-              title={isAddingBrand ? 'Nueva marca y modelo' : 'Nuevo equipo'}  // Título dinámico
-              description={isAddingBrand ? 'Por favor, ingrese la información de la nueva marca y modelo' : 'Por favor, ingresa la información solicitada'}
+              title={
+                isAddingBrand ? 'Nueva marca y modelo' : 
+                isAddingTipoEquipo ? 'Nuevo tipo de equipo' : 
+                'Nuevo equipo'
+              }  // Título dinámico
+              description={
+                isAddingBrand ? 'Por favor, ingrese la información de la nueva marca y modelo' :
+                isAddingTipoEquipo ? 'Por favor, ingrese la información del nuevo tipo de equipo' :
+                'Por favor, ingresa la información solicitada'
+              }
             >
               {isAddingBrand ? (
                 <BrandModelForm setIsOpen={setIsCreateOpen} setIsAddingBrand={setIsAddingBrand} />
+              ) : isAddingTipoEquipo ? (
+                <TipoEquipoForm setIsOpen={setIsCreateOpen} setIsAddingTipoEquipo={setIsAddingTipoEquipo} />
               ) : (
                 <EquipoForm
                   setIsOpen={setIsCreateOpen}
@@ -79,7 +95,8 @@ const Equipos = () => {
                   models={modelos}
                   owners={propietarios}
                   deviceTypes={tiposEquipo}
-                  setIsAddingBrand={setIsAddingBrand} 
+                  setIsAddingBrand={setIsAddingBrand}
+                  setIsAddingTipoEquipo={setIsAddingTipoEquipo} 
                 />
               )}
             </ResponsiveDialogExtended>
@@ -99,8 +116,7 @@ const Equipos = () => {
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                   Exportar
                 </span>
-            </Button> 
-             
+            </Button>   
           </div>
           <DataTable data={devices ?? []} columns={columns} globalFilterColumn='nserie' />
         </CardContent>

@@ -17,7 +17,7 @@ export const getDeviceTypeById = async (DeviceTypeId: number): Promise<DeviceTyp
   return response.data;
 };
 //Método para crear nuevas tiposequipos
-export const createDeviceTypee = async (DeviceTypeData: { nombre: string}) => {
+export const createDeviceType = async (DeviceTypeData: { nombre: string}) => {
   try {
     const response = await axiosInstance.post('/tiposequipos', DeviceTypeData);
     return response.data;
@@ -30,7 +30,7 @@ export const createDeviceTypee = async (DeviceTypeData: { nombre: string}) => {
   }
 };
 //Método para actualizar tiposequipos
-export const updateDeviceTypee = async (DeviceTypeData: { id_tipoe:number, nombre: string;}) => {
+export const updateDeviceType = async (DeviceTypeData: { id_tipoe:number, nombre: string;}) => {
   try {
     const response = await axiosInstance.put(`/tiposequipos/${DeviceTypeData.id_tipoe}`, DeviceTypeData);
     return response.data;
