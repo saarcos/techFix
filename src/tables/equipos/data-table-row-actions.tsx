@@ -23,6 +23,7 @@ import { ResponsiveDialogExtended } from '@/Components/responsive-dialog-extende
 import DeleteForm from '@/Components/forms/equipos/equipo-delete-form';
 import { ResponsiveDialog } from '@/Components/responsive-dialog';
 import BrandModelForm from '@/Components/forms/brandModel/brand-model-from';
+import TipoEquipoForm from '@/Components/forms/tiposEquipo/tipo-equipo-form';
 interface DataTableRowActionsProps {
   row: Row<Equipo>;
 }
@@ -31,6 +32,8 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isAddingBrand, setIsAddingBrand] = useState(false); 
+  const [isAddingTipoEquipo, setIsAddingTipoEquipo] = useState(false); 
+
   const {data: marcas=[],  isLoadingError: marcasError} = useQuery<Brand[]>({
     queryKey: ['brands'],
     queryFn: getBrands,
@@ -53,28 +56,42 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   return (
     <>
       <ResponsiveDialogExtended
-              isOpen={isEditOpen}
-              setIsOpen={(open) => {
-                setIsEditOpen(open);
-                if (!open) setIsAddingBrand(false); // Resetear el estado al cerrar el diálogo
-              }}
-              title={isAddingBrand ? 'Nueva marca y modelo' : `Equipo de ${row.original.cliente.nombre} ${row.original.cliente.apellido}`}  // Título dinámico
-              description={isAddingBrand ? 'Por favor, ingrese la información de la nueva marca y modelo' : 'Por favor, ingresa la información solicitada'}
-            >
-              {isAddingBrand ? (
-                <BrandModelForm setIsOpen={setIsEditOpen} setIsAddingBrand={setIsAddingBrand} />
-              ) : (
-                <EquipoForm
-                equipoId={deviceId}
-                  setIsOpen={setIsEditOpen}
-                  brands={marcas}
-                  models={modelos}
-                  owners={propietarios}
-                  deviceTypes={tiposEquipo}
-                  setIsAddingBrand={setIsAddingBrand} 
-                />
-              )}
-            </ResponsiveDialogExtended>
+        isOpen={isEditOpen}
+        setIsOpen={(open) => {
+          setIsEditOpen(open);
+          if (!open) {
+            setIsAddingBrand(false); // Resetear el estado al cerrar el diálogo
+            setIsAddingTipoEquipo(false); // Resetear el estado al cerrar el diálogo
+          }
+        }}
+        title={
+          isAddingBrand ? 'Nueva marca y modelo' : 
+          isAddingTipoEquipo ? 'Nuevo tipo de equipo' : 
+          'Nuevo equipo'
+        }  // Título dinámico
+        description={
+          isAddingBrand ? 'Por favor, ingrese la información de la nueva marca y modelo' :
+          isAddingTipoEquipo ? 'Por favor, ingrese la información del nuevo tipo de equipo' :
+          'Por favor, ingresa la información solicitada'
+        }
+      >
+        {isAddingBrand ? (
+          <BrandModelForm setIsOpen={setIsEditOpen} setIsAddingBrand={setIsAddingBrand} />
+        ) : isAddingTipoEquipo ? (
+          <TipoEquipoForm setIsOpen={setIsEditOpen} setIsAddingTipoEquipo={setIsAddingTipoEquipo} />
+        ) : (
+          <EquipoForm
+            equipoId={deviceId}
+            setIsOpen={setIsEditOpen}
+            brands={marcas}
+            models={modelos}
+            owners={propietarios}
+            deviceTypes={tiposEquipo}
+            setIsAddingBrand={setIsAddingBrand}
+            setIsAddingTipoEquipo={setIsAddingTipoEquipo} 
+          />
+        )}
+      </ResponsiveDialogExtended>
       <ResponsiveDialog
         isOpen={isDeleteOpen}
         setIsOpen={setIsDeleteOpen}

@@ -15,6 +15,7 @@ import * as z from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { createDeviceType, DeviceType, getDeviceTypeById, updateDeviceType } from '@/api/tipoEquipoService';
+import { ArrowLeft } from 'lucide-react';
 
 const brandSchema = z.object({
   nombre: z.string().min(1, 'El nombre es requerido').max(50, 'Se aceptan máximo 50 caracteres'),
@@ -123,7 +124,15 @@ export default function TipoEquipoForm({ deviceTypeId, setIsOpen, setIsAddingTip
             </FormItem>
           )}
         />
-        <div className="flex justify-end">
+        <div className="flex justify-end space-x-2">
+        <Button 
+          type="button" 
+          className="bg-gray-300 text-gray-700 hover:bg-gray-400 flex items-center" 
+          onClick={() => setIsAddingTipoEquipo(false)}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" /> {/* Ícono de regreso */}
+          Regresar
+        </Button>
           <Button type="submit" disabled={form.formState.isSubmitting || isDeviceTypeLoading} className='rounded-md bg-customGreen hover:bg-customGreenHover'>
             {form.formState.isSubmitting || isDeviceTypeLoading ? 'Guardando...' : deviceTypeId ? 'Actualizar tipo de equipo' : 'Guardar tipo de equipo'}
           </Button>

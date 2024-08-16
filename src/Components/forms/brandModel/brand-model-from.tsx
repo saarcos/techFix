@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { createBrandModel } from '@/api/brandModelService';
 import { Brand, getBrands } from '@/api/marcasService';
 import { createModel } from '@/api/modeloService';
+import { ArrowLeft } from 'lucide-react';
 
 const brandModelSchema = z.object({
   marcaId: z.string().optional(),  
@@ -64,11 +65,11 @@ export default function BrandModelForm({ setIsOpen, setIsAddingBrand }: BrandMod
     mutationFn: createModel,
     onSuccess:()=>{
       queryClient.invalidateQueries({ queryKey: ['models'] });
-      toast.success('Marca y modelo creados exitosamente');
+      toast.success('Modelo creadi exitosamente');
       setIsAddingBrand(false);
     },
     onError: (error) => {
-      toast.error('Error durante la creación de marca y modelo');
+      toast.error('Error durante la creación modelo');
       setIsAddingBrand(false);
       setIsOpen(false);
       console.error('Error creación:', error);
@@ -179,8 +180,15 @@ export default function BrandModelForm({ setIsOpen, setIsAddingBrand }: BrandMod
           </FormItem>
         )}
       />
-
-      <div className="flex justify-end">
+      <div className="flex justify-end space-x-2">
+        <Button 
+          type="button" 
+          className="bg-gray-300 text-gray-700 hover:bg-gray-400 flex items-center" 
+          onClick={() => setIsAddingBrand(false)}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" /> {/* Ícono de regreso */}
+          Regresar
+        </Button>
         <Button
           type="submit"
           disabled={form.formState.isSubmitting}

@@ -44,10 +44,10 @@ import {
 } from "@/Components/ui/tooltip"
 
 const formSchema = z.object({
-  id_cliente: z.number().min(1, 'ID de cliente es requerido'),
-  id_tipoe: z.number().min(1, 'ID de tipo es requerido'),
-  id_marca: z.number().min(1, 'ID de marca es requerido'),
-  id_modelo: z.number().min(1, 'ID de modelo es requerido'),
+  id_cliente: z.number().min(1, 'Cliente es requerido'),
+  id_tipoe: z.number().min(1, 'Tipo es requerido'),
+  id_marca: z.number().min(1, 'Marca es requerido'),
+  id_modelo: z.number().min(1, 'Modelo es requerido'),
   nserie: z.string()
     .regex(/^[A-Z0-9-]{8,20}$/, "Número de serie inválido")
     .min(8, "El número de serie es demasiado corto")
@@ -218,14 +218,7 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
     }
   }, [selectedBrand, models]);
 
-  const generateSerialNumber = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let serial = '';
-    for (let i = 0; i < 15; i++) {
-      serial += chars[Math.floor(Math.random() * chars.length)];
-    }
-    form.setValue('nserie', serial); 
-  };
+ 
 
   const isLoading = form.formState.isSubmitting;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -297,7 +290,7 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
                   </Tooltip>
                 </TooltipProvider>
             </div>
-            <FormMessage className="text-right text-sm text-red-500" />
+            <FormMessage className="text-left text-sm text-red-500" />
           </FormItem>
           )}
         />
@@ -353,7 +346,7 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <FormMessage className="text-right text-sm text-red-500" />
+              <FormMessage className="text-left text-sm text-red-500" />
             </FormItem>
           )}
         />
@@ -399,7 +392,7 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>              </div>
-              <FormMessage className="text-right text-sm text-red-500" />
+              <FormMessage className="text-left text-sm text-red-500" />
             </FormItem>
           )}
         />
@@ -416,7 +409,7 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
                   <ClienteCombobox field={field} owners={owners} isEquipoLoading={isEquipoLoading} />
                 </FormControl>
               </div>
-              <FormMessage className="text-right text-sm text-red-500" />
+              <FormMessage className="text-left text-sm text-red-500" />
             </FormItem>
           )}
         />
@@ -424,32 +417,25 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
           name="nserie"
           control={form.control}
           render={({ field }) => (
-            <FormItem className="col-span-1">
-              <FormLabel htmlFor="nserie">
-                N° Serie <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
-              </FormLabel>
-              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-1">
+          <FormItem className="col-span-1">
+            <FormLabel htmlFor="nserie">
+              N° Serie <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
+            </FormLabel>
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-1">
               <FormControl className="w-full sm:w-auto">
                 <Input
-                    id="nserie"
-                    className="w-full sm:w-auto" // Hace el input más grande en pantallas pequeñas
-                    placeholder="N° Serie"
-                    {...field}
-                    value={field.value.toString()} // Convierte el valor a string para mostrar en el select
-                    onChange={(e) => field.onChange(parseInt(e.target.value, 10))} // Convierte el valor de vuelta a número al seleccionar
-                    disabled={isEquipoLoading}
-                  />
-                </FormControl>
-                <Button
-                  type="button"
-                  onClick={generateSerialNumber}
-                  className="w-full sm:w-auto rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3"
-                  >
-                  Generar aleatorio
-                </Button>
-              </div>
-              <FormMessage className="text-right text-sm text-red-500" />
-            </FormItem>
+                  id="nserie"
+                  className="w-full sm:w-auto" // Hace el input más grande en pantallas pequeñas
+                  placeholder="N° Serie"
+                  {...field}
+                  value={field.value} // Acepta cadenas como valor
+                  onChange={(e) => field.onChange(e.target.value.toUpperCase())} // Convierte el valor a mayúsculas
+                  disabled={isEquipoLoading}
+                />
+              </FormControl>
+            </div>
+            <FormMessage className="text-left text-sm text-red-500" />
+          </FormItem>
           )}
         />
         <FormField
@@ -473,7 +459,7 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
             </FormItem>
           )}
         />
-        <div className="col-span-2 flex justify-end">
+        <div className="col-span-2 flex justify-end ">     
           <Button type="submit" disabled={isLoading || isEquipoLoading} className="bg-customGreen text-white hover:bg-customGreenHover">
             {isLoading || isEquipoLoading ? (
               <>
