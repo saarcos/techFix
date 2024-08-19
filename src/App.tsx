@@ -13,6 +13,9 @@ import Menu from "./Components/Menu"
 import { useEffect, useState } from "react"
 import { Toaster } from "sonner"
 import Equipos from "./pages/Equipos"
+import CategoriaProductos from "./pages/CategoriaProductos"
+import Servicios from "./pages/Servicios"
+import CategoriaServicios from "./pages/CategoriaServicios"
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -50,11 +53,14 @@ function App() {
           <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <LoginForm />} />
           <Route path="/sign-up" element={isAuthenticated ? <Navigate to="/" /> : <SignupForm />} />
           <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
-          <Route path="/products" element={<ProtectedRoute><Productos /></ProtectedRoute>} />
+          <Route path="/taller/productos" element={<ProtectedRoute><Productos /></ProtectedRoute>} />
           <Route path="/taller/tecnicos" element={<ProtectedRoute><Tecnicos /></ProtectedRoute>} />
           <Route path="/taller/ordenes" element={<ProtectedRoute><Ordenes /></ProtectedRoute>} />
           <Route path="/taller/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
           <Route path="/taller/equipos" element={<ProtectedRoute><Equipos /></ProtectedRoute>} />
+          <Route path="/taller/categoriaProductos" element={<ProtectedRoute><CategoriaProductos /></ProtectedRoute>} />
+          <Route path="/taller/servicios" element={<ProtectedRoute><Servicios /></ProtectedRoute>} />
+          <Route path="/taller/categoriaServicios" element={<ProtectedRoute><CategoriaServicios /></ProtectedRoute>} />
         </Routes>
       </div>
     </div>
