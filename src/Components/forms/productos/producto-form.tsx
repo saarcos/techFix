@@ -39,10 +39,11 @@ const productSchema = z.object({
 interface ProductFormProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   categorias: ProductCategory[]; 
-  productId?: number; // ID del producto a editar, si existe
+  productId?: number; 
+  setIsAddingCategory: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function ProductForm({ setIsOpen, categorias, productId }: ProductFormProps) {
+export default function ProductForm({ setIsOpen, categorias, productId, setIsAddingCategory }: ProductFormProps) {
   const form = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -74,10 +75,10 @@ export default function ProductForm({ setIsOpen, categorias, productId }: Produc
         id_catprod: producto.id_catprod,
         nombreProducto: producto.nombreProducto,
         codigoProducto: producto.codigoProducto,
-        precioSinIVA: producto.precioSinIVA,
-        iva: Math.trunc(producto.iva),  
-        precioFinal: producto.precioFinal,
-        stock: producto.stock,
+        precioSinIVA: parseFloat(producto.precioSinIVA.toString()),  // Convertir a número
+        iva: parseFloat(producto.iva.toString()),  // Convertir a número
+        precioFinal: parseFloat(producto.precioFinal.toString()),  // Convertir a número
+        stock: parseInt(producto.stock.toString(), 10),  // Convertir a número entero
       });
     }
     if (isError) {
@@ -117,14 +118,16 @@ export default function ProductForm({ setIsOpen, categorias, productId }: Produc
   const iva = useWatch({ control: form.control, name: 'iva' });
 
   useEffect(() => {
-    const precioSinIVANum = typeof precioSinIVA === 'number' ? precioSinIVA : parseFloat(precioSinIVA) || 0;
-    const ivaNum = typeof iva === 'number' ? iva : parseFloat(iva) || 0;
-  
-    const nuevoPrecioFinal = precioSinIVANum + (precioSinIVANum * (ivaNum / 100));
-    if (!isNaN(nuevoPrecioFinal)) {
-      form.setValue('precioFinal', parseFloat(nuevoPrecioFinal.toFixed(2)));
-    } else {
-      form.setValue('precioFinal', 0); // Maneja casos en los que el cálculo no es válido
+    if (precioSinIVA !== 0 && iva !== 0) { // Evitar cálculos innecesarios con valores predeterminados
+      const precioSinIVANum = typeof precioSinIVA === 'number' ? precioSinIVA : parseFloat(precioSinIVA) || 0;
+      const ivaNum = typeof iva === 'number' ? iva : parseFloat(iva) || 0;
+    
+      const nuevoPrecioFinal = precioSinIVANum + (precioSinIVANum * (ivaNum / 100));
+      if (!isNaN(nuevoPrecioFinal)) {
+        form.setValue('precioFinal', parseFloat(nuevoPrecioFinal.toFixed(2)));
+      } else {
+        form.setValue('precioFinal', 0); 
+      }
     }
   }, [precioSinIVA, iva, form]);
 
@@ -173,14 +176,19 @@ export default function ProductForm({ setIsOpen, categorias, productId }: Produc
                 </FormControl>
                 <TooltipProvider>
                   <Tooltip>
-                    <TooltipTrigger>
+                  <TooltipTrigger asChild>
+                    <span>
                       <Button 
                         className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'
                         type="button" 
-                        >
+                        onClick={() => {
+                            setIsAddingCategory(true);
+                        }}
+                      >
                         <FontAwesomeIcon icon={faPlus}/> 
                       </Button>
-                    </TooltipTrigger>
+                    </span>
+                  </TooltipTrigger>
                     <TooltipContent className='bg-customGray text-white border-none font-semibold'>
                       <p>Añade una nueva categoría</p>
                     </TooltipContent>

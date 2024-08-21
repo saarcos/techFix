@@ -1,7 +1,4 @@
 import { useState } from 'react';
-
-import DeleteForm from '@/Components/forms/users/user-delete-form';
-import EditForm from '@/Components/forms/users/user-edit-form';
 import IconMenu from '@/Components/icon-menu';
 import { ResponsiveDialog } from '@/Components/responsive-dialog';
 import { Button } from '@/Components/ui/button';
@@ -14,10 +11,14 @@ import {
 } from '@/Components/ui/dropdown-menu';
 import { Row } from '@tanstack/react-table';
 import { MoreHorizontal, SquarePen, Trash2 } from 'lucide-react';
-import { getRoles, Role } from '@/api/roleService';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Product } from '@/api/productsService';
+import ProductForm from '@/Components/forms/productos/producto-form';
+import { getProductCategories, ProductCategory } from '@/api/productCategories';
+import DeleteForm from '@/Components/forms/productos/product-delete-form';
+import { ResponsiveDialogExtended } from '@/Components/responsive-dialog-extended';
+import ProductCategoryForm from '@/Components/forms/productCategory/product-category-form';
 
 interface DataTableRowActionsProps {
   row: Row<Product>;
@@ -26,29 +27,43 @@ interface DataTableRowActionsProps {
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const { data: roles = [], isError: rolesError } = useQuery<Role[]>({
-    queryKey: ['roles'],
-    queryFn: getRoles,
+  const [isAddingCategory, setIsAddingCategory] = useState(false); 
+  const { data: productCategories = [], error: isProductCategoriesError } = useQuery<ProductCategory[]>({
+    queryKey: ['productCategories'],
+    queryFn: getProductCategories,
   });
-  if (rolesError) return toast.error('Error al recuperar los datos');
+  if (isProductCategoriesError) return toast.error('Error al recuperar los datos');
 
-  const userId = row.original.id_producto;
+  const productId = row.original.id_producto;
   return (
     <>
-      <ResponsiveDialog
-        isOpen={isEditOpen}
-        setIsOpen={setIsEditOpen}
-        title={`Editar información de ${row.original.nombreProducto}`}
-      >
-        <EditForm userId={userId} setIsOpen={setIsEditOpen} roles={roles} />
-      </ResponsiveDialog>
+      <ResponsiveDialogExtended
+              isOpen={isEditOpen}
+              setIsOpen={(open) => {
+                setIsEditOpen(open);
+                if (!open) setIsAddingCategory(false); 
+              }}
+              title={isAddingCategory ? 'Nueva categoría de producto' : `Editar información de ${row.original.nombreProducto}`}  
+              description={isAddingCategory ? 'Por favor, ingrese la información de la nueva categoría' : 'Por favor, ingresa la información solicitada'}
+            >
+              {isAddingCategory ? (
+                <ProductCategoryForm setIsOpen={setIsEditOpen} setIsAddingCategory={setIsAddingCategory} />
+              ) : (
+                <ProductForm
+                  productId={productId}
+                  setIsOpen={setIsEditOpen}
+                  categorias={productCategories}
+                  setIsAddingCategory={setIsAddingCategory} // Permite cambiar al formulario de categorías
+                />
+              )}
+      </ResponsiveDialogExtended>
       <ResponsiveDialog
         isOpen={isDeleteOpen}
         setIsOpen={setIsDeleteOpen}
         title={`Eliminar del sistema a ${row.original.nombreProducto}`}
         description="¿Estás seguro de que deseas continuar? Esta acción no se puede deshacer."
       >
-        <DeleteForm userId={userId} setIsOpen={setIsDeleteOpen} />
+        <DeleteForm productId={productId} setIsOpen={setIsDeleteOpen} />
       </ResponsiveDialog>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

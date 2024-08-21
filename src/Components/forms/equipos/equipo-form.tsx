@@ -391,7 +391,8 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
                       <p>Añade un nuevo tipo de equipo</p>
                     </TooltipContent>
                   </Tooltip>
-                </TooltipProvider>              </div>
+                </TooltipProvider>             
+                </div>
               <FormMessage className="text-left text-sm text-red-500" />
             </FormItem>
           )}
