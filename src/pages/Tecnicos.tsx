@@ -101,6 +101,7 @@ const Tecnicos = () => {
               <DialogTrigger asChild>
                 <Button
                   size="sm"
+                  type='button'
                   className="h-8 gap-1 bg-customGreen hover:bg-customGreenHover"
                   ref={dialogRef}
                 >

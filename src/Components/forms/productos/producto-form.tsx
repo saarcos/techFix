@@ -118,16 +118,13 @@ export default function ProductForm({ setIsOpen, categorias, productId, setIsAdd
   const iva = useWatch({ control: form.control, name: 'iva' });
 
   useEffect(() => {
-    if (precioSinIVA !== 0 && iva !== 0) { // Evitar cálculos innecesarios con valores predeterminados
-      const precioSinIVANum = typeof precioSinIVA === 'number' ? precioSinIVA : parseFloat(precioSinIVA) || 0;
-      const ivaNum = typeof iva === 'number' ? iva : parseFloat(iva) || 0;
-    
+    const precioSinIVANum = typeof precioSinIVA === 'number' ? precioSinIVA : parseFloat(precioSinIVA) || 0;
+    const ivaNum = typeof iva === 'number' ? iva : parseFloat(iva) || 0;
+  
+    // Solo realiza el cálculo si precioSinIVANum es mayor que 0 o si ivaNum es válido (incluyendo 0%)
+    if (precioSinIVANum > 0 || ivaNum >= 0) {
       const nuevoPrecioFinal = precioSinIVANum + (precioSinIVANum * (ivaNum / 100));
-      if (!isNaN(nuevoPrecioFinal)) {
-        form.setValue('precioFinal', parseFloat(nuevoPrecioFinal.toFixed(2)));
-      } else {
-        form.setValue('precioFinal', 0); 
-      }
+      form.setValue('precioFinal', parseFloat(nuevoPrecioFinal.toFixed(2)));
     }
   }, [precioSinIVA, iva, form]);
 

@@ -17,7 +17,7 @@ const productCategorySchema = z.object({
 interface ProductCategoryFormProps {
     setIsOpen: Dispatch<SetStateAction<boolean>>;
     productCategoryId?: number;
-    setIsAddingCategory: Dispatch<SetStateAction<boolean>>;
+    setIsAddingCategory?: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function ProductCategoryForm({ setIsOpen, productCategoryId, setIsAddingCategory }: ProductCategoryFormProps) {
@@ -54,13 +54,15 @@ export default function ProductCategoryForm({ setIsOpen, productCategoryId, setI
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['productCategories'] });
             toast.success('Categoría de producto creada exitosamente');
-            setIsAddingCategory(false);
+            if (setIsAddingCategory) {
+                setIsAddingCategory(false);
+            }else{
+                setIsOpen(false);
+            }
         },
         onError: (error) => {
             toast.error('Error al crear la categoría del producto');
             console.error('Error de creación de la categoría de producto:', error);
-            setIsAddingCategory(false);
-            setIsOpen(false);
         }
     });
 
@@ -69,7 +71,6 @@ export default function ProductCategoryForm({ setIsOpen, productCategoryId, setI
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['productCategories'] });
             toast.success('Categoría de producto actualizada exitosamente');
-            setIsAddingCategory(false);
             setIsOpen(false);
         },
         onError: (error) => {
