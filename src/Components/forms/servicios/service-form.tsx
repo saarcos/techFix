@@ -30,10 +30,11 @@ const formSchema = z.object({
 interface ServiceFormProps {
   serviceId?: number;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  categorias: ServiceCategory[];  // Asegúrate de que este tipo se ajuste a tu modelo de categoría de servicio
+  categorias: ServiceCategory[];  
+  setIsAddingCategory: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function ServiceForm({ serviceId, setIsOpen, categorias }: ServiceFormProps) {
+export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAddingCategory }: ServiceFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -144,7 +145,10 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias }: Servic
                 <span>
                   <Button 
                     className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'
-                    type="button"               
+                    type="button" 
+                    onClick={()=>{
+                      setIsAddingCategory(true);
+                    }}              
                   >
                     <FontAwesomeIcon icon={faPlus}/> 
                   </Button>

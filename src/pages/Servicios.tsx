@@ -11,10 +11,12 @@ import { getServices, Service } from '@/api/servicioService';
 import { ResponsiveDialogExtended } from '@/Components/responsive-dialog-extended';
 import ServiceForm from '@/Components/forms/servicios/service-form';
 import { getserviceCategories, ServiceCategory } from '@/api/serviceCategories';
+import ServiceCategoryForm from '@/Components/forms/serviceCategory/service-category-form';
 
 const Servicios = () => {
   const dialogRef = useRef<HTMLButtonElement>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isAddingCategory, setIsAddingCategory] = useState(false); // Estado para controlar el formulario a mostrar
   const { data: services = [], isLoading, error } = useQuery<Service[]>({
     queryKey: ['services'],
     queryFn: getServices,
@@ -34,34 +36,50 @@ const Servicios = () => {
           <CardHeader>
             <CardTitle>Servicios</CardTitle>
             <CardDescription>
-              Administra los servicios ofrecidos en el taller.
+              Administra los servicios disponibles en el taller.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveDialogExtended
-                isOpen={isCreateOpen}
-                setIsOpen={setIsCreateOpen}
-                title={`Nuevo servicio`}
-                description='Por favor, ingresa la información solicitada'
-              >
-              <ServiceForm setIsOpen={setIsCreateOpen} categorias={serviceCategories}/>
+              isOpen={isCreateOpen}
+              setIsOpen={(open) => {
+                setIsCreateOpen(open);
+                if (!open) setIsAddingCategory(false); // Reiniciar el estado al cerrar el diálogo
+              }}
+              title={isAddingCategory ? 'Nueva categoría de servicio' : 'Nuevo servicio'}  
+              description={isAddingCategory ? 'Por favor, ingrese la información de la nueva categoría' : 'Por favor, ingresa la información solicitada'}
+            >
+              {isAddingCategory ? (
+                <ServiceCategoryForm setIsOpen={setIsCreateOpen} setIsAddingCategory={setIsAddingCategory} />
+              ) : (
+                <ServiceForm
+                  setIsOpen={setIsCreateOpen}
+                  categorias={serviceCategories}
+                  setIsAddingCategory={setIsAddingCategory} // Permite cambiar al formulario de categorías
+                />
+              )}
             </ResponsiveDialogExtended>
-              <Button 
+            <div className="flex gap-2">
+              <Button
                 size="sm"
                 className="h-8 gap-1 bg-customGreen hover:bg-customGreenHover"
                 ref={dialogRef}
-                onClick={() => setIsCreateOpen(true)}  // Aquí se abre el diálogo
+                onClick={() => {
+                  setIsCreateOpen(true);
+                  setIsAddingCategory(false); // Mostrar el formulario de servicio por defecto
+                }}
               >
-              <PlusCircle className="h-3.5 w-3.5 text-black" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap text-black">
-                Nuevo servicio
-              </span>
+                <PlusCircle className="h-3.5 w-3.5 text-black" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap text-black">
+                  Nuevo servicio
+                </span>
               </Button>
-              <DataTable data={services ?? []} columns={columns} globalFilterColumn='nombre' />
-          </CardContent>  
+            </div>
+            <DataTable data={services ?? []} columns={columns} globalFilterColumn="nombre" />
+          </CardContent>
         </Card>
       </main>
-      </div>
+    </div>
   );
 };
 

@@ -7,34 +7,34 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { deleteProductCategory } from '@/api/productCategories';
+import { deleteServiceCategory } from '@/api/serviceCategories';
 
 const formSchema = z.object({
-  productCategoryId: z.number(),
+  serviceCategoryId: z.number(),
 });
 
 interface DeleteFormProps {
-    productCategoryId: number;
+    serviceCategoryId: number;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function DeleteForm({ productCategoryId, setIsOpen }: DeleteFormProps) {
+export default function DeleteForm({ serviceCategoryId, setIsOpen }: DeleteFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-        productCategoryId: productCategoryId,
+        serviceCategoryId: serviceCategoryId,
     },
   });
   const queryClient= useQueryClient();
   const deleteMutation = useMutation({
-    mutationFn: deleteProductCategory,
+    mutationFn: deleteServiceCategory,
     onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['productCategories'] });
-        toast.success('Categoría de producto eliminada exitosamente');
+        queryClient.invalidateQueries({ queryKey: ['serviceCategories'] });
+        toast.success('Categoría de servicio eliminada exitosamente');
     },
     onError: (error) => {
-      toast.error('Error al eliminar la categoría de producto');
-      console.error('Error al eliminar el producto:', error);
+      toast.error('Error al eliminar la categoría de servicio');
+      console.error('Error al eliminar la categoría de servicio:', error);
     },
   });
 
@@ -42,8 +42,8 @@ export default function DeleteForm({ productCategoryId, setIsOpen }: DeleteFormP
 
   const onSubmit = async () => {
     try {
-        deleteMutation.mutate(productCategoryId);
-        console.log(`Eliminando categoría de producto con ID: ${productCategoryId}`);
+        deleteMutation.mutate(serviceCategoryId);
+        console.log(`Eliminando categoría de producto con ID: ${serviceCategoryId}`);
         setIsOpen(false);
     } catch (error) {
       console.log(error);

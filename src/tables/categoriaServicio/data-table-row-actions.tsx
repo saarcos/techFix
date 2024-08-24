@@ -11,59 +11,36 @@ import {
 } from '@/Components/ui/dropdown-menu';
 import { Row } from '@tanstack/react-table';
 import { MoreHorizontal, SquarePen, Trash2 } from 'lucide-react';
-import { Service } from '@/api/servicioService';
-import DeleteForm from '@/Components/forms/servicios/service-delete-form';
-import ServiceForm from '@/Components/forms/servicios/service-form';
-import { getserviceCategories, ServiceCategory } from '@/api/serviceCategories';
-import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
-import { ResponsiveDialogExtended } from '@/Components/responsive-dialog-extended';
+import { ServiceCategory } from '@/api/serviceCategories';
 import ServiceCategoryForm from '@/Components/forms/serviceCategory/service-category-form';
+import DeleteForm from '@/Components/forms/serviceCategory/service-category-delete-form';
 interface DataTableRowActionsProps {
-  row: Row<Service>;
+  row: Row<ServiceCategory>;
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [isAddingCategory, setIsAddingCategory] = useState(false); 
-  const { data: serviceCategories=[], error: isServiceCategoriesError} = useQuery<ServiceCategory[]>({
-    queryKey: ['serviceCategories'],
-    queryFn: getserviceCategories
-  });
-  if (isServiceCategoriesError) return toast.error('Error al recuperar los datos');
 
 
-  const serviceId = row.original.id_servicio;
+  const servCatId = row.original.id_catserv;
   return (
     <>
-      <ResponsiveDialogExtended
+      <ResponsiveDialog
         isOpen={isEditOpen}
-        setIsOpen={(open) => {
-          setIsEditOpen(open);
-          if (!open) setIsAddingCategory(false); 
-        }}
-        title={isAddingCategory ? 'Nueva categoría de servicio' : `Editar información de ${row.original.nombre}`}  
-        description={isAddingCategory ? 'Por favor, ingrese la información de la nueva categoría' : 'Por favor, ingresa la información solicitada'}
+        setIsOpen={setIsEditOpen}
+        title={`Editar información de ${row.original.nombreCat}`}
+        description='Por favor, ingresa la información solicitada'
       >
-        {isAddingCategory ? (
-          <ServiceCategoryForm setIsOpen={setIsEditOpen} setIsAddingCategory={setIsAddingCategory} />
-        ) : (
-          <ServiceForm
-            serviceId={serviceId}
-            setIsOpen={setIsEditOpen}
-            categorias={serviceCategories}
-            setIsAddingCategory={setIsAddingCategory} // Permite cambiar al formulario de categorías
-          />
-        )}
-      </ResponsiveDialogExtended>
+        <ServiceCategoryForm serviceCategoryId={servCatId} setIsOpen={setIsEditOpen}  />
+      </ResponsiveDialog>
       <ResponsiveDialog
         isOpen={isDeleteOpen}
         setIsOpen={setIsDeleteOpen}
-        title={`Eliminar del sistema a ${row.original.nombre}`}
+        title={`Eliminar del sistema a ${row.original.nombreCat}`}
         description="¿Estás seguro de que deseas continuar? Esta acción no se puede deshacer."
       >
-        <DeleteForm serviceId={serviceId} setIsOpen={setIsDeleteOpen} />
+        <DeleteForm serviceCategoryId={servCatId} setIsOpen={setIsDeleteOpen} />
       </ResponsiveDialog>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
