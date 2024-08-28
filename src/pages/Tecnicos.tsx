@@ -24,6 +24,8 @@ import * as Yup from 'yup';
 import { getRoles, Role } from '@/api/roleService';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faAsterisk } from '@fortawesome/free-solid-svg-icons';
 
 const Tecnicos = () => {
   const queryClient = useQueryClient();
@@ -121,7 +123,7 @@ const Tecnicos = () => {
                 <form onSubmit={formik.handleSubmit} className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="nombre" className="text-right">
-                      Nombre
+                      Nombre <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
                     </Label>
                     <Input
                       id="nombre"
@@ -135,7 +137,7 @@ const Tecnicos = () => {
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="apellido" className="text-right">
-                      Apellido
+                      Apellido <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
                     </Label>
                     <Input
                       id="apellido"
@@ -149,7 +151,7 @@ const Tecnicos = () => {
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="email" className="text-right">
-                      Correo
+                      Correo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
                     </Label>
                     <Input
                       id="email"
@@ -164,7 +166,7 @@ const Tecnicos = () => {
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="role" className="text-right">
-                      Rol
+                      Rol <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
                     </Label>
                     <select
                       id="role"
@@ -184,8 +186,8 @@ const Tecnicos = () => {
                     ) : null}
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="password" className="text-right">
-                      Contraseña
+                    <Label htmlFor="password" className="text-right flex items-center justify-end">
+                      Contraseña <span className="text-red-500 ml-1"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
                     </Label>
                     <Input
                       id="password"

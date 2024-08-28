@@ -16,6 +16,8 @@ import * as z from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getClientById, updateCliente, createCliente, Client } from '@/api/clientService';
 import { toast } from 'sonner';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faAsterisk } from '@fortawesome/free-solid-svg-icons';
 
 const formSchema = z.object({
   nombre: z.string().min(1, 'Nombre es requerido').max(50, 'Ingresa menos de 50 caracteres'),
@@ -132,7 +134,7 @@ export default function UserForm({ clienteId, setIsOpen }: UserFormProps) {
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
               <FormLabel htmlFor="nombre" className="text-right">
-                Nombre
+                Nombre <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -153,7 +155,7 @@ export default function UserForm({ clienteId, setIsOpen }: UserFormProps) {
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
               <FormLabel htmlFor="apellido" className="text-right">
-                Apellido
+                Apellido <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -174,7 +176,7 @@ export default function UserForm({ clienteId, setIsOpen }: UserFormProps) {
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
               <FormLabel htmlFor="cedula" className="text-right">
-                Cédula
+                Cédula <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -196,7 +198,7 @@ export default function UserForm({ clienteId, setIsOpen }: UserFormProps) {
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
               <FormLabel htmlFor="correo" className="text-right">
-                Correo
+                Correo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -218,7 +220,7 @@ export default function UserForm({ clienteId, setIsOpen }: UserFormProps) {
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
               <FormLabel htmlFor="celular" className="text-right">
-                Celular
+                Celular <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -240,7 +242,7 @@ export default function UserForm({ clienteId, setIsOpen }: UserFormProps) {
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
               <FormLabel htmlFor="tipo_cliente" className="text-right">
-                Tipo
+                Tipo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
               </FormLabel>
               <FormControl>
                 <select

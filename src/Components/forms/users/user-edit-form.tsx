@@ -16,6 +16,8 @@ import * as z from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getUserById, updateUsuario, User } from '@/api/userService';
 import { toast } from 'sonner';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faAsterisk } from '@fortawesome/free-solid-svg-icons';
 
 const formSchema = z.object({
   nombre: z.string().min(1, 'Nombre es requerido'),
@@ -107,7 +109,7 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
               <FormLabel htmlFor="nombre" className="text-right">
-                Nombre
+                Nombre <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -128,7 +130,7 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
               <FormLabel htmlFor="apellido" className="text-right">
-                Apellido
+                Apellido <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -149,7 +151,7 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
               <FormLabel htmlFor="email" className="text-right">
-                Correo
+                Correo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -171,7 +173,7 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
               <FormLabel htmlFor="role" className="text-right">
-                Rol
+                Rol <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
               </FormLabel>
               <FormControl>
                 <select
@@ -197,8 +199,8 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
           control={form.control}
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
-              <FormLabel htmlFor="password" className="text-right">
-                Contraseña
+              <FormLabel htmlFor="password" className="text-right flex items-center justify-end">
+                Contraseña <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
               </FormLabel>
               <FormControl>
                 <Input

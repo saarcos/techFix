@@ -102,7 +102,7 @@ interface EquipoFormProps {
             className="w-full justify-between h-10"
             disabled={isEquipoLoading}
           >
-            {selectedOwner ? `${selectedOwner.nombre} ${selectedOwner.apellido}` : "Seleccionar Propietario"}
+            {selectedOwner ? `${selectedOwner.nombre} ${selectedOwner.apellido}` : "Propietario"}
             <ArrowDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
