@@ -10,12 +10,9 @@ import {
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/Components/ui/popover";
-import { Calendar } from "@/Components/ui/calendar";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/Components/ui/card';
 import { EquipoCombobox } from '@/Components/comboBoxes/equipo-combobox';
 import { Equipo, getEquipos } from '@/api/equipoService';
@@ -35,6 +32,22 @@ import { ClienteCombobox } from '@/Components/comboBoxes/cliente-combobox';
 import { Client, getClients } from '@/api/clientService';
 import { getUsers, User } from '@/api/userService';
 import { TecnicoCombobox } from '@/Components/comboBoxes/tecnico-combobox';
+import { ResponsiveDialog } from '@/Components/responsive-dialog';
+import UserForm from '../clientes/client-form';
+import { useState } from 'react';
+import { ResponsiveDialogExtended } from '@/Components/responsive-dialog-extended';
+import BrandModelForm from '../brandModel/brand-model-from';
+import TipoEquipoForm from '../tiposEquipo/tipo-equipo-form';
+import EquipoForm from '../equipos/equipo-form';
+import { Brand, getBrands } from '@/api/marcasService';
+import { getModels, Model } from '@/api/modeloService';
+import { DeviceType, getDeviceTypes } from '@/api/tipoEquipoService';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/Components/ui/calendar';
+
 const formSchema = z.object({
   id_equipo: z.number().min(1, 'Equipo es requerido'),
   id_usuario: z.number().min(1, 'Usuario es requerido'),
@@ -44,14 +57,18 @@ const formSchema = z.object({
   prioridad: z.string().min(1, 'Prioridad es requerida'),
   descripcion: z.string().min(1, 'Descripción es requerida'),
   estado: z.string().min(1, 'Estado es requerido'),
-  password: z.string().optional(),
+  passwordequipo: z.string().optional(),
   fecha_prometida: z.string().optional(),
   presupuesto: z.number().optional(),
   adelanto: z.number().optional(),
-  archivos: z.any().optional(), // Para manejar archivos de manera opcional
+  archivos: z.any().optional(), 
 });
 
 export default function OrdenTrabajoForm() {
+  const [isCreateClienteOpen, setIsCreateClienteOpen] = useState(false);
+  const [isCreateEquipoOpen, setIsCreateEquipoOpen] = useState(false);
+  const [isAddingBrand, setIsAddingBrand] = useState(false); 
+  const [isAddingTipoEquipo, setIsAddingTipoEquipo] = useState(false); 
   const { data: equipos = [], isLoading: isEquipoLoading, error } = useQuery<Equipo[]>({
     queryKey: ['devices'],
     queryFn: getEquipos,
@@ -64,6 +81,18 @@ export default function OrdenTrabajoForm() {
     queryKey: ['users'],
     queryFn: getUsers,
   });
+  const { data: marcas = [], isLoadingError: marcasError } = useQuery<Brand[]>({
+      queryKey: ['brands'],
+      queryFn: getBrands,
+  });
+  const { data: modelos = [], isLoadingError: modelsError } = useQuery<Model[]>({
+      queryKey: ['models'],
+      queryFn: getModels,
+  });
+  const { data: tiposEquipo = [], isLoadingError: deviceTypesError } = useQuery<DeviceType[]>({
+      queryKey: ['deviceTypes'],
+      queryFn: getDeviceTypes,
+  });
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -75,7 +104,7 @@ export default function OrdenTrabajoForm() {
       prioridad: 'Normal',
       descripcion: '',
       estado: 'CHEQUEO',
-      password: '',
+      passwordequipo: '',
       fecha_prometida: '',
       presupuesto: undefined,
       adelanto: undefined,
@@ -88,13 +117,57 @@ export default function OrdenTrabajoForm() {
   };
 
   if (isEquipoLoading || isClienteLoading || isTecnicoLoading) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
-  if (error) return toast.error('Error al recuperar los datos');
+  if (error|| marcasError || modelsError || deviceTypesError) return toast.error('Error al recuperar los datos');
 
   const selectedArea = form.watch('area'); 
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40 mt-5">
       <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+        <ResponsiveDialog
+          isOpen={isCreateClienteOpen}
+          setIsOpen={setIsCreateClienteOpen}
+          title={`Nuevo cliente`}
+          description='Por favor, ingresa la información solicitada'
+        >
+            <UserForm setIsOpen={setIsCreateClienteOpen} />
+        </ResponsiveDialog>
+        <ResponsiveDialogExtended
+                            isOpen={isCreateEquipoOpen}
+                            setIsOpen={(open) => {
+                                setIsCreateEquipoOpen(open);
+                                if (!open) {
+                                    setIsAddingBrand(false);
+                                    setIsAddingTipoEquipo(false);
+                                }
+                            }}
+                            title={
+                                isAddingBrand ? 'Nueva marca y modelo' :
+                                    isAddingTipoEquipo ? 'Nuevo tipo de equipo' :
+                                        'Nuevo equipo'
+                            }
+                            description={
+                                isAddingBrand ? 'Por favor, ingrese la información de la nueva marca y modelo' :
+                                    isAddingTipoEquipo ? 'Por favor, ingrese la información del nuevo tipo de equipo' :
+                                        'Por favor, ingresa la información solicitada'
+                            }
+                        >
+                            {isAddingBrand ? (
+                                <BrandModelForm setIsOpen={setIsCreateEquipoOpen} setIsAddingBrand={setIsAddingBrand} />
+                            ) : isAddingTipoEquipo ? (
+                                <TipoEquipoForm setIsOpen={setIsCreateEquipoOpen} setIsAddingTipoEquipo={setIsAddingTipoEquipo} />
+                            ) : (
+                                <EquipoForm
+                                    setIsOpen={setIsCreateEquipoOpen}
+                                    brands={marcas}
+                                    models={modelos}
+                                    owners={clientes}
+                                    deviceTypes={tiposEquipo}
+                                    setIsAddingBrand={setIsAddingBrand}
+                                    setIsAddingTipoEquipo={setIsAddingTipoEquipo}
+                                />
+                            )}
+        </ResponsiveDialogExtended>
         <Card className="w-full max-w-9xl overflow-x-auto">
           <CardHeader>
             <CardTitle>Nueva Orden de Trabajo</CardTitle>
@@ -122,6 +195,7 @@ export default function OrdenTrabajoForm() {
                               <Button 
                                 className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'
                                 type="button" 
+                                onClick={() => setIsCreateClienteOpen(true)}  
                                 >
                                 <FontAwesomeIcon icon={faPlus}/> 
                               </Button>
@@ -152,6 +226,7 @@ export default function OrdenTrabajoForm() {
                               <Button 
                                 className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'
                                 type="button" 
+                                onClick={() => setIsCreateEquipoOpen(true)}  
                                 >
                                 <FontAwesomeIcon icon={faPlus}/> 
                               </Button>
@@ -184,6 +259,19 @@ export default function OrdenTrabajoForm() {
                             <SelectItem value="Baja">Baja</SelectItem>
                           </SelectContent>
                         </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    name="passwordequipo"
+                    control={form.control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contraseña</FormLabel>
+                        <FormControl>
+                          <Input type="text" placeholder="Contraseña equipo" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -248,42 +336,47 @@ export default function OrdenTrabajoForm() {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    name="fecha_prometida"
-                    control={form.control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Fecha Prometida</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className="w-full pl-3 text-left font-normal"
-                              >
-                                {field.value ? (
-                                  format(new Date(field.value), "PPP")
-                                ) : (
-                                  <span>Selecciona una fecha</span>
-                                )}
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={field.value ? new Date(field.value) : undefined}
-                              onSelect={(date) => {
-                                field.onChange(date ? format(date, "yyyy-MM-dd") : '');
-                              }}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                   <FormField
+                  name="fecha_prometida"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fecha Prometida</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(new Date(field.value), "PPP")
+                              ) : (
+                                <span>Selecciona una fecha</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? new Date(field.value) : undefined}
+                            onSelect={(date) => field.onChange(date)}
+                            disabled={(date) =>
+                              date < new Date() 
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                   <FormField
                     name="presupuesto"
                     control={form.control}
