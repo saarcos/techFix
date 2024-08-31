@@ -48,6 +48,22 @@ export interface OrdenTrabajo {
     celular: string;
   };
 }
+export interface OrdenTrabajoCreate {
+  id_equipo: number;
+  id_usuario: number | null;
+  id_cliente: number;
+  area: string;
+  prioridad: string;
+  descripcion: string;
+  estado: string;
+  fecha_prometida: Date | null;
+  presupuesto: number | null;
+  adelanto: number | null;
+  total: number | null;
+  confirmacion: boolean;
+  passwordequipo: string | null;
+  imagenes?: string[];
+}
 
 // Método para recuperar todas las órdenes de trabajo
 export const getOrdenesTrabajo = async (): Promise<OrdenTrabajo[]> => {
@@ -62,7 +78,7 @@ export const getOrdenTrabajoById = async (ordenTrabajoId: number): Promise<Orden
 };
 
 // Método para crear una nueva orden de trabajo
-export const createOrdenTrabajo = async (ordenTrabajoData: Omit<OrdenTrabajo, 'id_orden' | 'numero_orden' | 'imagenes'> & { imagenes?: string[] }): Promise<OrdenTrabajo> => {
+export const createOrdenTrabajo = async (ordenTrabajoData: OrdenTrabajoCreate): Promise<OrdenTrabajo> => {
   try {
     const response = await axiosInstance.post('/ordenes', ordenTrabajoData);
     return response.data;
@@ -74,7 +90,6 @@ export const createOrdenTrabajo = async (ordenTrabajoData: Omit<OrdenTrabajo, 'i
     }
   }
 };
-
 // Método para actualizar una orden de trabajo
 export const updateOrdenTrabajo = async (ordenTrabajoData: Omit<OrdenTrabajo, 'numero_orden'> & { imagenes?: string[] }): Promise<OrdenTrabajo> => {
   try {

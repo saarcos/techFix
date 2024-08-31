@@ -16,7 +16,7 @@ import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/Components/ui/card';
 import { EquipoCombobox } from '@/Components/comboBoxes/equipo-combobox';
 import { Equipo, getEquipos } from '@/api/equipoService';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import Spinner from '../../../assets/tube-spinner.svg';
 import fileUploader from '../../../assets/icons/file-upload.svg'
@@ -47,28 +47,48 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/Components/ui/calendar';
+import { es } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
+import { createOrdenTrabajo, OrdenTrabajoCreate } from '@/api/ordenTrabajoService';
+import { uploadImage } from '@/lib/firebase'; // Asegúrate de importar la función correcta
 
 const formSchema = z.object({
   id_equipo: z.number().min(1, 'Equipo es requerido'),
-  id_usuario: z.number().min(1, 'Usuario es requerido'),
+  id_usuario: z.number().optional(), // Ahora es opcional
   id_cliente: z.number().min(1, 'Cliente es requerido'),
-  numero_orden: z.string().min(1, 'Número de orden es requerido'),
   area: z.string().min(1, 'Área es requerida'),
   prioridad: z.string().min(1, 'Prioridad es requerida'),
   descripcion: z.string().min(1, 'Descripción es requerida'),
   estado: z.string().min(1, 'Estado es requerido'),
   passwordequipo: z.string().optional(),
-  fecha_prometida: z.string().optional(),
-  presupuesto: z.number().optional(),
-  adelanto: z.number().optional(),
-  archivos: z.any().optional(), 
+  fecha_prometida: z
+    .union([z.date(), z.null()])  // Permitir tanto Date como null
+    .optional()
+    .transform((date) => (date ? date.toISOString().split('T')[0] : null)),
+  presupuesto: z
+    .string()
+    .transform((val) => (val ? parseFloat(val) : undefined))
+    .optional(),
+  adelanto: z
+    .string()
+    .transform((val) => (val ? parseFloat(val) : undefined))
+    .optional(),
+  archivos: z.any().optional(),
 });
 
 export default function OrdenTrabajoForm() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isCreateClienteOpen, setIsCreateClienteOpen] = useState(false);
   const [isCreateEquipoOpen, setIsCreateEquipoOpen] = useState(false);
-  const [isAddingBrand, setIsAddingBrand] = useState(false); 
-  const [isAddingTipoEquipo, setIsAddingTipoEquipo] = useState(false); 
+  const [isAddingBrand, setIsAddingBrand] = useState(false);
+  const [isAddingTipoEquipo, setIsAddingTipoEquipo] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedImages((prevImages) => [...prevImages, ...files]);
+  };
   const { data: equipos = [], isLoading: isEquipoLoading, error } = useQuery<Equipo[]>({
     queryKey: ['devices'],
     queryFn: getEquipos,
@@ -82,16 +102,16 @@ export default function OrdenTrabajoForm() {
     queryFn: getUsers,
   });
   const { data: marcas = [], isLoadingError: marcasError } = useQuery<Brand[]>({
-      queryKey: ['brands'],
-      queryFn: getBrands,
+    queryKey: ['brands'],
+    queryFn: getBrands,
   });
   const { data: modelos = [], isLoadingError: modelsError } = useQuery<Model[]>({
-      queryKey: ['models'],
-      queryFn: getModels,
+    queryKey: ['models'],
+    queryFn: getModels,
   });
   const { data: tiposEquipo = [], isLoadingError: deviceTypesError } = useQuery<DeviceType[]>({
-      queryKey: ['deviceTypes'],
-      queryFn: getDeviceTypes,
+    queryKey: ['deviceTypes'],
+    queryFn: getDeviceTypes,
   });
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -99,27 +119,79 @@ export default function OrdenTrabajoForm() {
       id_equipo: 0,
       id_usuario: 0,
       id_cliente: 0,
-      numero_orden: '',
       area: 'entrada',
       prioridad: 'Normal',
       descripcion: '',
       estado: 'CHEQUEO',
       passwordequipo: '',
-      fecha_prometida: '',
+      fecha_prometida: null, // Cambiar a null o undefined
       presupuesto: undefined,
       adelanto: undefined,
       archivos: [], // Default vacío para archivos
     },
   });
+  // Define la mutación para crear la orden de trabajo
+  const createMutation = useMutation({
+    mutationFn: createOrdenTrabajo,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ordenesTrabajo'] }); // Invalida la consulta de órdenes para que se refresquen los datos
+      toast.success('Orden de trabajo creada exitosamente');
+      navigate('/taller/ordenes'); // Redirige después de la creación
+    },
+    onError: (error) => {
+      toast.error('Error al crear la orden de trabajo');
+      console.error('Error de creación de orden:', error);
+    },
+  });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+
+  // Método onSubmit para manejar la creación de la orden de trabajo
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      // Subir las imágenes a Firebase y obtener las URLs
+      const imageUrls = await Promise.all(
+        values.archivos.map(async (file: File) => {
+          const url = await uploadImage(file);
+          return url;
+        })
+      );
+
+      // Crear el objeto de datos de la orden de trabajo
+      const ordenTrabajoData: OrdenTrabajoCreate = {
+        id_equipo: values.id_equipo,
+        id_usuario: values.id_usuario || null,
+        id_cliente: values.id_cliente,
+        area: values.area,
+        prioridad: values.prioridad,
+        descripcion: values.descripcion,
+        estado: values.estado,
+        fecha_prometida: values.fecha_prometida ? new Date(values.fecha_prometida) : null,
+        presupuesto: values.presupuesto || null,
+        adelanto: values.adelanto || null,
+        total: 0,
+        confirmacion: false,
+        passwordequipo: values.passwordequipo || null,
+        imagenes: imageUrls, // Asigna las URLs de las imágenes subidas
+      };
+
+      // Llama a la mutación con los datos de la orden de trabajo
+      createMutation.mutate(ordenTrabajoData);
+    } catch (error) {
+      console.error("Error al subir las imágenes:", error);
+      toast.error('Error al subir las imágenes');
+    }
   };
 
   if (isEquipoLoading || isClienteLoading || isTecnicoLoading) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
-  if (error|| marcasError || modelsError || deviceTypesError) return toast.error('Error al recuperar los datos');
+  if (error || marcasError || modelsError || deviceTypesError) return toast.error('Error al recuperar los datos');
 
-  const selectedArea = form.watch('area'); 
+  const selectedArea = form.watch('area');
+
+  const isBeforeToday = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
+  };
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40 mt-5">
@@ -130,43 +202,43 @@ export default function OrdenTrabajoForm() {
           title={`Nuevo cliente`}
           description='Por favor, ingresa la información solicitada'
         >
-            <UserForm setIsOpen={setIsCreateClienteOpen} />
+          <UserForm setIsOpen={setIsCreateClienteOpen} />
         </ResponsiveDialog>
         <ResponsiveDialogExtended
-                            isOpen={isCreateEquipoOpen}
-                            setIsOpen={(open) => {
-                                setIsCreateEquipoOpen(open);
-                                if (!open) {
-                                    setIsAddingBrand(false);
-                                    setIsAddingTipoEquipo(false);
-                                }
-                            }}
-                            title={
-                                isAddingBrand ? 'Nueva marca y modelo' :
-                                    isAddingTipoEquipo ? 'Nuevo tipo de equipo' :
-                                        'Nuevo equipo'
-                            }
-                            description={
-                                isAddingBrand ? 'Por favor, ingrese la información de la nueva marca y modelo' :
-                                    isAddingTipoEquipo ? 'Por favor, ingrese la información del nuevo tipo de equipo' :
-                                        'Por favor, ingresa la información solicitada'
-                            }
-                        >
-                            {isAddingBrand ? (
-                                <BrandModelForm setIsOpen={setIsCreateEquipoOpen} setIsAddingBrand={setIsAddingBrand} />
-                            ) : isAddingTipoEquipo ? (
-                                <TipoEquipoForm setIsOpen={setIsCreateEquipoOpen} setIsAddingTipoEquipo={setIsAddingTipoEquipo} />
-                            ) : (
-                                <EquipoForm
-                                    setIsOpen={setIsCreateEquipoOpen}
-                                    brands={marcas}
-                                    models={modelos}
-                                    owners={clientes}
-                                    deviceTypes={tiposEquipo}
-                                    setIsAddingBrand={setIsAddingBrand}
-                                    setIsAddingTipoEquipo={setIsAddingTipoEquipo}
-                                />
-                            )}
+          isOpen={isCreateEquipoOpen}
+          setIsOpen={(open) => {
+            setIsCreateEquipoOpen(open);
+            if (!open) {
+              setIsAddingBrand(false);
+              setIsAddingTipoEquipo(false);
+            }
+          }}
+          title={
+            isAddingBrand ? 'Nueva marca y modelo' :
+              isAddingTipoEquipo ? 'Nuevo tipo de equipo' :
+                'Nuevo equipo'
+          }
+          description={
+            isAddingBrand ? 'Por favor, ingrese la información de la nueva marca y modelo' :
+              isAddingTipoEquipo ? 'Por favor, ingrese la información del nuevo tipo de equipo' :
+                'Por favor, ingresa la información solicitada'
+          }
+        >
+          {isAddingBrand ? (
+            <BrandModelForm setIsOpen={setIsCreateEquipoOpen} setIsAddingBrand={setIsAddingBrand} />
+          ) : isAddingTipoEquipo ? (
+            <TipoEquipoForm setIsOpen={setIsCreateEquipoOpen} setIsAddingTipoEquipo={setIsAddingTipoEquipo} />
+          ) : (
+            <EquipoForm
+              setIsOpen={setIsCreateEquipoOpen}
+              brands={marcas}
+              models={modelos}
+              owners={clientes}
+              deviceTypes={tiposEquipo}
+              setIsAddingBrand={setIsAddingBrand}
+              setIsAddingTipoEquipo={setIsAddingTipoEquipo}
+            />
+          )}
         </ResponsiveDialogExtended>
         <Card className="w-full max-w-9xl overflow-x-auto">
           <CardHeader>
@@ -184,21 +256,21 @@ export default function OrdenTrabajoForm() {
                     control={form.control}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cliente <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span></FormLabel>
-                          <div className='flex items-center gap-1'>
+                        <FormLabel>Cliente <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3' /></span></FormLabel>
+                        <div className='flex items-center gap-1'>
                           <FormControl>
                             <ClienteCombobox field={field} clientes={clientes} isClienteLoading={isClienteLoading} />
                           </FormControl>
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                              <Button 
-                                className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'
-                                type="button" 
-                                onClick={() => setIsCreateClienteOpen(true)}  
+                                <Button
+                                  className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'
+                                  type="button"
+                                  onClick={() => setIsCreateClienteOpen(true)}
                                 >
-                                <FontAwesomeIcon icon={faPlus}/> 
-                              </Button>
+                                  <FontAwesomeIcon icon={faPlus} />
+                                </Button>
                               </TooltipTrigger>
                               <TooltipContent className='bg-customGray text-white border-none font-semibold'>
                                 <p>Añade un nuevo cliente</p>
@@ -215,27 +287,27 @@ export default function OrdenTrabajoForm() {
                     control={form.control}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Equipo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span></FormLabel>
+                        <FormLabel>Equipo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3' /></span></FormLabel>
                         <div className='flex items-center gap-1'>
-                        <FormControl>
-                          <EquipoCombobox field={field} equipos={equipos} isEquipoLoading={isEquipoLoading} />
-                        </FormControl>
-                        <TooltipProvider>
+                          <FormControl>
+                            <EquipoCombobox field={field} equipos={equipos} isEquipoLoading={isEquipoLoading} />
+                          </FormControl>
+                          <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                              <Button 
-                                className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'
-                                type="button" 
-                                onClick={() => setIsCreateEquipoOpen(true)}  
+                                <Button
+                                  className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'
+                                  type="button"
+                                  onClick={() => setIsCreateEquipoOpen(true)}
                                 >
-                                <FontAwesomeIcon icon={faPlus}/> 
-                              </Button>
+                                  <FontAwesomeIcon icon={faPlus} />
+                                </Button>
                               </TooltipTrigger>
                               <TooltipContent className='bg-customGray text-white border-none font-semibold'>
                                 <p>Añade un nuevo equipo</p>
                               </TooltipContent>
                             </Tooltip>
-                        </TooltipProvider>
+                          </TooltipProvider>
                         </div>
                         <FormMessage />
                       </FormItem>
@@ -305,10 +377,10 @@ export default function OrdenTrabajoForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Técnico</FormLabel>
-                            <FormControl>
-                              <TecnicoCombobox field={field} tecnicos={tecnicos} isTecnicoLoading={isTecnicoLoading} />
-                            </FormControl>
-                            <FormDescription>Selecciona el técnico responsable de la orden</FormDescription>
+                          <FormControl>
+                            <TecnicoCombobox field={field} tecnicos={tecnicos} isTecnicoLoading={isTecnicoLoading} />
+                          </FormControl>
+                          <FormDescription>Selecciona el técnico responsable de la orden</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -336,47 +408,48 @@ export default function OrdenTrabajoForm() {
                       </FormItem>
                     )}
                   />
-                   <FormField
-                  name="fecha_prometida"
-                  control={form.control}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fecha Prometida</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(new Date(field.value), "PPP")
-                              ) : (
-                                <span>Selecciona una fecha</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value ? new Date(field.value) : undefined}
-                            onSelect={(date) => field.onChange(date)}
-                            disabled={(date) =>
-                              date < new Date() 
-                            }
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    name="fecha_prometida"
+                    control={form.control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Fecha Prometida</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(new Date(field.value), "PPP", { locale: es }) // Asegúrate de que la fecha sea convertida correctamente
+                                ) : (
+                                  <span>Selecciona una fecha</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value ? new Date(field.value) : undefined}
+                              onSelect={(date) => {
+                                field.onChange(date);
+                              }}
+                              disabled={(date) => isBeforeToday(date)}  // Usar la función truncada
+                              initialFocus
+                              locale={es}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <FormField
                     name="presupuesto"
                     control={form.control}
@@ -405,55 +478,95 @@ export default function OrdenTrabajoForm() {
                   />
                 </div>
                 <FormField
-                    name="descripcion"
-                    control={form.control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Trabajo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span></FormLabel>
-                        <FormControl>
-                          <textarea
-                            id="descripcion"
-                            placeholder="Descripción"
-                            className="w-full h-20 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>Describe el trabajo a realizar en el equipo</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  name="descripcion"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Trabajo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3' /></span></FormLabel>
+                      <FormControl>
+                        <textarea
+                          id="descripcion"
+                          placeholder="Descripción"
+                          className="w-full h-20 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>Describe el trabajo a realizar en el equipo</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="mt-4">
                   <FormLabel>Adjuntar imágenes</FormLabel>
-                  <div className="flex flex-col items-center justify-center border-2 border-dashed border-customGreen/50 rounded-lg p-4 bg-customGreen/5 mt-4">
-                      <img 
-                        src={fileUploader}
-                        width={96}
-                        height={77}
-                        alt='file-upload'
-                    />
-                    <p className="text-sm text-gray-500">Arrastra aquí los archivos a cargar, o</p>
-                    <Button variant="secondary" className="mt-2 bg-customGreen/30 hover:bg-customGreenHover/30">Navegar</Button>
+                  <div className="flex flex-col items-center justify-center border-2 border-dashed border-customGreen/50 rounded-lg p-4 bg-customGreen/5 mt-4 w-full">
+                    {selectedImages.length > 0 ? (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                          {selectedImages.map((file, index) => (
+                            <div key={index} className="relative">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={`preview-${index}`}
+                                className="object-cover w-full h-48 rounded-lg shadow-lg"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        <Button
+                          type='button'
+                          variant="secondary"
+                          className="mt-4 bg-customGreen/30 hover:bg-customGreenHover/30"
+                          onClick={() => document.getElementById('fileInput')?.click()} // Safe navigation operator
+                        >
+                          Agregar más imágenes
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <img
+                          src={fileUploader}
+                          width={96}
+                          height={77}
+                          alt='file-upload'
+                        />
+                        <p className="text-sm text-gray-500 mt-2">Arrastra aquí los archivos a cargar, o</p>
+                        <Button
+                          type='button'
+                          variant="secondary"
+                          className="mt-2 bg-customGreen/30 hover:bg-customGreenHover/30"
+                          onClick={() => document.getElementById('fileInput')?.click()} // Safe navigation operator
+                        >
+                          Navegar
+                        </Button>
+                      </>
+                    )}
                     <FormField
                       name="archivos"
                       control={form.control}
                       render={({ field }) => (
                         <Input
+                          id="fileInput"
                           type="file"
+                          accept="image/*" // Accept only images
                           multiple
-                          {...field}
                           className="hidden"
                           onChange={(e) => {
-                            const files = Array.from(e.target.files || []);
-                            field.onChange(files);
+                            handleImageChange(e);
+                            field.onChange(selectedImages);
                           }}
                         />
                       )}
                     />
                   </div>
                 </div>
+
                 <div className="flex justify-between mt-6">
-                  <Button type="button" variant="outline" className="mr-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mr-2"
+                    onClick={() => navigate('/taller/ordenes')}
+                  >
                     Cancelar
                   </Button>
                   <Button type="submit" className='bg-customGreen hover:bg-customGreenHover'>Guardar</Button>
