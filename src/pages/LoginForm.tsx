@@ -5,11 +5,14 @@ import * as Yup from 'yup';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import Spinner from '../Components/Spinner'; // Asegúrate de ajustar la ruta
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 const LoginForm = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Estado para controlar la visibilidad de la contraseña
   const formik = useFormik({
     initialValues: {
       email: '',
@@ -62,14 +65,20 @@ const LoginForm = () => {
                 <div className='text-red-500'>{formik.errors.email}</div>
               ) : null}
             </div>
-            <div>
+            <div className='relative'>
               <label className='text-lg font-medium text-white'>Contraseña</label>
               <input
-                className='w-full border-2 border-black rounded-xl p-4 mt-1 bg-white'
+                className='w-full border-2 border-black rounded-xl p-4 mt-1 bg-white pr-10' // Espacio a la derecha para el ícono
                 placeholder='************'
-                type='password'
+                type={showPassword ? 'text' : 'password'} // Cambia el tipo según el estado
                 {...formik.getFieldProps('password')}
               />
+              <span
+                onClick={() => setShowPassword(!showPassword)} // Cambia el estado al hacer clic
+                className='absolute right-4 top-[62px] transform -translate-y-1/2 cursor-pointer text-gray-600'
+              >
+                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className='text-customGray' />
+              </span>
               {formik.touched.password && formik.errors.password ? (
                 <div className='text-red-500'>{formik.errors.password}</div>
               ) : null}
@@ -80,12 +89,12 @@ const LoginForm = () => {
                 className='flex justify-center items-center active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-full bg-customGreen text-lg font-bold '
                 disabled={formik.isSubmitting}
               >
-                  {isLoading ? (
-                    <Spinner />
+                {isLoading ? (
+                  <Spinner />
                 ) : (
                   "Iniciar Sesión"
                 )}
-                
+
               </button>
               <button
                 type='button'

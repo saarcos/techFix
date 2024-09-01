@@ -21,7 +21,7 @@ import { toast } from 'sonner';
 import Spinner from '../../../assets/tube-spinner.svg';
 import fileUploader from '../../../assets/icons/file-upload.svg'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAsterisk, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faAsterisk, faCircleXmark, faPlus } from '@fortawesome/free-solid-svg-icons';
 import {
   Tooltip,
   TooltipContent,
@@ -34,7 +34,7 @@ import { getUsers, User } from '@/api/userService';
 import { TecnicoCombobox } from '@/Components/comboBoxes/tecnico-combobox';
 import { ResponsiveDialog } from '@/Components/responsive-dialog';
 import UserForm from '../clientes/client-form';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ResponsiveDialogExtended } from '@/Components/responsive-dialog-extended';
 import BrandModelForm from '../brandModel/brand-model-from';
 import TipoEquipoForm from '../tiposEquipo/tipo-equipo-form';
@@ -45,7 +45,7 @@ import { DeviceType, getDeviceTypes } from '@/api/tipoEquipoService';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Calendar } from '@/Components/ui/calendar';
 import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
@@ -84,10 +84,14 @@ export default function OrdenTrabajoForm() {
   const [isAddingBrand, setIsAddingBrand] = useState(false);
   const [isAddingTipoEquipo, setIsAddingTipoEquipo] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
-
+  const [selectedClient, setSelectedClient] = useState(0);
+  const [filteredDevices, setFilteredDevices] = useState<Equipo[]>([]);
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setSelectedImages((prevImages) => [...prevImages, ...files]);
+    setSelectedImages((prevImages) => [...prevImages, ...files]); // Mantén las imágenes anteriores y añade las nuevas
+  };
+  const handleRemoveImage = (index: number) => {
+    setSelectedImages((prevImages) => prevImages.filter((_, i) => i !== index));
   };
   const { data: equipos = [], isLoading: isEquipoLoading, error } = useQuery<Equipo[]>({
     queryKey: ['devices'],
@@ -144,18 +148,16 @@ export default function OrdenTrabajoForm() {
     },
   });
 
+  const isLoading = form.formState.isSubmitting;
 
   // Método onSubmit para manejar la creación de la orden de trabajo
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      // Subir las imágenes a Firebase y obtener las URLs
-      const imageUrls = await Promise.all(
-        values.archivos.map(async (file: File) => {
-          const url = await uploadImage(file);
-          return url;
-        })
-      );
-
+      const imageUrls = [];
+      for (const file of selectedImages) {
+        const url = await uploadImage(file);
+        imageUrls.push(url);
+      }
       // Crear el objeto de datos de la orden de trabajo
       const ordenTrabajoData: OrdenTrabajoCreate = {
         id_equipo: values.id_equipo,
@@ -181,6 +183,14 @@ export default function OrdenTrabajoForm() {
       toast.error('Error al subir las imágenes');
     }
   };
+  useEffect(() => {
+    if (selectedClient) {
+      setFilteredDevices(equipos.filter(equipo => equipo.id_cliente === selectedClient));
+      form.setValue('id_equipo', 0); // Resetea el campo a su valor inicial
+    } else {
+      setFilteredDevices([]);
+    }
+  }, [selectedClient, equipos, form]);
 
   if (isEquipoLoading || isClienteLoading || isTecnicoLoading) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
   if (error || marcasError || modelsError || deviceTypesError) return toast.error('Error al recuperar los datos');
@@ -259,7 +269,7 @@ export default function OrdenTrabajoForm() {
                         <FormLabel>Cliente <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3' /></span></FormLabel>
                         <div className='flex items-center gap-1'>
                           <FormControl>
-                            <ClienteCombobox field={field} clientes={clientes} isClienteLoading={isClienteLoading} />
+                            <ClienteCombobox field={field} clientes={clientes} isClienteLoading={isClienteLoading} setSelectedClient={setSelectedClient} />
                           </FormControl>
                           <TooltipProvider>
                             <Tooltip>
@@ -290,7 +300,7 @@ export default function OrdenTrabajoForm() {
                         <FormLabel>Equipo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3' /></span></FormLabel>
                         <div className='flex items-center gap-1'>
                           <FormControl>
-                            <EquipoCombobox field={field} equipos={equipos} isEquipoLoading={isEquipoLoading} />
+                            <EquipoCombobox field={field} equipos={filteredDevices} isEquipoLoading={isEquipoLoading} disabled={!selectedClient}/>
                           </FormControl>
                           <TooltipProvider>
                             <Tooltip>
@@ -342,7 +352,7 @@ export default function OrdenTrabajoForm() {
                       <FormItem>
                         <FormLabel>Contraseña</FormLabel>
                         <FormControl>
-                          <Input type="text" placeholder="Contraseña equipo" {...field} />
+                          <Input type="text" placeholder="Contraseña equipo/pin desbloqueo" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -507,8 +517,16 @@ export default function OrdenTrabajoForm() {
                               <img
                                 src={URL.createObjectURL(file)}
                                 alt={`preview-${index}`}
-                                className="object-cover w-full h-48 rounded-lg shadow-lg"
+                                className="object-contain w-full h-48 md:h-64 rounded-lg shadow-md"
+                                style={{ objectPosition: 'center' }}
                               />
+                              <Button
+                                type="button"
+                                className="absolute top-2 right-2 bg-transparent hover:bg-transparent"
+                                onClick={() => handleRemoveImage(index)}
+                              >
+                                <FontAwesomeIcon icon={faCircleXmark} className='text-customGreen w-8 h-8 hover:text-customGreenHover' />
+                              </Button>
                             </div>
                           ))}
                         </div>
@@ -529,7 +547,7 @@ export default function OrdenTrabajoForm() {
                           height={77}
                           alt='file-upload'
                         />
-                        <p className="text-sm text-gray-500 mt-2">Arrastra aquí los archivos a cargar, o</p>
+                        <p className="text-sm text-gray-500 mt-2">Añade imagenes del equipo para adjuntar en la orden de trabajo</p>
                         <Button
                           type='button'
                           variant="secondary"
@@ -559,7 +577,6 @@ export default function OrdenTrabajoForm() {
                     />
                   </div>
                 </div>
-
                 <div className="flex justify-between mt-6">
                   <Button
                     type="button"
@@ -569,7 +586,16 @@ export default function OrdenTrabajoForm() {
                   >
                     Cancelar
                   </Button>
-                  <Button type="submit" className='bg-customGreen hover:bg-customGreenHover'>Guardar</Button>
+                  <Button type="submit" disabled={isLoading} className='bg-customGreen hover:bg-customGreenHover'>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Guardando...
+                      </>
+                    ) : (
+                      'Guardar'
+                    )}
+                  </Button>
                 </div>
               </form>
             </Form>

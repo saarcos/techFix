@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { ArrowDown, Check } from 'lucide-react';
 import {
@@ -22,9 +22,10 @@ interface ClienteComboboxProps {
   field: FieldValues;
   clientes: Client[];
   isClienteLoading: boolean;
+  setSelectedClient:Dispatch<SetStateAction<number>>;
 }
 
-export function ClienteCombobox({ field, clientes, isClienteLoading }: ClienteComboboxProps) {
+export function ClienteCombobox({ field, clientes, isClienteLoading, setSelectedClient }: ClienteComboboxProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<string>(field.value?.toString() || "");
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,6 +34,7 @@ export function ClienteCombobox({ field, clientes, isClienteLoading }: ClienteCo
     setValue(displayValue); 
     console.log(value);
     field.onChange(parseInt(id_cliente, 10)); 
+    setSelectedClient(parseInt(id_cliente,10))
     setOpen(false);
   };
 

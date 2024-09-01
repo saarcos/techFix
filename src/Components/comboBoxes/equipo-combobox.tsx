@@ -22,9 +22,10 @@ interface EquipoComboboxProps {
   field: FieldValues;
   equipos: Equipo[];
   isEquipoLoading: boolean;
+  disabled: boolean;  // Añadir prop para controlar si el combobox está deshabilitado
 }
 
-export function EquipoCombobox({ field, equipos, isEquipoLoading }: EquipoComboboxProps) {
+export function EquipoCombobox({ field, equipos, isEquipoLoading, disabled }: EquipoComboboxProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<string>(field.value?.toString() || "");
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,42 +55,47 @@ export function EquipoCombobox({ field, equipos, isEquipoLoading }: EquipoCombob
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between h-10 sm:h-10 text-sm  overflow-hidden text-ellipsis whitespace-nowrap"
-          disabled={isEquipoLoading}
+          className={cn(
+            "w-full justify-between h-10 sm:h-10 text-sm overflow-hidden text-ellipsis whitespace-nowrap",
+            disabled ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-background text-black cursor-pointer"
+          )}
+          disabled={disabled || isEquipoLoading} // Deshabilitar si no hay cliente seleccionado o si está cargando
         >
-          {selectedEquipo ? getDisplayValue(selectedEquipo) : "Seleccionar Equipo"}
+          {selectedEquipo ? getDisplayValue(selectedEquipo) : (disabled ? "Primero selecciona un cliente" : "Seleccionar Equipo")}
           <ArrowDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full max-w-sm p-0">
-      <Command>
-          <CommandInput 
-            placeholder="Buscar Equipo..." 
-            className="h-9" 
-            onValueChange={(value) => setSearchTerm(value)} // Actualiza el término de búsqueda
-          />
-          <CommandList>
-            <CommandEmpty>No se encontró ningún equipo.</CommandEmpty>
-            <CommandGroup>
-              {filteredEquipos.map((equipo) => (
-                <CommandItem
-                  key={equipo.id_equipo}
-                  value={getDisplayValue(equipo)}
-                  onSelect={() => handleSelect(equipo.id_equipo.toString(), getDisplayValue(equipo))}
-                >
-                  {getDisplayValue(equipo)}
-                  <Check
-                    className={cn(
-                      "ml-auto h-4 w-4",
-                      field.value?.toString() === equipo.id_equipo.toString() ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
+      {!disabled && (
+        <PopoverContent className="w-full max-w-sm p-0">
+          <Command>
+            <CommandInput 
+              placeholder="Buscar Equipo..." 
+              className="h-9" 
+              onValueChange={(value) => setSearchTerm(value)} // Actualiza el término de búsqueda
+            />
+            <CommandList>
+              <CommandEmpty>No se encontró ningún equipo.</CommandEmpty>
+              <CommandGroup>
+                {filteredEquipos.map((equipo) => (
+                  <CommandItem
+                    key={equipo.id_equipo}
+                    value={getDisplayValue(equipo)}
+                    onSelect={() => handleSelect(equipo.id_equipo.toString(), getDisplayValue(equipo))}
+                  >
+                    {getDisplayValue(equipo)}
+                    <Check
+                      className={cn(
+                        "ml-auto h-4 w-4",
+                        field.value?.toString() === equipo.id_equipo.toString() ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      )}
     </Popover>
   );
 }

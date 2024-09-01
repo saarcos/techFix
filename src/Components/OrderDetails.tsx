@@ -55,40 +55,36 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
           </DropdownMenu>
         </div>
       </CardHeader>
-
       <CardContent className="p-6 text-sm">
-        {/* Renderizar el carrusel si hay imágenes */}
         {order && order.imagenes && order.imagenes.length > 0 && (
-          <div className="mb-4">
-            <div className="font-semibold mb-2">Order Images</div>
-            <div className="relative max-w-xs mx-auto">
-              <Carousel className="w-full h-full">
-                <CarouselContent>
-                  {order.imagenes.map((imagen, index) => (
-                    <CarouselItem key={index}>
-                      <div className="p-1">
-                        <Card className="overflow-hidden">
-                          <CardContent className="flex items-center justify-center p-2">
-                            <img
-                              src={imagen.url_imagen}
-                              alt={`Imagen ${index + 1}`}
-                              className="w-full h-full object-cover"
-                              style={{ maxHeight: "200px" }} // Limita la altura
-                            />
-                          </CardContent>
-                        </Card>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 w-8 h-8" />
-                <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 w-8 h-8" />
-              </Carousel>
-            </div>
-          </div>
+           <div className="mb-4">
+           <div className="font-semibold mb-2">Order Images</div>
+           <div className="relative w-full mx-auto max-w-md"> {/* Ajusta el ancho máximo */}
+             <Carousel className="w-full h-full">
+               <CarouselContent>
+                 {order.imagenes.map((imagen, index) => (
+                   <CarouselItem key={index}>
+                     <div className="flex items-center justify-center p-1">
+                       <Card className="overflow-hidden">
+                         <CardContent className="flex items-center justify-center p-2">
+                           <img
+                             src={imagen.url_imagen}
+                             alt={`Imagen ${index + 1}`}
+                             className="max-w-full max-h-[300px] object-contain" // Ajusta la altura máxima
+                             style={{ height: "auto", width: "auto" }} // Mantén la proporción
+                           />
+                         </CardContent>
+                       </Card>
+                     </div>
+                   </CarouselItem>
+                 ))}
+               </CarouselContent>
+               <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 w-8 h-8" />
+               <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 w-8 h-8" />
+             </Carousel>
+           </div>
+         </div>
         )}
-
-
         {order ? (
           <>
             <div className="grid gap-3">
@@ -134,21 +130,21 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
             </div>
           </>
         ) : (
-          <p>No order selected</p>
+          <p>Ninguna orden seleccionada</p>
         )}
       </CardContent>
-
       <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
         <div className="text-xs text-muted-foreground">
-            Fecha prometida: {" "}
-            <time dateTime={order?.fecha_prometida ? new Date(order.fecha_prometida).toISOString() : ""}>
-                {order?.fecha_prometida 
-                ? new Date(`${order.fecha_prometida}T00:00:00`).toLocaleDateString('es-ES', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',}) 
-                : "N/A"}
-            </time>
+          Fecha prometida: {" "}
+          <time dateTime={order?.fecha_prometida ? new Date(order.fecha_prometida).toISOString() : ""}>
+            {order?.fecha_prometida
+              ? new Date(`${order.fecha_prometida}T00:00:00`).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric',
+              })
+              : "N/A"}
+          </time>
         </div>
         <Pagination className="ml-auto mr-0 w-auto">
           <PaginationContent>

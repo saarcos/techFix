@@ -1,13 +1,13 @@
 // src/components/OrdenesTable.tsx
 import { Badge } from "@/Components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
-import {  OrdenTrabajo } from '@/api/ordenTrabajoService';
+import { OrdenTrabajo } from '@/api/ordenTrabajoService';
 interface OrdenesTableProps {
-    ordenes: OrdenTrabajo[];
-    onSelectOrder: (order: OrdenTrabajo) => void; 
-    selectedOrder: OrdenTrabajo | null;  // Añadir la orden seleccionada como prop
+  ordenes: OrdenTrabajo[];
+  onSelectOrder: (order: OrdenTrabajo) => void;
+  selectedOrder: OrdenTrabajo | null;  // Añadir la orden seleccionada como prop
 }
-const OrdenesTable = ({onSelectOrder, ordenes, selectedOrder}:OrdenesTableProps) => {
+const OrdenesTable = ({ onSelectOrder, ordenes, selectedOrder }: OrdenesTableProps) => {
 
   return (
     <Table>
@@ -21,58 +21,66 @@ const OrdenesTable = ({onSelectOrder, ordenes, selectedOrder}:OrdenesTableProps)
         </TableRow>
       </TableHeader>
       <TableBody className="hover:cursor-pointer">
-      {ordenes.map((orden) => (
-        <TableRow 
-            key={orden.id_orden}
-            className={selectedOrder?.id_orden === orden.id_orden ? "bg-accent" : ""}  
-            onClick={() => onSelectOrder(orden)}
-        >
-            <TableCell>
-              <div className="font-medium">{orden.cliente.nombre} {orden.cliente.apellido}</div>
-              <div className="hidden text-sm text-muted-foreground md:inline">
-                <a href={`mailto:${orden.cliente.correo}`} className="font-medium hover:underline">
-                  {orden.cliente.correo}
-                </a> 
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="font-medium">{orden.equipo.modelo.nombre}</div>
-              <div className="hidden text-sm text-muted-foreground md:inline font-medium">
-                N° serie: {orden.equipo.nserie}
-              </div>
-            </TableCell>
-            <TableCell className="hidden sm:table-cell">
-              <Badge
-                className={`text-xs ${
-                  orden.prioridad === "Alta"
+      {ordenes.length === 0 ? (
+          <TableRow>
+              <TableCell colSpan={5} className="h-24 text-center text-gray-500">
+                No hubo resultados.
+              </TableCell>
+          </TableRow>
+        ) : (
+          ordenes.map((orden) => (
+            <TableRow
+              key={orden.id_orden}
+              className={selectedOrder?.id_orden === orden.id_orden ? "bg-accent" : ""}
+              onClick={() => onSelectOrder(orden)}
+            >
+              <TableCell>
+                <div className="font-medium">{orden.cliente.nombre} {orden.cliente.apellido}</div>
+                <div className="hidden text-sm text-muted-foreground md:inline">
+                  <a href={`mailto:${orden.cliente.correo}`} className="font-medium hover:underline">
+                    {orden.cliente.correo}
+                  </a>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="font-medium">{orden.equipo.modelo.nombre}</div>
+                <div className="hidden text-sm text-muted-foreground md:inline font-medium">
+                  N° serie: {orden.equipo.nserie}
+                </div>
+              </TableCell>
+              <TableCell className="hidden sm:table-cell">
+                <Badge
+                  className={`text-xs ${orden.prioridad === "Alta"
                     ? "bg-[#FF5733] text-white" // Color rojo para "Alta"
                     : orden.prioridad === "Normal"
-                    ? "bg-[#00E599] text-black" // customGreen para "Normal"
-                    : "bg-[#1E293B] text-white" // customGray para "Baja"
-                }`}
-              >
-                {orden.prioridad}
-              </Badge>
-            </TableCell>
-            <TableCell className="hidden md:table-cell">
-              {orden.fecha_prometida ? (
-                <>
-                  <span>{new Date(`${orden.fecha_prometida}T00:00:00`).toLocaleDateString('es-ES', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',})}</span>
-                </>
-              ) : (
-                "N/A"
-              )}
-            </TableCell>
-            <TableCell className="text-right">
-              {typeof orden.total === 'string' && !isNaN(parseFloat(orden.total))
-                ? `$${parseFloat(orden.total).toFixed(2)}`
-                : "N/A"}
-            </TableCell>
-          </TableRow>
-        ))}
+                      ? "bg-[#00E599] text-black" // customGreen para "Normal"
+                      : "bg-[#1E293B] text-white" // customGray para "Baja"
+                    }`}
+                >
+                  {orden.prioridad}
+                </Badge>
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                {orden.fecha_prometida ? (
+                  <>
+                    <span>{new Date(`${orden.fecha_prometida}T00:00:00`).toLocaleDateString('es-ES', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    })}</span>
+                  </>
+                ) : (
+                  "N/A"
+                )}
+              </TableCell>
+              <TableCell className="text-right">
+                {typeof orden.total === 'string' && !isNaN(parseFloat(orden.total))
+                  ? `$${parseFloat(orden.total).toFixed(2)}`
+                  : "N/A"}
+              </TableCell>
+            </TableRow>
+          ))
+        )}
       </TableBody>
     </Table>
   );
