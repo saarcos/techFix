@@ -17,6 +17,7 @@ import CategoriaProductos from "./pages/CategoriaProductos"
 import Servicios from "./pages/Servicios"
 import CategoriaServicios from "./pages/CategoriaServicios"
 import OrdenTrabajoForm from "./Components/forms/ordenesTrabajo/nueva-orden-form"
+import Tareas from "./pages/Tareas"
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -63,6 +64,7 @@ function App() {
           <Route path="/taller/categoriaProductos" element={<ProtectedRoute><CategoriaProductos /></ProtectedRoute>} />
           <Route path="/taller/servicios" element={<ProtectedRoute><Servicios /></ProtectedRoute>} />
           <Route path="/taller/categoriaServicios" element={<ProtectedRoute><CategoriaServicios /></ProtectedRoute>} />
+          <Route path="/taller/tareas" element={<ProtectedRoute><Tareas /></ProtectedRoute>} />
         </Routes>
       </div>
     </div>

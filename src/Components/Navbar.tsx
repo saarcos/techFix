@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTools, faBox, faWarehouse,  faGear, faChevronDown, faHouseChimney, faPersonDigging, faPeopleGroup,  faLayerGroup, faHandsHelping, faBoxesStacked, faBriefcase} from '@fortawesome/free-solid-svg-icons';
+import { faTools, faBox, faWarehouse,  faGear, faChevronDown, faHouseChimney, faPersonDigging, faPeopleGroup,  faLayerGroup, faHandsHelping, faBoxesStacked, faBriefcase, faBarsProgress} from '@fortawesome/free-solid-svg-icons';
 import { useState } from "react";
 import useWindowSize from '../hooks/useWindowSize'; // Asegúrate de importar el hook
 import { useAuth } from "./AuthProvider";
@@ -173,11 +173,17 @@ const Navbar = ({isVisible, toggleNavbar}:Props) => {
             </ul>
           )} 
         </li>
+        <li className="mb-2 ">
+          <Link to="/taller/tareas" className={getLinkClass("/taller/tareas")} onClick={handleLinkClick}>
+              <FontAwesomeIcon icon={faBarsProgress} className="mr-3 text-lg" />
+              <span className="text-sm">Tareas</span>
+          </Link>
+        </li>
         <li className="mb-2">
-        <Link to="/" className="flex items-center text-gray-300 py-2 px-4 hover:bg-gray-950 hover:text-gray-100  rounded-full" onClick={handleLinkClick}>
-            <FontAwesomeIcon icon={faWarehouse} className="mr-3 text-lg" />
-            <span className="text-sm">Inventario</span>
-        </Link>
+          <Link to="/" className="flex items-center text-gray-300 py-2 px-4 hover:bg-gray-950 hover:text-gray-100  rounded-full" onClick={handleLinkClick}>
+              <FontAwesomeIcon icon={faWarehouse} className="mr-3 text-lg" />
+              <span className="text-sm">Inventario</span>
+          </Link>
         </li>
         </ul>
     </div>

@@ -30,7 +30,7 @@ const formSchema = z.object({
 interface ServiceFormProps {
   serviceId?: number;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  categorias: ServiceCategory[];  
+  categorias: ServiceCategory[];
   setIsAddingCategory: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -130,7 +130,7 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
                     id="id_catserv"
                     className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-customGray shadow-sm cursor-pointer"
                     {...field}
-                    value={field.value.toString()} 
+                    value={field.value.toString()}
                     onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
                     disabled={isServiceLoading}
                   >
@@ -143,14 +143,14 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
                   </select>
                 </FormControl>
                 <span>
-                  <Button 
+                  <Button
                     className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'
-                    type="button" 
-                    onClick={()=>{
+                    type="button"
+                    onClick={() => {
                       setIsAddingCategory(true);
-                    }}              
+                    }}
                   >
-                    <FontAwesomeIcon icon={faPlus}/> 
+                    <FontAwesomeIcon icon={faPlus} />
                   </Button>
                 </span>
               </div>
