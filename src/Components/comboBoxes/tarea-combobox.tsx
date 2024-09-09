@@ -15,36 +15,36 @@ import {
   CommandList,
 } from '@/Components/ui/command';
 import { FieldValues } from 'react-hook-form';
-import { Product } from '@/api/productsService'; // Asegúrate de importar correctamente la interfaz Product
+import { Tarea } from '@/api/plantillaService';
 import { cn } from "@/lib/utils";
 
-interface ProductComboboxProps {
+interface TaskComboboxProps {
   field: FieldValues;
-  products: Product[];
+  tasks: Tarea[];
 }
 
-export function ProductCombobox({ field, products }: ProductComboboxProps) {
+export function TaskCombobox({ field, tasks }: TaskComboboxProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<string>(field.value?.toString() || "");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const handleSelect = (id_producto: string, displayValue: string) => {
+  const handleSelect = (id_tarea: string, displayValue: string) => {
     setValue(displayValue); 
-    console.log(value);
-    field.onChange(parseInt(id_producto, 10)); 
+    console.log(value)
+    field.onChange(parseInt(id_tarea, 10)); 
     setOpen(false);
   };
 
-  const filteredProducts = products.filter(product =>
-    `${product.nombreProducto} ${product.codigoProducto} ${product.categoriaProducto.nombreCat}`
+  const filteredTasks = tasks.filter(task =>
+    `${task.titulo} ${task.descripcion}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
 
-  const selectedProduct = products.find(product => product.id_producto.toString() === field.value?.toString());
+  const selectedTask = tasks.find(task => task.id_tarea.toString() === field.value?.toString());
 
-  const getDisplayValue = (product: Product) =>
-    `${product.nombreProducto} - ${product.codigoProducto} - ${product.categoriaProducto.nombreCat}`;
+  const getDisplayValue = (task: Tarea) =>
+    `${task.titulo} - ${task.descripcion}`;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -57,31 +57,31 @@ export function ProductCombobox({ field, products }: ProductComboboxProps) {
             "w-full justify-between h-10 sm:h-10 text-sm overflow-hidden text-ellipsis whitespace-nowrap bg-background text-black cursor-pointer mt-2",
           )}
         >
-          {selectedProduct ? getDisplayValue(selectedProduct) :  "Seleccionar Producto"}
+          {selectedTask ? getDisplayValue(selectedTask) :  "Seleccionar Tarea"}
           <ArrowDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
         <PopoverContent className="w-full max-w-sm p-0">
           <Command>
             <CommandInput 
-              placeholder="Buscar Producto..." 
+              placeholder="Buscar Tarea..." 
               className="h-9" 
               onValueChange={(value) => setSearchTerm(value)} // Actualiza el término de búsqueda
             />
             <CommandList>
-              <CommandEmpty>No se encontró ningún producto.</CommandEmpty>
+              <CommandEmpty>No se encontró ninguna tarea.</CommandEmpty>
               <CommandGroup>
-                {filteredProducts.map((product) => (
+                {filteredTasks.map((task) => (
                   <CommandItem
-                    key={product.id_producto}
-                    value={getDisplayValue(product)}
-                    onSelect={() => handleSelect(product.id_producto.toString(), getDisplayValue(product))}
+                    key={task.id_tarea}
+                    value={getDisplayValue(task)}
+                    onSelect={() => handleSelect(task.id_tarea.toString(), getDisplayValue(task))}
                   >
-                    {getDisplayValue(product)}
+                    {getDisplayValue(task)}
                     <Check
                       className={cn(
                         "ml-auto h-4 w-4",
-                        field.value?.toString() === product.id_producto.toString() ? "opacity-100" : "opacity-0"
+                        field.value?.toString() === task.id_tarea.toString() ? "opacity-100" : "opacity-0"
                       )}
                     />
                   </CommandItem>

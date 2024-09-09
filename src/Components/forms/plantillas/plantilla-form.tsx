@@ -10,10 +10,10 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
 import { getTareas } from '@/api/tareaService';
 import Spinner from '../../../assets/tube-spinner.svg';
 import IconMenu from '@/Components/icon-menu';
+import { TaskCombobox } from '@/Components/comboBoxes/tarea-combobox';
 
 const plantillaSchema = z.object({
     descripcion: z.string().min(1, 'La descripción es necesaria'),
@@ -132,22 +132,14 @@ export default function PlantillaForm({ setIsOpen, setIsCreatingTask, plantillaI
                         </FormItem>
                     )}
                 />
-                <div className="col-span-3 flex space-x-3">
-                    <Select onValueChange={(value) => setSelectedTaskId(Number(value))}>
-                        <SelectTrigger className="w-full max-w-xs">
-                            <SelectValue placeholder="Seleccionar tarea" className="truncate" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {tareas.map(task => (
-                                <SelectItem key={task.id_tarea} value={String(task.id_tarea)} className="truncate">
-                                    {task.titulo}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                <div className="col-span-3 flex space-x-3 items-end">
+                    <TaskCombobox
+                        field={{ onChange: setSelectedTaskId, value: selectedTaskId }}
+                        tasks={tareas}
+                    />
 
-                    <div className='flex items-center gap-1'>
-                        <Button onClick={handleAddTask} disabled={!selectedTaskId} className="bg-customGreen text-white">
+                    <div className="flex items-center gap-1">
+                        <Button onClick={handleAddTask} disabled={!selectedTaskId} className="bg-customGreen text-white" type='button'>
                             Añadir Tarea
                         </Button>
                         <Button
@@ -155,7 +147,7 @@ export default function PlantillaForm({ setIsOpen, setIsCreatingTask, plantillaI
                             variant='outline'
                             onClick={() => setIsCreatingTask(true)} // Cambiar a true para mostrar el formulario de tarea
                         >
-                            Crear nueva tarea
+                            Crear tarea
                         </Button>
                     </div>
                 </div>
@@ -204,8 +196,6 @@ export default function PlantillaForm({ setIsOpen, setIsCreatingTask, plantillaI
                     </Button>
                 </div>
             </form>
-
-
         </Form>
     );
 }

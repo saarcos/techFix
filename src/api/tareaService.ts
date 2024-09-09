@@ -58,7 +58,11 @@ export const getTareaById = async (tareaId: number): Promise<Tarea> => {
 };
 
 // Método para crear una nueva tarea
-export const createTarea = async (tareaData: { titulo: string; tiempo: number; descripcion: string }) => {
+export const createTarea = async (tareaData: {
+  titulo: string;
+  tiempo: number;
+  descripcion: string;
+}) => {
   try {
     const response = await axiosInstance.post('/tareas', tareaData);
     return response.data;
@@ -70,9 +74,12 @@ export const createTarea = async (tareaData: { titulo: string; tiempo: number; d
     }
   }
 };
-
-// Método para actualizar una tarea
-export const updateTarea = async (tareaData: { id_tarea: number; titulo: string; tiempo: number; descripcion: string }) => {
+export const updateTarea = async (tareaData: {
+  id_tarea: number;
+  titulo: string;
+  tiempo: number;
+  descripcion: string;
+}) => {
   try {
     const response = await axiosInstance.put(`/tareas/${tareaData.id_tarea}`, tareaData);
     return response.data;
@@ -84,7 +91,6 @@ export const updateTarea = async (tareaData: { id_tarea: number; titulo: string;
     }
   }
 };
-
 // Método para eliminar una tarea
 export const deleteTarea = async (tareaId: number) => {
   try {
@@ -99,10 +105,10 @@ export const deleteTarea = async (tareaId: number) => {
   }
 };
 
-// Métodos para manejar productos relacionados con tareas
-export const addProductoToTarea = async (data: { id_tarea: number; id_producto: number; cantidad: number }) => {
+// Método para añadir productos a una tarea (usando el cuerpo de la petición)
+export const addProductosToTarea = async (data: { id_tarea: number; productos: { id_producto: number; cantidad: number }[] }) => {
   try {
-    const response = await axiosInstance.post('/tareas/productos', data);
+    const response = await axiosInstance.post('/tareas/productos', data); // Aquí enviamos el id_tarea en el cuerpo
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -113,10 +119,10 @@ export const addProductoToTarea = async (data: { id_tarea: number; id_producto: 
   }
 };
 
-// Métodos para manejar servicios relacionados con tareas
-export const addServicioToTarea = async (data: { id_tarea: number; id_servicio: number }) => {
+// Método para añadir servicios a una tarea (usando el cuerpo de la petición)
+export const addServiciosToTarea = async (data: { id_tarea: number; servicios: { id_servicio: number }[] }) => {
   try {
-    const response = await axiosInstance.post('/tareas/servicios', data);
+    const response = await axiosInstance.post('/tareas/servicios', data); // Aquí enviamos el id_tarea en el cuerpo
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -126,7 +132,6 @@ export const addServicioToTarea = async (data: { id_tarea: number; id_servicio: 
     }
   }
 };
-
 // Métodos para actualizar productos en tareas
 export const updateProductoInTarea = async (id_taskprod: number, data: { id_producto: number; cantidad: number }) => {
   try {

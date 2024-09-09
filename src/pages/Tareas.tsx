@@ -46,11 +46,13 @@ const Tareas = () => {
               title={isCreatingTask ? `Nueva tarea individual` : `Nueva plantilla`}
               description={isCreatingTask ? 'Por favor, ingresa los detalles de la tarea' : 'Por favor, ingresa la información de la plantilla'}
             >
-              {isCreatingTask ? (
-                <TareaForm setIsOpen={setIsCreateOpen} setIsCreatingTask={setIsCreatingTask} />
-              ) : (
-                <PlantillaForm setIsOpen={setIsCreateOpen} setIsCreatingTask={setIsCreatingTask} />
-              )}
+              <div className="max-h-[80vh] overflow-y-auto">
+                {isCreatingTask ? (
+                  <TareaForm setIsOpen={setIsCreateOpen} setIsCreatingTask={setIsCreatingTask} />
+                ) : (
+                  <PlantillaForm setIsOpen={setIsCreateOpen} setIsCreatingTask={setIsCreatingTask} />
+                )}
+              </div>
             </ResponsiveDialogExtended>
             <div className='flex items-center gap-1'>
               <Button
@@ -61,7 +63,7 @@ const Tareas = () => {
               >
                 <PlusCircle className="h-3.5 w-3.5 text-black" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap text-black">
-                  Crear nueva plantilla de tareas
+                  Crear nueva plantilla
                 </span>
               </Button>
             </div>

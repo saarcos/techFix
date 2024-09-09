@@ -19,7 +19,7 @@ export const columns: ColumnDef<Plantilla>[] = [
       cell: ({ row }) => {
         const tareas = row.original.tareas; // Acceder a las tareas dentro de la plantilla
         if (tareas.length === 0) {
-          return <span>Sin tareas</span>;
+          return <span className="text-gray-400">Sin tareas agregadas</span>;
         }
         return (
           <div className="space-y-2 max-w-sm"> {/* Limitar el ancho máximo */}

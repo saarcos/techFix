@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import {
   Form,
@@ -16,12 +16,26 @@ import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { Loader2 } from 'lucide-react';
-import { createTarea, getTareaById, updateTarea,  } from '@/api/tareaService';
+import { addProductosToTarea, addServiciosToTarea, createTarea, getTareaById, updateTarea } from '@/api/tareaService';
+import { ProductCombobox } from '@/Components/comboBoxes/producto-combobox';
+import { getProducts, Product } from '@/api/productsService';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMinus, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { getServices, Service } from '@/api/servicioService';
+import { ServiceCombobox } from '@/Components/comboBoxes/servicio-combobox';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 
 const formSchema = z.object({
   titulo: z.string().min(1, 'El título es requerido'),
   tiempo: z.number().min(0, 'El tiempo debe ser un número positivo'),
   descripcion: z.string().min(1, 'La descripción es requerida'),
+  productos: z.array(
+    z.object({
+      id_producto: z.number(),
+      cantidad: z.number().min(1, 'La cantidad debe ser al menos 1'),
+    })
+  ),
+  servicios: z.array(z.object({ id_servicio: z.number() })),
 });
 
 interface TareaFormProps {
@@ -30,13 +44,28 @@ interface TareaFormProps {
   setIsCreatingTask: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask}: TareaFormProps) {
+export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask }: TareaFormProps) {
+  const [selectedProducts, setSelectedProducts] = useState<{ id_producto: number; nombre: string; cantidad: number }[]>([]);
+  const [selectedServices, setSelectedServices] = useState<{ id_servicio: number; nombre: string }[]>([]);
+
+  const { data: products = [] } = useQuery<Product[]>({
+    queryKey: ['products'],
+    queryFn: getProducts,
+  });
+
+  const { data: services = [] } = useQuery<Service[]>({
+    queryKey: ['services'],
+    queryFn: getServices,
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       titulo: '',
       tiempo: 0,
       descripcion: '',
+      productos: [],
+      servicios: [],
     },
   });
 
@@ -51,12 +80,13 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask}: Tare
     mutationFn: updateTarea,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tareas'] });
-      toast.success('Tarea actualizada exitosamente');
-      setIsOpen(false);
+      // toast.success('Tarea actualizada exitosamente');
+      setIsCreatingTask(false);
     },
     onError: (error) => {
       toast.error('Error al actualizar la tarea');
       console.error('Error de actualización de tarea:', error);
+      setIsOpen(false);
     },
   });
 
@@ -64,12 +94,13 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask}: Tare
     mutationFn: createTarea,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tareas'] });
-      toast.success('Tarea creada exitosamente');
-      setIsOpen(false);
+      // toast.success('Tarea creada exitosamente');
+      setIsCreatingTask(false);
     },
     onError: (error) => {
       toast.error('Error al crear la tarea');
       console.error('Error de creación de tarea:', error);
+      setIsOpen(false);
     },
   });
 
@@ -90,19 +121,97 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask}: Tare
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      let id_tarea;
+  
       if (tareaId) {
-        updateMutation.mutate({
-          id_tarea: tareaId,
-          ...values,
-        });
+        // 1. Actualizar la tarea existente
+        const tareaPayload = {
+          titulo: values.titulo,
+          tiempo: values.tiempo,
+          descripcion: values.descripcion,
+        };
+        const updatedTareaResponse = await updateMutation.mutateAsync({id_tarea: tareaId, ...tareaPayload});
+        id_tarea = updatedTareaResponse.id_tarea;
       } else {
-        createMutation.mutate({
-          ...values,
+        // 1. Crear la nueva tarea
+        const tareaPayload = {
+          titulo: values.titulo,
+          tiempo: values.tiempo,
+          descripcion: values.descripcion,
+        };
+        const newTareaResponse = await createMutation.mutateAsync(tareaPayload);
+        id_tarea = newTareaResponse.id_tarea;
+      }
+  
+      // 2. Añadir productos a la tarea (si los hay)
+      if (selectedProducts.length > 0) {
+        await addProductosToTarea({
+          id_tarea,  // Enviamos id_tarea en el cuerpo
+          productos: selectedProducts.map(({ id_producto, cantidad }) => ({
+            id_producto,
+            cantidad,
+          })),
         });
       }
+  
+      // 3. Añadir servicios a la tarea (si los hay)
+      if (selectedServices.length > 0) {
+        await addServiciosToTarea({
+          id_tarea,  // Enviamos id_tarea en el cuerpo
+          servicios: selectedServices.map(({ id_servicio }) => ({
+            id_servicio,
+          })),
+        });
+      }
+  
+      toast.success(tareaId ? 'Tarea actualizada y productos/servicios añadidos' : 'Tarea creada y productos/servicios añadidos');
+      setIsCreatingTask(false); // Cerrar el modal o formulario
     } catch (error) {
-      console.log(error);
+      toast.error(tareaId ? 'Error al actualizar la tarea' : 'Error al crear la tarea');
+      console.error(error);
     }
+  };
+  
+  // Buscar el nombre del producto basado en el id
+  const getProductName = (id_producto: number) => {
+    const product = products.find((prod) => prod.id_producto === id_producto);
+    return product ? product.nombreProducto : 'Producto no encontrado';
+  };
+
+  // Buscar el nombre del servicio basado en el id
+  const getServiceName = (id_servicio: number) => {
+    const service = services.find((serv) => serv.id_servicio === id_servicio);
+    return service ? service.nombre : 'Servicio no encontrado';
+  };
+
+  const addProduct = (id_producto: number, cantidad: number) => {
+    const nombre = getProductName(id_producto);
+    setSelectedProducts((prevProducts) => [
+      ...prevProducts.filter((prod) => prod.id_producto !== id_producto),
+      { id_producto, nombre, cantidad },
+    ]);
+  };
+
+  const addService = (id_servicio: number) => {
+    const nombre = getServiceName(id_servicio);
+    setSelectedServices((prevServices) => [
+      ...prevServices.filter((serv) => serv.id_servicio !== id_servicio),
+      { id_servicio, nombre },
+    ]);
+  };
+
+  const updateProductQuantity = (id_producto: number, newQuantity: number) => {
+    setSelectedProducts((prevProducts) =>
+      prevProducts.map((product) =>
+        product.id_producto === id_producto ? { ...product, cantidad: newQuantity } : product
+      )
+    );
+  };
+
+  const removeService = (id_servicio: number) => {
+    setSelectedServices((prevServices) =>
+      prevServices.filter((service) => service.id_servicio !== id_servicio)
+    );
   };
 
   return (
@@ -131,7 +240,14 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask}: Tare
                 <FormLabel htmlFor="tiempo">Tiempo estimado</FormLabel>
                 <FormControl>
                   <div className="flex items-center">
-                    <Input id="tiempo" type="number" placeholder="0" {...field} />
+                    <Input 
+                      id="tiempo" 
+                      type="number" 
+                      placeholder="0" 
+                      {...field} 
+                      onChange={(e) => field.onChange(Number(e.target.value))} // Conversión a número
+
+                    />
                     <span className="ml-2">Minutos</span>
                   </div>
                 </FormControl>
@@ -156,19 +272,124 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask}: Tare
           )}
         />
 
-        {/* Sección de productos y servicios */}
+        {/* Productos */}
         <div className="col-span-2">
           <h2 className="text-lg font-semibold">Productos</h2>
-          <span className='text-gray-500 text-sm font-thin'> Agrega productos a la tarea</span>
-          
+          <div className="flex items-center gap-2 mt-2">
+            <ProductCombobox
+              field={{ value: '', onChange: (id_producto: number) => addProduct(id_producto, 1) }}
+              products={products}
+            />
+
+          </div>
+
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Producto</TableHead>
+                <TableHead>Cantidad</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {selectedProducts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center text-gray-500">
+                    No hay productos seleccionados.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                selectedProducts.map((product, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{product.nombre}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          className="h-8 w-8 bg-customGreen hover:bg-customGreenHover rounded-full"
+                          onClick={() => updateProductQuantity(product.id_producto, Math.max(1, product.cantidad - 1))} // Evitar que sea menor a 1
+                        >
+                          <FontAwesomeIcon icon={faMinus}/>
+                        </Button>
+                        <Input
+                          type="number"
+                          value={product.cantidad}
+                          min={1}
+                          onFocus={(e) => e.target.select()} // Selecciona el texto al hacer foco
+                          onChange={(e) =>
+                            updateProductQuantity(product.id_producto, Number(e.target.value))
+                          }
+                          className="w-16 text-center"
+                        />
+                        <Button
+                          type="button"
+                          className="h-8 w-8 bg-customGreen hover:bg-customGreenHover rounded-full"
+                          onClick={() => updateProductQuantity(product.id_producto, product.cantidad + 1)}
+                        >
+                          <FontAwesomeIcon icon={faPlus}/>
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        type="button"
+                        className="text-red-500 rounded-md p-2 transition-all duration-75 hover:bg-neutral-100 bg-white"
+                        onClick={() =>
+                          setSelectedProducts((prev) => prev.filter((p) => p.id_producto !== product.id_producto))
+                        }
+                      >
+                        <FontAwesomeIcon icon={faTrash} className="mr-1" /> Eliminar
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </div>
 
-        {/* Mensajes de productos y servicios */}
-        <div className="bg-gray-100 p-3 rounded-md">
-          <p className="text-sm">Tarea sin <a href="#" className="text-blue-600 underline">productos</a> cargados</p>
-        </div>
-        <div className="bg-gray-100 p-3 rounded-md">
-          <p className="text-sm">Tarea sin <a href="#" className="text-blue-600 underline">servicios</a> cargados</p>
+        {/* Servicios */}
+        <div className="col-span-2">
+          <h2 className="text-lg font-semibold">Servicios</h2>
+          <div className="flex items-center gap-2">
+            <ServiceCombobox
+              field={{ value: '', onChange: (id_servicio: number) => addService(id_servicio) }}
+              services={services}
+            />
+          </div>
+
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Servicio</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {selectedServices.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={2} className="text-center text-gray-500">
+                    No hay servicios seleccionados.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                selectedServices.map((service, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{service.nombre}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        type="button"
+                        className="text-red-500 rounded-md p-2 transition-all duration-75 hover:bg-neutral-100 bg-white"
+                        onClick={() => removeService(service.id_servicio)}
+                      >
+                        <FontAwesomeIcon icon={faTrash} className="mr-1" /> Eliminar
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </div>
 
         {/* Botones */}
