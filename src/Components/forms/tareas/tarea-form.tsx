@@ -20,15 +20,15 @@ import { addProductosToTarea, addServiciosToTarea, createTarea, getTareaById, up
 import { ProductCombobox } from '@/Components/comboBoxes/producto-combobox';
 import { getProducts, Product } from '@/api/productsService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMinus, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faAsterisk, faMinus, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { getServices, Service } from '@/api/servicioService';
 import { ServiceCombobox } from '@/Components/comboBoxes/servicio-combobox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 
 const formSchema = z.object({
   titulo: z.string().min(1, 'El título es requerido'),
-  tiempo: z.number().min(0, 'El tiempo debe ser un número positivo'),
-  descripcion: z.string().min(1, 'La descripción es requerida'),
+  tiempo: z.number().min(1, 'El tiempo debe ser un número positivo mayor que cero'),
+  descripcion: z.string().optional(), 
   productos: z.array(
     z.object({
       id_producto: z.number(),
@@ -122,27 +122,27 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask }: Tar
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       let id_tarea;
-  
+
       if (tareaId) {
         // 1. Actualizar la tarea existente
         const tareaPayload = {
           titulo: values.titulo,
           tiempo: values.tiempo,
-          descripcion: values.descripcion,
+          descripcion: values.descripcion ?? '', // Si es undefined, se envía una cadena vacía
         };
-        const updatedTareaResponse = await updateMutation.mutateAsync({id_tarea: tareaId, ...tareaPayload});
+        const updatedTareaResponse = await updateMutation.mutateAsync({ id_tarea: tareaId, ...tareaPayload });
         id_tarea = updatedTareaResponse.id_tarea;
       } else {
         // 1. Crear la nueva tarea
         const tareaPayload = {
           titulo: values.titulo,
           tiempo: values.tiempo,
-          descripcion: values.descripcion,
+          descripcion: values.descripcion ?? '', // Si es undefined, se envía una cadena vacía
         };
         const newTareaResponse = await createMutation.mutateAsync(tareaPayload);
         id_tarea = newTareaResponse.id_tarea;
       }
-  
+
       // 2. Añadir productos a la tarea (si los hay)
       if (selectedProducts.length > 0) {
         await addProductosToTarea({
@@ -153,7 +153,7 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask }: Tar
           })),
         });
       }
-  
+
       // 3. Añadir servicios a la tarea (si los hay)
       if (selectedServices.length > 0) {
         await addServiciosToTarea({
@@ -163,15 +163,15 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask }: Tar
           })),
         });
       }
-  
-      toast.success(tareaId ? 'Tarea actualizada y productos/servicios añadidos' : 'Tarea creada y productos/servicios añadidos');
+
+      toast.success(tareaId ? 'Tarea actualizada con éxito' : 'Tarea creada con éxito');
       setIsCreatingTask(false); // Cerrar el modal o formulario
     } catch (error) {
       toast.error(tareaId ? 'Error al actualizar la tarea' : 'Error al crear la tarea');
       console.error(error);
     }
   };
-  
+
   // Buscar el nombre del producto basado en el id
   const getProductName = (id_producto: number) => {
     const product = products.find((prod) => prod.id_producto === id_producto);
@@ -224,7 +224,7 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask }: Tar
             control={form.control}
             render={({ field }) => (
               <FormItem className="col-span-2">
-                <FormLabel htmlFor="titulo">Título <span className="text-red-500">*</span></FormLabel>
+                <FormLabel htmlFor="titulo">Título <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span></FormLabel>
                 <FormControl>
                   <Input id="titulo" placeholder="Ingrese el título de la tarea" {...field} />
                 </FormControl>
@@ -237,18 +237,20 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask }: Tar
             control={form.control}
             render={({ field }) => (
               <FormItem className="col-span-1">
-                <FormLabel htmlFor="tiempo">Tiempo estimado</FormLabel>
+                <FormLabel htmlFor="tiempo">Tiempo estimado <span className='text-red-500'><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span></FormLabel>
                 <FormControl>
                   <div className="flex items-center">
-                    <Input 
-                      id="tiempo" 
-                      type="number" 
-                      placeholder="0" 
-                      {...field} 
+                    <Input
+                      id="tiempo"
+                      type="number"
+                      placeholder="0"
+                      {...field}
                       onChange={(e) => field.onChange(Number(e.target.value))} // Conversión a número
 
                     />
-                    <span className="ml-2">Minutos</span>
+                    <div className="ml-1 border border-gray-300 px-2 py-[7px] rounded">
+                      <span className="text-sm text-gray-500">Minutos</span>
+                    </div>
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -309,7 +311,7 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask }: Tar
                           className="h-8 w-8 bg-customGreen hover:bg-customGreenHover rounded-full"
                           onClick={() => updateProductQuantity(product.id_producto, Math.max(1, product.cantidad - 1))} // Evitar que sea menor a 1
                         >
-                          <FontAwesomeIcon icon={faMinus}/>
+                          <FontAwesomeIcon icon={faMinus} />
                         </Button>
                         <Input
                           type="number"
@@ -326,7 +328,7 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask }: Tar
                           className="h-8 w-8 bg-customGreen hover:bg-customGreenHover rounded-full"
                           onClick={() => updateProductQuantity(product.id_producto, product.cantidad + 1)}
                         >
-                          <FontAwesomeIcon icon={faPlus}/>
+                          <FontAwesomeIcon icon={faPlus} />
                         </Button>
                       </div>
                     </TableCell>
@@ -394,7 +396,7 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask }: Tar
 
         {/* Botones */}
         <div className="flex justify-between">
-          <Button variant="outline" onClick={() => setIsCreatingTask(false)}>Cancelar</Button>
+          <Button type='button' variant="outline" onClick={() => setIsCreatingTask(false)}>Cancelar</Button>
           <Button type="submit" disabled={isLoading || isTareaLoading} className="bg-customGreen text-white hover:bg-customGreenHover">
             {isLoading || isTareaLoading ? (
               <>

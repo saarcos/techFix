@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import DeleteForm from '@/Components/forms/clientes/client-delete-form';
+import UserForm from '@/Components/forms/clientes/client-form';
 import IconMenu from '@/Components/icon-menu';
 import { ResponsiveDialog } from '@/Components/responsive-dialog';
 import { Button } from '@/Components/ui/button';
@@ -10,52 +12,35 @@ import {
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 import { Row } from '@tanstack/react-table';
-import { MoreHorizontal, SquarePen, Trash2 } from 'lucide-react';
-import { ResponsiveDialogExtended } from '@/Components/responsive-dialog-extended';
-import { Plantilla } from '@/api/plantillaService';
-import PlantillaForm from '@/Components/forms/plantillas/plantilla-form';
-import TareaForm from '@/Components/forms/tareas/tarea-form';
-import DeleteForm from '@/Components/forms/plantillas/plantilla-delete-form';
-
+import { MoreHorizontal, SquarePen, Trash2, EyeIcon } from 'lucide-react';
+import { Tarea } from '@/api/tareaService';
 interface DataTableRowActionsProps {
-  row: Row<Plantilla>;
+  row: Row<Tarea>;
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [isCreatingTask, setIsCreatingTask] = useState(false);
 
 
-  const plantillaId = row.original.id_grupo;
+  const userId = row.original.id_tarea;
   return (
     <>
-      <ResponsiveDialogExtended
+      <ResponsiveDialog
         isOpen={isEditOpen}
-        setIsOpen={(open) => {
-          setIsEditOpen(open);
-          if (!open) setIsCreatingTask(false);
-        }}
-        title={`Editar información de ${row.original.descripcion}`}
-        description={'Por favor, ingresa la información solicitada'}
+        setIsOpen={setIsEditOpen}
+        title={`Editar información de ${row.original.titulo}`}
+        description='Por favor, ingresa la información solicitada'
       >
-        {isCreatingTask ? (
-          <TareaForm setIsOpen={setIsEditOpen} setIsCreatingTask={setIsCreatingTask} />
-        ) : (
-          <PlantillaForm
-            plantillaId={plantillaId}
-            setIsOpen={setIsEditOpen}
-            setIsCreatingTask={setIsCreatingTask} // Permite cambiar al formulario de categorías
-          />
-        )}
-      </ResponsiveDialogExtended>
+        <UserForm clienteId={userId} setIsOpen={setIsEditOpen}  />
+      </ResponsiveDialog>
       <ResponsiveDialog
         isOpen={isDeleteOpen}
         setIsOpen={setIsDeleteOpen}
-        title={`Eliminar del sistema a ${row.original.descripcion}`}
+        title={`Eliminar del sistema a ${row.original.titulo}`}
         description="¿Estás seguro de que deseas continuar? Esta acción no se puede deshacer."
       >
-        <DeleteForm plantillaId={plantillaId} setIsOpen={setIsDeleteOpen} />
+        <DeleteForm clienteId={userId} setIsOpen={setIsDeleteOpen} />
       </ResponsiveDialog>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -70,13 +55,18 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               onClick={() => {
                 setIsEditOpen(true);
               }}
-              className="w-full justify-start flex rounded-md p-2 transition-all duration-75 hover:bg-neutral-100"
+              className="w-full justify-start flex rounded-md p-2 transition-all duration-75 hover:bg-neutral-200"
             >
               <IconMenu text="Modificar" icon={<SquarePen className="h-4 w-4" />} />
             </button>
           </DropdownMenuItem>
+          <DropdownMenuItem className="group flex w-full items-center justify-between  text-left p-0 text-sm font-base text-neutral-500  ">
+              <button className="w-full justify-start flex rounded-md p-2 transition-all duration-75 hover:bg-neutral-100" >
+                <IconMenu text="Ver historial" icon={<EyeIcon className="h-4 w-4" />} />
+              </button>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="group flex w-full items-center justify-between  text-left p-0 text-sm font-base text-neutral-500 ">
+          <DropdownMenuItem className="group flex w-full items-center justify-between  text-left p-0 text-sm font-base text-neutral-500">
             <button
               onClick={() => {
                 setIsDeleteOpen(true);

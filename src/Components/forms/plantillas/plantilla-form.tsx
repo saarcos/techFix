@@ -1,11 +1,11 @@
-import { createPlantilla, Tarea, updatePlantilla } from '@/api/plantillaService';
+import { createPlantilla, getPlantillaById, Plantilla, Tarea, TareaAnidada, updatePlantilla } from '@/api/plantillaService';
 import { Button } from '@/Components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/Components/ui/form';
 import { Input } from '@/Components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Trash2 } from 'lucide-react';
-import { Dispatch, SetStateAction, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -42,7 +42,18 @@ export default function PlantillaForm({ setIsOpen, setIsCreatingTask, plantillaI
         queryKey: ['tasks'],
         queryFn: getTareas,
     });
-
+    const { data: plantilla, isLoading: isPlantillaLoading, isError } = useQuery<Plantilla>({
+        queryKey: ['plantilla', plantillaId],
+        queryFn: () =>
+            plantillaId
+                ? getPlantillaById(plantillaId)
+                : Promise.resolve({
+                      id_grupo: 0,
+                      descripcion: '',
+                      tareas: [],  // Array vacío de tareas anidadas
+                  } as Plantilla),
+        enabled: !!plantillaId,  // Solo ejecuta la consulta si hay un id de plantilla
+    });
     const form = useForm<z.infer<typeof plantillaSchema>>({
         resolver: zodResolver(plantillaSchema),
         defaultValues: {
@@ -104,6 +115,23 @@ export default function PlantillaForm({ setIsOpen, setIsCreatingTask, plantillaI
             createMutation.mutate(payload);  // Aquí pasamos los IDs de las tareas
         }
     };
+    useEffect(() => {
+        if (plantilla) {
+            form.setValue('descripcion', plantilla.descripcion);
+    
+            // Mapea las tareas anidadas para extraer la tarea principal y rellenar el formulario
+            const mappedTasks = plantilla.tareas.map((tareaAnidada: TareaAnidada) => ({
+                id: tareaAnidada.tarea.id_tarea,  // Extrae el ID de la tarea anidada
+                nombre: tareaAnidada.tarea.titulo,  // Usa el título de la tarea
+            }));
+    
+            form.setValue('tareas', mappedTasks);  // Establece las tareas en el formulario
+            setAddedTasks(mappedTasks);  // Actualiza también el estado de las tareas añadidas
+        }
+        if(isError){
+            console.error('Error fetching plantilla data: ', error)
+        }
+    }, [plantilla, form, isError, error]);
 
     if (isTareasLoading) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
     if (error) return toast.error('Error al recuperar los datos');
@@ -127,6 +155,7 @@ export default function PlantillaForm({ setIsOpen, setIsCreatingTask, plantillaI
                                     id="descripcion"
                                     placeholder="Ingrese la descripción de la plantilla"
                                     {...field}
+                                    disabled={isPlantillaLoading}
                                 />
                             </FormControl>
                         </FormItem>

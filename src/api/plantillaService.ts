@@ -85,6 +85,7 @@ export const getPlantillaById = async (id_grupo: number): Promise<Plantilla> => 
   }
 };
 
+
 // Método para crear una nueva plantilla
 export const createPlantilla = async (plantillaData: { descripcion: string; tareas: number[] }) => {
   try {
