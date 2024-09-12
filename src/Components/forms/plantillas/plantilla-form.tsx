@@ -20,7 +20,7 @@ const plantillaSchema = z.object({
     tareas: z.array(z.object({
         id: z.number(),
         nombre: z.string(),
-    })).min(1, 'Debe agregar al menos una tarea')
+    })).optional(),  // Ahora el array de tareas es opcional
 });
 
 interface Task {
@@ -106,7 +106,7 @@ export default function PlantillaForm({ setIsOpen, setIsCreatingTask, plantillaI
     };
 
     const onSubmit = async (values: z.infer<typeof plantillaSchema>) => {
-        const tareasIds = values.tareas.map(task => task.id); // Convertimos las tareas a un array de IDs
+        const tareasIds = values.tareas ? values.tareas.map(task => task.id) : []; 
         const payload = { descripcion: values.descripcion, tareas: tareasIds };
 
         if (plantillaId) {

@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import DeleteForm from '@/Components/forms/clientes/client-delete-form';
-import UserForm from '@/Components/forms/clientes/client-form';
 import IconMenu from '@/Components/icon-menu';
 import { ResponsiveDialog } from '@/Components/responsive-dialog';
 import { Button } from '@/Components/ui/button';
@@ -12,8 +10,11 @@ import {
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 import { Row } from '@tanstack/react-table';
-import { MoreHorizontal, SquarePen, Trash2, EyeIcon } from 'lucide-react';
+import { MoreHorizontal, SquarePen, Trash2 } from 'lucide-react';
 import { Tarea } from '@/api/tareaService';
+import TareaForm from '@/Components/forms/tareas/tarea-form';
+import { ResponsiveDialogExtended } from '@/Components/responsive-dialog-extended';
+import DeleteForm from '@/Components/forms/tareas/tarea-delete-form';
 interface DataTableRowActionsProps {
   row: Row<Tarea>;
 }
@@ -23,24 +24,24 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
 
-  const userId = row.original.id_tarea;
+  const tareaId = row.original.id_tarea;
   return (
     <>
-      <ResponsiveDialog
+      <ResponsiveDialogExtended
         isOpen={isEditOpen}
         setIsOpen={setIsEditOpen}
         title={`Editar información de ${row.original.titulo}`}
         description='Por favor, ingresa la información solicitada'
       >
-        <UserForm clienteId={userId} setIsOpen={setIsEditOpen}  />
-      </ResponsiveDialog>
+        <TareaForm tareaId={tareaId} setIsOpen={setIsEditOpen}  setIsCreatingTask={setIsEditOpen}/>
+      </ResponsiveDialogExtended>
       <ResponsiveDialog
         isOpen={isDeleteOpen}
         setIsOpen={setIsDeleteOpen}
         title={`Eliminar del sistema a ${row.original.titulo}`}
         description="¿Estás seguro de que deseas continuar? Esta acción no se puede deshacer."
       >
-        <DeleteForm clienteId={userId} setIsOpen={setIsDeleteOpen} />
+        <DeleteForm tareaId={tareaId} setIsOpen={setIsDeleteOpen} />
       </ResponsiveDialog>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -60,11 +61,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               <IconMenu text="Modificar" icon={<SquarePen className="h-4 w-4" />} />
             </button>
           </DropdownMenuItem>
-          <DropdownMenuItem className="group flex w-full items-center justify-between  text-left p-0 text-sm font-base text-neutral-500  ">
-              <button className="w-full justify-start flex rounded-md p-2 transition-all duration-75 hover:bg-neutral-100" >
-                <IconMenu text="Ver historial" icon={<EyeIcon className="h-4 w-4" />} />
-              </button>
-          </DropdownMenuItem>
+         
           <DropdownMenuSeparator />
           <DropdownMenuItem className="group flex w-full items-center justify-between  text-left p-0 text-sm font-base text-neutral-500">
             <button

@@ -18,6 +18,7 @@ export interface ProductoTarea {
   id_taskprod: number;
   id_producto: number;
   id_tarea: number;
+  nombreProducto: string;
   cantidad: number;
   producto: Producto;
 }
@@ -79,9 +80,19 @@ export const updateTarea = async (tareaData: {
   titulo: string;
   tiempo: number;
   descripcion: string;
+  productos: { id_producto: number; cantidad: number }[];
+  servicios: { id_servicio: number }[];
 }) => {
   try {
-    const response = await axiosInstance.put(`/tareas/${tareaData.id_tarea}`, tareaData);
+    // Mandamos también productos y servicios en el cuerpo de la solicitud
+    const response = await axiosInstance.put(`/tareas/${tareaData.id_tarea}`, {
+      titulo: tareaData.titulo,
+      tiempo: tareaData.tiempo,
+      descripcion: tareaData.descripcion,
+      productos: tareaData.productos, // Array de productos con id_producto y cantidad
+      servicios: tareaData.servicios, // Array de servicios con id_servicio
+    });
+
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
