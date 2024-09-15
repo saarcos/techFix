@@ -79,12 +79,12 @@ const Ordenes = () => {
             </CardFooter>
           </Card>
         </div>
-        <Tabs defaultValue="week">
+        <Tabs defaultValue="entrada">
           <div className="flex items-center">
             <TabsList>
-              <TabsTrigger value="week">Entrada</TabsTrigger>
-              <TabsTrigger value="month">Reparación</TabsTrigger>
-              <TabsTrigger value="year">Salida</TabsTrigger>
+              <TabsTrigger value="entrada">Entrada</TabsTrigger>
+              <TabsTrigger value="reparacion">Reparación</TabsTrigger>
+              <TabsTrigger value="salida">Salida</TabsTrigger>
             </TabsList>
             <div className="ml-auto flex items-center gap-2">
               <DropdownMenu>
@@ -122,7 +122,7 @@ const Ordenes = () => {
               </Button>
             </div>
           </div>
-          <TabsContent value="week">
+          <TabsContent value="entrada">
             <Card x-chunk="dashboard-05-chunk-3">
               <CardHeader className="px-7">
                 <CardTitle>Órdenes de trabajo</CardTitle>

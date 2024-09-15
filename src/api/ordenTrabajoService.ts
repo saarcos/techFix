@@ -64,6 +64,24 @@ export interface OrdenTrabajoCreate {
   passwordequipo: string | null;
   imagenes?: string[];
 }
+export interface OrdenTrabajoUpdate {
+  id_orden: number;
+  id_equipo: number;
+  id_usuario: number | null;
+  id_cliente: number;
+  area: string;
+  prioridad: string;
+  descripcion: string;
+  estado: string;
+  fecha_prometida: Date | null;
+  presupuesto: number | null;
+  adelanto: number | null;
+  total: number | null;
+  confirmacion: boolean;
+  passwordequipo: string | null;
+  imagenes?: string[]; 
+}
+
 
 // Método para recuperar todas las órdenes de trabajo
 export const getOrdenesTrabajo = async (): Promise<OrdenTrabajo[]> => {
@@ -91,15 +109,15 @@ export const createOrdenTrabajo = async (ordenTrabajoData: OrdenTrabajoCreate): 
   }
 };
 // Método para actualizar una orden de trabajo
-export const updateOrdenTrabajo = async (ordenTrabajoData: Omit<OrdenTrabajo, 'numero_orden'> & { imagenes?: string[] }): Promise<OrdenTrabajo> => {
+export const updateOrdenTrabajo = async (ordenTrabajoData: OrdenTrabajoUpdate): Promise<OrdenTrabajo> => {
   try {
-    const response = await axiosInstance.put(`/ordenes/${ordenTrabajoData.id_orden}`, ordenTrabajoData);
+    const response: AxiosResponse<OrdenTrabajo> = await axiosInstance.put(`/ordenes/${ordenTrabajoData.id_orden}`, ordenTrabajoData);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw error.response?.data;
+      throw error.response?.data; // Manejo de errores de Axios
     } else {
-      throw new Error('Error inesperado');
+      throw new Error('Error inesperado'); // Otro tipo de errores
     }
   }
 };

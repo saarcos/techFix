@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTools, faBox, faWarehouse, faGear, faChevronDown, faHouseChimney, faPersonDigging, faPeopleGroup, faLayerGroup, faHandsHelping, faBoxesStacked, faBriefcase, faBarsProgress, faTasks, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import { faTools, faBox, faWarehouse, faGear, faChevronDown, faHouseChimney, faPersonDigging, faPeopleGroup, faLayerGroup, faHandsHelping, faBoxesStacked, faBriefcase, faBarsProgress, faTasks, faCheckCircle, faPlug } from '@fortawesome/free-solid-svg-icons';
 import { useState } from "react";
 import useWindowSize from '../hooks/useWindowSize'; // Asegúrate de importar el hook
 import { useAuth } from "./AuthProvider";
@@ -90,6 +90,16 @@ const Navbar = ({ isVisible, toggleNavbar }: Props) => {
                 >
                   <MonitorSmartphone />
                   <span className="text-sm ml-1">Equipos</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/taller/accesorios"
+                  className={`${getLinkClass("/taller/accesorios")}`}
+                  onClick={handleLinkClick}
+                >
+                  <FontAwesomeIcon icon={faPlug} />
+                  <span className="text-sm ml-1">Accesorios</span>
                 </Link>
               </li>
               {

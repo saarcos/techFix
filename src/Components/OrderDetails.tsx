@@ -7,12 +7,20 @@ import { Separator } from "@/Components/ui/separator";
 import { ChevronLeft, ChevronRight, Copy, CreditCard, MoreVertical, Truck } from "lucide-react";
 import { OrdenTrabajo } from "@/api/ordenTrabajoService";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/Components/ui/carousel";
+import { useNavigate } from "react-router-dom";
 
 interface OrderDetailsProps {
   order: OrdenTrabajo | null;
 }
 
 const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
+  const navigate = useNavigate(); // Definir el hook useNavigate
+
+  const handleEditClick = () => {
+    if (order) {
+      navigate(`${order.id_orden}/edit`); // Redirigir al formulario de edición
+    }
+  };
   return (
     <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4">
       <CardHeader className="flex flex-row items-start bg-muted/50">
@@ -47,8 +55,8 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>Edit</DropdownMenuItem>
-              <DropdownMenuItem>Export</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleEditClick} className="cursor-pointer">Edit</DropdownMenuItem>
+            <DropdownMenuItem>Export</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>Trash</DropdownMenuItem>
             </DropdownMenuContent>

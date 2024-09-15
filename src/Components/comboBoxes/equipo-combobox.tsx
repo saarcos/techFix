@@ -22,7 +22,7 @@ interface EquipoComboboxProps {
   field: FieldValues;
   equipos: Equipo[];
   isEquipoLoading: boolean;
-  disabled: boolean;  // Añadir prop para controlar si el combobox está deshabilitado
+  disabled?: boolean;  // Añadir prop para controlar si el combobox está deshabilitado
 }
 
 export function EquipoCombobox({ field, equipos, isEquipoLoading, disabled }: EquipoComboboxProps) {
