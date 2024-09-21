@@ -263,7 +263,7 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask }: Tar
             name="tiempo"
             control={form.control}
             render={({ field }) => (
-              <FormItem className="col-span-1">
+              <FormItem className="col-span-2 lg:col-span-1">
                 <FormLabel htmlFor="tiempo">Tiempo estimado <span className='text-red-500'><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3' /></span></FormLabel>
                 <FormControl>
                   <div className="flex items-center">

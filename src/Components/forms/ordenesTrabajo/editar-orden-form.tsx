@@ -25,9 +25,11 @@ import { CalendarIcon, CreditCard, Info, Loader2, Mail, MonitorSmartphone, Phone
 import { Calendar } from '@/Components/ui/calendar';
 import { es } from 'date-fns/locale';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faIdCard } from '@fortawesome/free-solid-svg-icons';
+import { faFileCirclePlus, faIdCard, faXmark } from '@fortawesome/free-solid-svg-icons';
 import ProductServiceTableShadCN from '@/tables/productosyservicios/ProductsServicesTable';
 import OrdenTrabajoTabs from '@/Components/OrdenTrabajoTabs';
+import { PlantillaCombobox } from '@/Components/comboBoxes/plantilla-combobox';
+import { getPlantillas, Plantilla } from '@/api/plantillaService';
 
 
 
@@ -61,6 +63,8 @@ export default function OrdenTrabajoEditForm() {
     const queryClient = useQueryClient();
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
     const [selectedClient, setSelectedClient] = useState(0);
+    const [plantillasSeleccionadas, setPlantillasSeleccionadas] = useState<{ id_grupo: number; nombre: string }[]>([]);
+
     const navigate = useNavigate();
     const { data: clientes = [], isLoading: isClientesLoading } = useQuery({
         queryKey: ['clients'],
@@ -75,12 +79,16 @@ export default function OrdenTrabajoEditForm() {
         queryFn: getUsers,
     });
 
-
     // Consulta para obtener los datos de la orden de trabajo por ID
     const { data: ordenTrabajo, isLoading, isError } = useQuery({
         queryKey: ['ordenTrabajo', id_orden],
         queryFn: () => id_orden ? getOrdenTrabajoById(id_orden) : Promise.resolve(null),
         enabled: !!id_orden,
+    });
+
+    const { data: plantillas = [], isLoadingError: plantillasError } = useQuery<Plantilla[]>({
+        queryKey: ['plantillas'],
+        queryFn: getPlantillas,
     });
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -141,6 +149,25 @@ export default function OrdenTrabajoEditForm() {
         return date < today;
     };
 
+    const handleAgregarPlantilla = (plantilla: Plantilla) => {
+        // Verificamos si la plantilla ya ha sido seleccionada por su id_grupo
+        if (!plantillasSeleccionadas.some(p => p.id_grupo === plantilla.id_grupo)) {
+            // Transformamos la plantilla para que use 'descripcion' como 'nombre'
+            const nuevaPlantilla = {
+                id_grupo: plantilla.id_grupo,
+                nombre: plantilla.descripcion, // Usamos descripcion en lugar de nombre
+            };
+
+            // Añadimos la nueva plantilla al estado
+            setPlantillasSeleccionadas([...plantillasSeleccionadas, nuevaPlantilla]);
+        }
+    };
+
+    // Función para eliminar una plantilla seleccionada
+    const handleEliminarPlantilla = (id_grupo: number) => {
+        setPlantillasSeleccionadas(plantillasSeleccionadas.filter(p => p.id_grupo !== id_grupo));
+    };
+
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             const imageUrls = [];
@@ -177,7 +204,7 @@ export default function OrdenTrabajoEditForm() {
     };
 
     if (isLoading) return <div>Loading...</div>;
-    if (isError) return <div>Error al cargar los datos</div>;
+    if (isError || plantillasError) return <div>Error al cargar los datos</div>;
 
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40 mt-5">
@@ -205,7 +232,7 @@ export default function OrdenTrabajoEditForm() {
                                             <div className="flex items-center space-x-2">
                                                 <Mail className="w-4 h-4 text-darkGreen" />
                                                 <a href={`mailto:${ordenTrabajo?.cliente?.correo}`}
-                                                className="text-sm font-medium underline cursor-pointer">
+                                                    className="text-sm font-medium underline cursor-pointer">
                                                     {ordenTrabajo?.cliente?.correo}
                                                 </a>
                                             </div>
@@ -399,6 +426,42 @@ export default function OrdenTrabajoEditForm() {
                                             </FormItem>
                                         )}
                                     />
+                                    <div className="col-span-1">
+                                        <p className="text-sm font-medium text-black mb-1">Plantillas</p>
+                                        <PlantillaCombobox
+                                            plantillas={plantillas}
+                                            onSelect={handleAgregarPlantilla}
+                                        />
+                                    </div>
+                                    {/* Selección de Plantillas */}
+                                    <Card className="p-4 mt-2 shadow-sm border border-gray-200 rounded-md">
+                                        <CardContent className="space-y-4">
+                                            {plantillasSeleccionadas.length > 0 ? (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {plantillasSeleccionadas.map((plantilla) => (
+                                                        <div
+                                                            key={plantilla.id_grupo}
+                                                            className="flex items-center justify-between bg-customGreen text-white px-4 py-2 rounded-md shadow-lg"
+                                                        >
+                                                            <span className="text-sm font-semibold">{plantilla.nombre}</span>
+                                                            <Button
+                                                                type="button"
+                                                                className="ml-2 bg-black hover:bg-gray-600 text-white rounded-full h-8 w-8 flex items-center justify-center"
+                                                                onClick={() => handleEliminarPlantilla(plantilla.id_grupo)}
+                                                            >
+                                                                <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
+                                                            </Button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center p-4 text-gray-500 border border-dashed border-gray-300 rounded-md">
+                                                    <FontAwesomeIcon icon={faFileCirclePlus} className="w-10 h-10 mb-2" />
+                                                    <p className="text-sm">No se ha seleccionado ninguna plantilla</p>
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
                                 </div>
                                 <FormField
                                     name="descripcion"
@@ -418,8 +481,8 @@ export default function OrdenTrabajoEditForm() {
                                         </FormItem>
                                     )}
                                 />
-                                <ProductServiceTableShadCN />
-                                <OrdenTrabajoTabs/>
+                                <ProductServiceTableShadCN productos={ordenTrabajo?.productos || []} servicios={ordenTrabajo?.servicios || []} />
+                                <OrdenTrabajoTabs tasks={ordenTrabajo?.tareas || []} />
                                 <div className="flex justify-end">
                                     <Button
                                         type="button"

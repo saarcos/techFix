@@ -2,10 +2,35 @@
 import { AxiosResponse } from 'axios';
 import axiosInstance from '../api/axiosInstance';
 import axios from 'axios';
+import { TareaOrden } from './tareasOrdenService';
 
 export interface ImagenOrden {
   id_imagen: number;
   url_imagen: string;
+}
+
+export interface ProductoOrden {
+  id_prodorde: number;
+  id_producto: number;
+  id_orden: number;
+  cantidad: number;
+  producto: {
+    nombreProducto: string;
+    precioFinal: number;
+    iva: number;
+    precioSinIVA: number;
+  };
+}
+
+// Definimos la interface para servicios dentro de la orden
+export interface ServicioOrden {
+  id_servorden: number;
+  id_servicio: number;
+  id_orden: number;
+  servicio: {
+    nombre: string;
+    precio: number;
+  };
 }
 
 export interface OrdenTrabajo {
@@ -47,6 +72,9 @@ export interface OrdenTrabajo {
     correo: string;
     celular: string;
   };
+  productos: ProductoOrden[]; // Incluimos los productos relacionados con la orden de trabajo
+  servicios: ServicioOrden[]; // Incluimos los productos relacionados con la orden de trabajo
+  tareas: TareaOrden[];
 }
 export interface OrdenTrabajoCreate {
   id_equipo: number;

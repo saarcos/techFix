@@ -21,7 +21,7 @@ import { toast } from 'sonner';
 import Spinner from '../../../assets/tube-spinner.svg';
 import fileUploader from '../../../assets/icons/file-upload.svg'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAsterisk, faCircleXmark, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faAsterisk, faCircleXmark, faFileCirclePlus, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import {
   Tooltip,
   TooltipContent,
@@ -51,6 +51,9 @@ import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { createOrdenTrabajo, OrdenTrabajoCreate } from '@/api/ordenTrabajoService';
 import { uploadImage } from '@/lib/firebase'; // Asegúrate de importar la función correcta
+import { PlantillaCombobox } from '@/Components/comboBoxes/plantilla-combobox';
+import { getPlantillas, Plantilla } from '@/api/plantillaService';
+import { createMultiplePlantillasOrden } from '@/api/plantillaOrdenService';
 
 const formSchema = z.object({
   id_equipo: z.number().min(1, 'Equipo es requerido'),
@@ -74,6 +77,8 @@ const formSchema = z.object({
     .transform((val) => (val ? parseFloat(val) : undefined))
     .optional(),
   archivos: z.any().optional(),
+  plantillas: z.array(z.number()).optional(),
+
 });
 
 export default function OrdenTrabajoForm() {
@@ -86,6 +91,8 @@ export default function OrdenTrabajoForm() {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [selectedClient, setSelectedClient] = useState(0);
   const [filteredDevices, setFilteredDevices] = useState<Equipo[]>([]);
+  const [plantillasSeleccionadas, setPlantillasSeleccionadas] = useState<{ id_grupo: number; nombre: string }[]>([]);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     setSelectedImages((prevImages) => [...prevImages, ...files]); // Mantén las imágenes anteriores y añade las nuevas
@@ -93,6 +100,25 @@ export default function OrdenTrabajoForm() {
   const handleRemoveImage = (index: number) => {
     setSelectedImages((prevImages) => prevImages.filter((_, i) => i !== index));
   };
+  const handleAgregarPlantilla = (plantilla: Plantilla) => {
+    // Verificamos si la plantilla ya ha sido seleccionada por su id_grupo
+    if (!plantillasSeleccionadas.some(p => p.id_grupo === plantilla.id_grupo)) {
+      // Transformamos la plantilla para que use 'descripcion' como 'nombre'
+      const nuevaPlantilla = {
+        id_grupo: plantilla.id_grupo,
+        nombre: plantilla.descripcion, // Usamos descripcion en lugar de nombre
+      };
+
+      // Añadimos la nueva plantilla al estado
+      setPlantillasSeleccionadas([...plantillasSeleccionadas, nuevaPlantilla]);
+    }
+  };
+
+  // Función para eliminar una plantilla seleccionada
+  const handleEliminarPlantilla = (id_grupo: number) => {
+    setPlantillasSeleccionadas(plantillasSeleccionadas.filter(p => p.id_grupo !== id_grupo));
+  };
+
   const { data: equipos = [], isLoading: isEquipoLoading, error } = useQuery<Equipo[]>({
     queryKey: ['devices'],
     queryFn: getEquipos,
@@ -117,6 +143,10 @@ export default function OrdenTrabajoForm() {
     queryKey: ['deviceTypes'],
     queryFn: getDeviceTypes,
   });
+  const { data: plantillas = [], isLoadingError: plantillasError } = useQuery<Plantilla[]>({
+    queryKey: ['plantillas'],
+    queryFn: getPlantillas,
+  });
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -132,6 +162,7 @@ export default function OrdenTrabajoForm() {
       presupuesto: undefined,
       adelanto: undefined,
       archivos: [], // Default vacío para archivos
+      plantillas: [], // Por defecto será un array vacío
     },
   });
   // Define la mutación para crear la orden de trabajo
@@ -176,8 +207,17 @@ export default function OrdenTrabajoForm() {
         imagenes: imageUrls, // Asigna las URLs de las imágenes subidas
       };
 
-      // Llama a la mutación con los datos de la orden de trabajo
-      createMutation.mutate(ordenTrabajoData);
+      // Crear la orden de trabajo primero
+      const newOrder = await createMutation.mutateAsync(ordenTrabajoData);
+
+      // Verificar si hay plantillas seleccionadas
+      if (plantillasSeleccionadas.length > 0) {
+        // Extraer los IDs de las plantillas seleccionadas
+        const plantillasIds = plantillasSeleccionadas.map((plantilla) => plantilla.id_grupo);
+
+        // Asignar las plantillas a la orden de trabajo creada
+        await createMultiplePlantillasOrden(newOrder.id_orden, plantillasIds);
+      }
     } catch (error) {
       console.error("Error al subir las imágenes:", error);
       toast.error('Error al subir las imágenes');
@@ -193,7 +233,7 @@ export default function OrdenTrabajoForm() {
   }, [selectedClient, equipos, form]);
 
   if (isEquipoLoading || isClienteLoading || isTecnicoLoading) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
-  if (error || marcasError || modelsError || deviceTypesError) return toast.error('Error al recuperar los datos');
+  if (error || marcasError || modelsError || deviceTypesError || plantillasError) return toast.error('Error al recuperar los datos');
 
   const selectedArea = form.watch('area');
 
@@ -300,7 +340,7 @@ export default function OrdenTrabajoForm() {
                         <FormLabel>Equipo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3' /></span></FormLabel>
                         <div className='flex items-center gap-1'>
                           <FormControl>
-                            <EquipoCombobox field={field} equipos={filteredDevices} isEquipoLoading={isEquipoLoading} disabled={!selectedClient}/>
+                            <EquipoCombobox field={field} equipos={filteredDevices} isEquipoLoading={isEquipoLoading} disabled={!selectedClient} />
                           </FormControl>
                           <TooltipProvider>
                             <Tooltip>
@@ -486,6 +526,42 @@ export default function OrdenTrabajoForm() {
                       </FormItem>
                     )}
                   />
+                  <div className="col-span-1">
+                    <p className="text-sm font-medium text-black mb-1">Plantillas</p>
+                    <PlantillaCombobox
+                      plantillas={plantillas}
+                      onSelect={handleAgregarPlantilla}
+                    />
+                  </div>
+
+                  <Card className="p-4 mt-2 shadow-sm border border-gray-200 rounded-md">
+                    <CardContent className="space-y-4">
+                      {plantillasSeleccionadas.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {plantillasSeleccionadas.map((plantilla) => (
+                            <div
+                              key={plantilla.id_grupo}
+                              className="flex items-center justify-between bg-customGreen text-white px-4 py-2 rounded-md shadow-lg"
+                            >
+                              <span className="text-sm font-semibold">{plantilla.nombre}</span>
+                              <Button
+                                type="button"
+                                className="ml-2 bg-black hover:bg-gray-600 text-white rounded-full h-8 w-8 flex items-center justify-center"
+                                onClick={() => handleEliminarPlantilla(plantilla.id_grupo)}
+                              >
+                                <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center p-4 text-gray-500 border border-dashed border-gray-300 rounded-md">
+                          <FontAwesomeIcon icon={faFileCirclePlus} className="w-10 h-10 mb-2" />
+                          <p className="text-sm">No se ha seleccionado ninguna plantilla</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
                 <FormField
                   name="descripcion"
