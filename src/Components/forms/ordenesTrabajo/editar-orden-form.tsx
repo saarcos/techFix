@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/Components/ui/form';
 import { ClienteCombobox } from '@/Components/comboBoxes/cliente-combobox';
-import { getOrdenTrabajoById, OrdenTrabajoUpdate, updateOrdenTrabajo } from '@/api/ordenTrabajoService'; // Importa correctamente tus servicios
+import { getOrdenTrabajoById, OrdenTrabajoUpdate, ProductoOrden, ServicioOrden, updateOrdenTrabajo } from '@/api/ordenTrabajoService'; // Importa correctamente tus servicios
 import { uploadImage } from '@/lib/firebase'; // Asegúrate de importar la función correcta
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { getClients } from '@/api/clientService';
@@ -30,6 +30,8 @@ import ProductServiceTableShadCN from '@/tables/productosyservicios/ProductsServ
 import OrdenTrabajoTabs from '@/Components/OrdenTrabajoTabs';
 import { PlantillaCombobox } from '@/Components/comboBoxes/plantilla-combobox';
 import { getPlantillas, Plantilla } from '@/api/plantillaService';
+import { addProductsToOrder } from '@/api/productOrdenService';
+import { addServicesToOrder } from '@/api/serviceOrdenService';
 
 
 
@@ -43,9 +45,9 @@ const formSchema = z.object({
     estado: z.string().min(1, 'Estado es requerido'),
     passwordequipo: z.string().optional(),
     fecha_prometida: z
-        .union([z.date(), z.null()])
-        .optional()
-        .transform((date) => (date ? date.toISOString().split('T')[0] : null)),
+        .string()  // Aquí especificamos que es un string
+        .nullable()
+        .optional(),
     presupuesto: z
         .string()
         .transform((val) => (val ? parseFloat(val) : undefined))
@@ -62,9 +64,12 @@ export default function OrdenTrabajoEditForm() {
     const id_orden = id ? parseInt(id, 10) : null; // Asegúrate de que id no sea undefined antes de convertirlo
     const queryClient = useQueryClient();
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
+    const [existingImages, setExistingImages] = useState<string[]>([]); // Imágenes existentes (URLs)
     const [selectedClient, setSelectedClient] = useState(0);
     const [plantillasSeleccionadas, setPlantillasSeleccionadas] = useState<{ id_grupo: number; nombre: string }[]>([]);
-
+    // Estado para productos y servicios seleccionados
+    const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoOrden[]>([]);
+    const [serviciosSeleccionados, setServiciosSeleccionados] = useState<ServicioOrden[]>([]);
     const navigate = useNavigate();
     const { data: clientes = [], isLoading: isClientesLoading } = useQuery({
         queryKey: ['clients'],
@@ -90,7 +95,7 @@ export default function OrdenTrabajoEditForm() {
         queryKey: ['plantillas'],
         queryFn: getPlantillas,
     });
-
+    
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -111,9 +116,8 @@ export default function OrdenTrabajoEditForm() {
 
     // UseEffect para resetear el formulario cuando los datos de la orden están disponibles
     useEffect(() => {
-        console.log(selectedClient)
         if (ordenTrabajo) {
-            console.log("Fecha prometideush:", ordenTrabajo.fecha_prometida ? new Date(ordenTrabajo.fecha_prometida).toISOString().split('T')[0] : null)
+            setExistingImages(ordenTrabajo.imagenes.map(img => img.url_imagen));
             form.reset({
                 id_equipo: ordenTrabajo.id_equipo,
                 id_usuario: ordenTrabajo.id_usuario || 0,
@@ -131,11 +135,17 @@ export default function OrdenTrabajoEditForm() {
         }
     }, [ordenTrabajo, form, selectedClient]);
 
+    useEffect(() => {
+      console.log("Selectedimages: ", selectedImages)
+    }, [selectedImages])
+    
+
     const updateMutation = useMutation({
         mutationFn: updateOrdenTrabajo,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['ordenesTrabajo'] });
             toast.success('Orden de trabajo actualizada exitosamente');
+            navigate('/taller/ordenes'); // Redirige después de la creación
         },
         onError: (error) => {
             toast.error('Error al actualizar la orden de trabajo');
@@ -168,6 +178,15 @@ export default function OrdenTrabajoEditForm() {
         setPlantillasSeleccionadas(plantillasSeleccionadas.filter(p => p.id_grupo !== id_grupo));
     };
 
+     // Funciones para manejar los productos y servicios seleccionados
+     const handleProductosChange = (productos: ProductoOrden[]) => {
+        setProductosSeleccionados(productos);
+    };
+
+    const handleServiciosChange = (servicios: ServicioOrden[]) => {
+        setServiciosSeleccionados(servicios);
+    };
+
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             const imageUrls = [];
@@ -175,7 +194,6 @@ export default function OrdenTrabajoEditForm() {
                 const url = await uploadImage(file);
                 imageUrls.push(url);
             }
-
             // Asegúrate de que 'total' y 'confirmacion' están presentes
             const ordenTrabajoData: OrdenTrabajoUpdate = {
                 id_orden: id_orden as number,  // El ID de la orden debe ser un número y no puede ser null
@@ -195,8 +213,27 @@ export default function OrdenTrabajoEditForm() {
                 imagenes: imageUrls, // Las imágenes subidas
             };
 
-            // Llamada al método de actualización
-            updateMutation.mutate(ordenTrabajoData);
+       // Primero, actualizar la orden de trabajo
+       const updatedOrder = await updateMutation.mutateAsync(ordenTrabajoData);
+
+       // Verificar si hay productos seleccionados
+       if (productosSeleccionados.length > 0) {
+           const productosToSend = productosSeleccionados.map(producto => ({
+               id_producto: producto.id_producto,
+               cantidad: producto.cantidad,
+           }));
+
+           // Aquí corregimos la llamada a addProductsToOrder
+           await addProductsToOrder(updatedOrder.id_orden, productosToSend);  // Ahora pasamos dos argumentos
+       }
+       // Verificar si hay servicios seleccionados
+       if (serviciosSeleccionados.length > 0) {
+           const serviciosToSend = serviciosSeleccionados.map(servicio => ({
+               id_servicio: servicio.id_servicio,
+           }));
+
+           await addServicesToOrder( updatedOrder.id_orden, serviciosToSend );
+       }
         } catch (error) {
             console.error("Error al subir las imágenes:", error);
             toast.error('Error al subir las imágenes');
@@ -387,7 +424,6 @@ export default function OrdenTrabajoEditForm() {
                                                             mode="single"
                                                             selected={field.value ? new Date(`${field.value}T00:00:00`) : undefined} // Forzamos la medianoche local
                                                             onSelect={(date) => {
-                                                                console.log('Fecha seleccionada:', date); // Verifica la fecha seleccionada
                                                                 field.onChange(date ? format(date, 'yyyy-MM-dd') : null); // Formato adecuado
                                                             }}
                                                             disabled={(date) => isBeforeToday(date)} // Función para deshabilitar fechas anteriores
@@ -481,8 +517,14 @@ export default function OrdenTrabajoEditForm() {
                                         </FormItem>
                                     )}
                                 />
-                                <ProductServiceTableShadCN productos={ordenTrabajo?.productos || []} servicios={ordenTrabajo?.servicios || []} />
-                                <OrdenTrabajoTabs tasks={ordenTrabajo?.tareas || []} />
+                                <ProductServiceTableShadCN 
+                                    productos={ordenTrabajo?.productos || []} 
+                                    servicios={ordenTrabajo?.servicios || []} 
+                                    ordenId={id_orden || 1}  
+                                    onProductosChange={handleProductosChange} 
+                                    onServiciosChange={handleServiciosChange}
+                                />
+                                <OrdenTrabajoTabs tasks={ordenTrabajo?.tareas || []}  ordenId={id_orden || 1} selectedImages={selectedImages} setSelectedImages={setSelectedImages} existingImages={existingImages} setExistingImages={setExistingImages}/>
                                 <div className="flex justify-end">
                                     <Button
                                         type="button"
@@ -492,7 +534,7 @@ export default function OrdenTrabajoEditForm() {
                                     >
                                         Cancelar
                                     </Button>
-                                    <Button type="submit" className='bg-darkGreen hover:bg-darkGreen/50 hover:text-black font-semibold'>
+                                    <Button type="submit" className='bg-customGreen hover:bg-darkGreen/50 text-black font-semibold'>
                                         {form.formState.isSubmitting ? (
                                             <>
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

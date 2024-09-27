@@ -15,12 +15,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { addProductosToTarea, addServiciosToTarea, createTarea, getTareaById, ServicioTarea, Tarea, updateTarea } from '@/api/tareaService';
 import { ProductCombobox } from '@/Components/comboBoxes/producto-combobox';
 import { getProducts, Product } from '@/api/productsService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAsterisk, faMinus, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faAsterisk, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { getServices, Service } from '@/api/servicioService';
 import { ServiceCombobox } from '@/Components/comboBoxes/servicio-combobox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
@@ -367,7 +367,7 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask }: Tar
                           setSelectedProducts((prev) => prev.filter((p) => p.id_producto !== product.id_producto))
                         }
                       >
-                        <FontAwesomeIcon icon={faTrash} className="mr-1" /> Eliminar
+                          <X className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -411,7 +411,7 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask }: Tar
                         className="text-red-500 rounded-md p-2 transition-all duration-75 hover:bg-neutral-100 bg-white"
                         onClick={() => removeService(service.id_servicio)}
                       >
-                        <FontAwesomeIcon icon={faTrash} className="mr-1" /> Eliminar
+                          <X className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -420,7 +420,6 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask }: Tar
             </TableBody>
           </Table>
         </div>
-
         {/* Botones */}
         <div className="flex justify-between">
           <Button type='button' variant="outline" onClick={() => setIsCreatingTask(false)}>Cancelar</Button>
