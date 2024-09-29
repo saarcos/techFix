@@ -22,27 +22,42 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
   const [serviceItems, setServiceItems] = useState<ServicioOrden[]>(servicios || []);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
-  const [productosOrden, setProductosOrden] = useState<ProductoOrden[]>([]); // Ajustar el tipo a ProductoOrden[]
-  const [serviciosOrden, setServiciosOrden] = useState<ServicioOrden[]>([]);
   const handleAddProduct = (product: Product, cantidad: number) => {
-    // Transformamos el producto seleccionado en la estructura de ProductoOrden
-    const newProductoOrden: ProductoOrden = {
-      id_prodorde: Date.now(), // Usamos un identificador temporal, ya que no viene de la base de datos
-      id_producto: product.id_producto,
-      id_orden: ordenId, // Esto debe ajustarse si tienes el id de la orden disponible
-      cantidad: cantidad,
-      producto: {
-        nombreProducto: product.nombreProducto,
-        precioFinal: product.precioFinal,
-        iva: product.iva,
-        precioSinIVA: product.precioSinIVA,
-      },
-    };
-    // Agregar el nuevo producto transformado a la lista de productos orden
-    setProductosOrden((prev) => [...prev, newProductoOrden]);
-    // Cerrar el modal después de agregar el producto
+    // Busca si el producto ya está en la lista
+    const existingProductIndex = items.findIndex(item => item.id_producto === product.id_producto);
+  
+    if (existingProductIndex !== -1) {
+      // Si el producto ya existe, actualiza su cantidad
+      setItems(prevItems => {
+        const updatedItems = [...prevItems];
+        updatedItems[existingProductIndex].cantidad += cantidad; // Aumenta la cantidad
+        onProductosChange(updatedItems);
+        return updatedItems;
+      });
+    } else {
+      // Si no existe, agrega el nuevo producto
+      const newProductoOrden: ProductoOrden = {
+        id_prodorde: Date.now(),
+        id_producto: product.id_producto,
+        id_orden: ordenId,
+        cantidad: cantidad,
+        producto: {
+          nombreProducto: product.nombreProducto,
+          precioFinal: product.precioFinal,
+          iva: product.iva,
+          precioSinIVA: product.precioSinIVA,
+        },
+      };
+  
+      const updatedProductos = [...items, newProductoOrden];
+      setItems(updatedProductos);
+      onProductosChange(updatedProductos);
+    }
+  
+    // Cierra el modal después de agregar o actualizar
     setIsProductModalOpen(false);
   };
+  
   const handleAddService = (service: Service) => {
     const newServicioOrden: ServicioOrden = {
       id_servorden: Date.now(),
@@ -53,25 +68,12 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
         precio: service.precio,
       }
     }
-    // Agregar el nuevo producto transformado a la lista de productos orden
-    setServiciosOrden((prev) => [...prev, newServicioOrden]);
-    // Cerrar el modal después de agregar el producto
-    setIsServiceModalOpen(false);
-  }
-
-  // Actualizamos los productos combinando los iniciales con los añadidos y notificamos al componente padre
-  useEffect(() => {
-    const updatedProductos = [...productos, ...productosOrden];
-    setItems(updatedProductos);
-    onProductosChange(updatedProductos); // Notificar al componente padre
-  }, [productos, productosOrden, onProductosChange]);
-
-  // Actualizamos los servicios combinando los iniciales con los añadidos y notificamos al componente padre
-  useEffect(() => {
-    const updatedServicios = [...servicios, ...serviciosOrden];
+  
+    const updatedServicios = [...servicios, newServicioOrden];
     setServiceItems(updatedServicios);
-    onServiciosChange(updatedServicios); // Notificar al componente padre
-  }, [servicios, serviciosOrden, onServiciosChange]);
+    onServiciosChange(updatedServicios);
+  };
+  
 
   const calculateSubtotal = (item: ProductoOrden | ServicioOrden) => {
     if ('producto' in item) {
@@ -89,12 +91,22 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
   // Función para eliminar un producto por id_producto
   const handleRemoveProduct = (id_producto: number) => {
     setItems((prevItems) => prevItems.filter((item) => item.id_producto !== id_producto));
+    onProductosChange(items.filter((item) => item.id_producto !== id_producto)); // Notificar al componente principal
   };
 
   // Función para eliminar un servicio por id_servicio
   const handleRemoveService = (id_servicio: number) => {
     setServiceItems((prevServices) => prevServices.filter((item) => item.id_servicio !== id_servicio));
+    onServiciosChange(serviceItems.filter((item) => item.id_servicio !== id_servicio)); // Notificar al componente principal
   };
+
+  useEffect(() => {
+    setItems(productos);
+  }, [productos]);
+  
+  useEffect(() => {
+    setServiceItems(servicios);
+  }, [servicios]);
 
   return (
     <div className="mt-6">
@@ -134,11 +146,11 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
                       <TableCell className="text-right hidden sm:table-cell">{item.producto.iva}%</TableCell>
                       <TableCell className="text-right">${calculateSubtotal(item)}</TableCell>
                       <TableCell className="text-right">
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
+                        <Button
+                          type="button"
+                          variant="ghost"
                           size="sm"
-                          onClick={()=>handleRemoveProduct(item.id_producto)}>
+                          onClick={() => handleRemoveProduct(item.id_producto)}>
                           <X className="h-4 w-4 text-muted-foreground" />
                         </Button>
                       </TableCell>
@@ -148,16 +160,16 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
                     <TableRow key={item.id_servicio}>
                       <TableCell>Servicio</TableCell>
                       <TableCell>{item.servicio.nombre}</TableCell>
-                      <TableCell className="text-right">${item.servicio.precio}</TableCell>
+                      <TableCell className="text-right hidden sm:table-cell">${item.servicio.precio}</TableCell>
                       <TableCell className="text-right">1</TableCell>
-                      <TableCell className="text-right">0%</TableCell>
+                      <TableCell className="text-right hidden sm:table-cell">0%</TableCell>
                       <TableCell className="text-right">${calculateSubtotal(item)}</TableCell>
                       <TableCell className="text-right">
-                        <Button 
+                        <Button
                           type="button"
-                          variant="ghost" 
+                          variant="ghost"
                           size="sm"
-                          onClick={()=>handleRemoveService(item.id_servicio)}>
+                          onClick={() => handleRemoveService(item.id_servicio)}>
                           <X className="h-4 w-4 text-muted-foreground" />
                         </Button>
                       </TableCell>
@@ -195,10 +207,10 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
         setIsOpen={setIsProductModalOpen}
         onAddProduct={handleAddProduct}
       />
-      <AddServiceModal 
-         isOpen={isServiceModalOpen}
-         setIsOpen={setIsServiceModalOpen}
-         onAddService={handleAddService}
+      <AddServiceModal
+        isOpen={isServiceModalOpen}
+        setIsOpen={setIsServiceModalOpen}
+        onAddService={handleAddService}
       />
     </div>
   );

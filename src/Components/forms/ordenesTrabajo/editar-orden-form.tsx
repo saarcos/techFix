@@ -32,9 +32,13 @@ import { PlantillaCombobox } from '@/Components/comboBoxes/plantilla-combobox';
 import { getPlantillas, Plantilla } from '@/api/plantillaService';
 import { addProductsToOrder } from '@/api/productOrdenService';
 import { addServicesToOrder } from '@/api/serviceOrdenService';
-
-
-
+interface Producto {
+    id_producto: number;
+    cantidad: number;
+}
+interface Servicio {
+    id_servicio: number;
+}
 const formSchema = z.object({
     id_equipo: z.number().min(1, 'Equipo es requerido'),
     id_usuario: z.number().optional(),
@@ -58,7 +62,6 @@ const formSchema = z.object({
         .optional(),
     archivos: z.any().optional(),
 });
-
 export default function OrdenTrabajoEditForm() {
     const { id } = useParams(); // Obtener el id desde la URL
     const id_orden = id ? parseInt(id, 10) : null; // Asegúrate de que id no sea undefined antes de convertirlo
@@ -67,9 +70,16 @@ export default function OrdenTrabajoEditForm() {
     const [existingImages, setExistingImages] = useState<string[]>([]); // Imágenes existentes (URLs)
     const [selectedClient, setSelectedClient] = useState(0);
     const [plantillasSeleccionadas, setPlantillasSeleccionadas] = useState<{ id_grupo: number; nombre: string }[]>([]);
+
+    // Consulta para obtener los datos de la orden de trabajo por ID
+    const { data: ordenTrabajo, isLoading, isError } = useQuery({
+        queryKey: ['ordenTrabajo', id_orden],
+        queryFn: () => id_orden ? getOrdenTrabajoById(id_orden) : Promise.resolve(null),
+        enabled: !!id_orden,
+    });
     // Estado para productos y servicios seleccionados
-    const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoOrden[]>([]);
-    const [serviciosSeleccionados, setServiciosSeleccionados] = useState<ServicioOrden[]>([]);
+    const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoOrden[]>(ordenTrabajo?.productos || []);
+    const [serviciosSeleccionados, setServiciosSeleccionados] = useState<ServicioOrden[]>(ordenTrabajo?.servicios || []);
     const navigate = useNavigate();
     const { data: clientes = [], isLoading: isClientesLoading } = useQuery({
         queryKey: ['clients'],
@@ -83,19 +93,10 @@ export default function OrdenTrabajoEditForm() {
         queryKey: ['users'],
         queryFn: getUsers,
     });
-
-    // Consulta para obtener los datos de la orden de trabajo por ID
-    const { data: ordenTrabajo, isLoading, isError } = useQuery({
-        queryKey: ['ordenTrabajo', id_orden],
-        queryFn: () => id_orden ? getOrdenTrabajoById(id_orden) : Promise.resolve(null),
-        enabled: !!id_orden,
-    });
-
     const { data: plantillas = [], isLoadingError: plantillasError } = useQuery<Plantilla[]>({
         queryKey: ['plantillas'],
         queryFn: getPlantillas,
     });
-    
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -113,7 +114,6 @@ export default function OrdenTrabajoEditForm() {
             archivos: [],
         },
     });
-
     // UseEffect para resetear el formulario cuando los datos de la orden están disponibles
     useEffect(() => {
         if (ordenTrabajo) {
@@ -135,11 +135,7 @@ export default function OrdenTrabajoEditForm() {
         }
     }, [ordenTrabajo, form, selectedClient]);
 
-    useEffect(() => {
-      console.log("Selectedimages: ", selectedImages)
-    }, [selectedImages])
     
-
     const updateMutation = useMutation({
         mutationFn: updateOrdenTrabajo,
         onSuccess: () => {
@@ -152,13 +148,31 @@ export default function OrdenTrabajoEditForm() {
             console.error('Error de actualización de orden:', error);
         },
     });
-
+    const addProductsMutation = useMutation({
+        mutationFn: (data: { id_orden: number, productos: Producto[] }) => addProductsToOrder(data.id_orden, data.productos),
+        onSuccess: () => {
+            toast.success('Productos añadidos exitosamente');
+        },
+        onError: (error) => {
+            toast.error('Error al añadir productos a la orden');
+            console.error('Error al añadir productos:', error);
+        },
+    });
+    const addServicesMutation = useMutation({
+        mutationFn: (data: { id_orden: number, servicios: Servicio[] }) => addServicesToOrder(data.id_orden, data.servicios),
+        onSuccess: () => {
+            toast.success('Servicios añadidos exitosamente');
+        },
+        onError: (error) => {
+            toast.error('Error al añadir servicios a la orden');
+            console.error('Error al añadir servicios:', error);
+        },
+    });
     const isBeforeToday = (date: Date) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         return date < today;
     };
-
     const handleAgregarPlantilla = (plantilla: Plantilla) => {
         // Verificamos si la plantilla ya ha sido seleccionada por su id_grupo
         if (!plantillasSeleccionadas.some(p => p.id_grupo === plantilla.id_grupo)) {
@@ -172,21 +186,17 @@ export default function OrdenTrabajoEditForm() {
             setPlantillasSeleccionadas([...plantillasSeleccionadas, nuevaPlantilla]);
         }
     };
-
     // Función para eliminar una plantilla seleccionada
     const handleEliminarPlantilla = (id_grupo: number) => {
         setPlantillasSeleccionadas(plantillasSeleccionadas.filter(p => p.id_grupo !== id_grupo));
     };
-
-     // Funciones para manejar los productos y servicios seleccionados
-     const handleProductosChange = (productos: ProductoOrden[]) => {
+    // Funciones para manejar los productos y servicios seleccionados
+    const handleProductosChange = (productos: ProductoOrden[]) => {
         setProductosSeleccionados(productos);
-    };
-
-    const handleServiciosChange = (servicios: ServicioOrden[]) => {
+      };
+      const handleServiciosChange = (servicios: ServicioOrden[]) => {
         setServiciosSeleccionados(servicios);
-    };
-
+      };
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             const imageUrls = [];
@@ -213,36 +223,35 @@ export default function OrdenTrabajoEditForm() {
                 imagenes: imageUrls, // Las imágenes subidas
             };
 
-       // Primero, actualizar la orden de trabajo
-       const updatedOrder = await updateMutation.mutateAsync(ordenTrabajoData);
-
-       // Verificar si hay productos seleccionados
-       if (productosSeleccionados.length > 0) {
-           const productosToSend = productosSeleccionados.map(producto => ({
-               id_producto: producto.id_producto,
-               cantidad: producto.cantidad,
-           }));
-
-           // Aquí corregimos la llamada a addProductsToOrder
-           await addProductsToOrder(updatedOrder.id_orden, productosToSend);  // Ahora pasamos dos argumentos
-       }
-       // Verificar si hay servicios seleccionados
-       if (serviciosSeleccionados.length > 0) {
-           const serviciosToSend = serviciosSeleccionados.map(servicio => ({
-               id_servicio: servicio.id_servicio,
-           }));
-
-           await addServicesToOrder( updatedOrder.id_orden, serviciosToSend );
-       }
+            // Primero, actualizar la orden de trabajo
+            await updateMutation.mutateAsync(ordenTrabajoData);
+            // Mutación para añadir productos (si existen)
+            if (productosSeleccionados.length > 0) {
+                const productosToSend = productosSeleccionados.map(producto => ({
+                    id_producto: producto.id_producto,
+                    cantidad: producto.cantidad,
+                }));
+                await addProductsMutation.mutateAsync({ id_orden: id_orden as number, productos: productosToSend });
+            }
+            // Mutación para añadir servicios (si existen)
+            if (serviciosSeleccionados.length > 0) {
+                const serviciosToSend = serviciosSeleccionados.map(servicio => ({
+                    id_servicio: servicio.id_servicio,
+                }));
+                await addServicesMutation.mutateAsync({ id_orden: id_orden as number, servicios: serviciosToSend });
+            }
         } catch (error) {
             console.error("Error al subir las imágenes:", error);
             toast.error('Error al subir las imágenes');
         }
     };
 
+    useEffect(() => {
+      console.log("Productos Seleccionados", productosSeleccionados)
+    }, [productosSeleccionados])
+    
     if (isLoading) return <div>Loading...</div>;
     if (isError || plantillasError) return <div>Error al cargar los datos</div>;
-
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40 mt-5">
             <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
@@ -256,7 +265,7 @@ export default function OrdenTrabajoEditForm() {
                     <CardContent>
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <Card className="p-3">
                                         <CardHeader className="pb-2">
                                             <CardTitle className="text-base font-semibold">Información del Cliente</CardTitle>
@@ -322,6 +331,8 @@ export default function OrdenTrabajoEditForm() {
                                             />
                                         </CardContent>
                                     </Card>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <FormField
                                         name="prioridad"
                                         control={form.control}
@@ -351,7 +362,7 @@ export default function OrdenTrabajoEditForm() {
                                             <FormItem>
                                                 <FormLabel>Contraseña</FormLabel>
                                                 <FormControl>
-                                                    <Input type="text" placeholder="Contraseña equipo/pin desbloqueo" {...field} />
+                                                    <Input type="text" placeholder="Contraseña equipo/pin desbloqueo"  {...field}  />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -517,14 +528,14 @@ export default function OrdenTrabajoEditForm() {
                                         </FormItem>
                                     )}
                                 />
-                                <ProductServiceTableShadCN 
-                                    productos={ordenTrabajo?.productos || []} 
-                                    servicios={ordenTrabajo?.servicios || []} 
-                                    ordenId={id_orden || 1}  
-                                    onProductosChange={handleProductosChange} 
+                                <ProductServiceTableShadCN
+                                    productos={productosSeleccionados || []}
+                                    servicios={serviciosSeleccionados || []}
+                                    ordenId={id_orden || 0}
+                                    onProductosChange={handleProductosChange}
                                     onServiciosChange={handleServiciosChange}
                                 />
-                                <OrdenTrabajoTabs tasks={ordenTrabajo?.tareas || []}  ordenId={id_orden || 1} selectedImages={selectedImages} setSelectedImages={setSelectedImages} existingImages={existingImages} setExistingImages={setExistingImages}/>
+                                <OrdenTrabajoTabs tasks={ordenTrabajo?.tareas || []} ordenId={id_orden || 1} selectedImages={selectedImages} setSelectedImages={setSelectedImages} existingImages={existingImages} setExistingImages={setExistingImages} onProductosChange={handleProductosChange} onServiciosChange={handleServiciosChange} />
                                 <div className="flex justify-end">
                                     <Button
                                         type="button"

@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import AddTaskModal from "./AddTaskModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { ProductoOrden, ServicioOrden } from "@/api/ordenTrabajoService";
 
 interface OrdenTrabajoTabsProps {
   tasks: TareaOrden[]; // Recibe los productos como prop
@@ -16,8 +17,10 @@ interface OrdenTrabajoTabsProps {
   setSelectedImages: React.Dispatch<React.SetStateAction<File[]>>;
   existingImages: string[]; // Aquí pasamos las imágenes existentes
   setExistingImages: React.Dispatch<React.SetStateAction<string[]>>; // Función para actualizar imágenes existentes
+  onProductosChange: (productos: ProductoOrden[]) => void; // Callback para productos
+  onServiciosChange: (servicios: ServicioOrden[]) => void;  // Callback para servicios
 }
-export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSelectedImages, existingImages, setExistingImages }: OrdenTrabajoTabsProps) {
+export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSelectedImages, existingImages, setExistingImages, onProductosChange, onServiciosChange }: OrdenTrabajoTabsProps) {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [taskItems, setTaskItems] = useState<TareaOrden[]>(tasks || []);
 
@@ -38,6 +41,38 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
       usuario: null,
     };
 
+    // Verificamos si la tarea contiene productos o servicios
+    if (task.productos && task.productos.length > 0) {
+      // Actualizamos el estado de productosSeleccionados
+      onProductosChange([...task.productos.map((producto) => ({
+        id_prodorde: Date.now(), // Usamos un ID temporal, ya que no viene de la base de datos
+        id_orden: ordenId, // Usamos el ID de la orden
+        id_producto: producto.id_producto,
+        cantidad: producto.cantidad,
+        producto: {
+          // Aquí debes agregar la información del producto
+          nombreProducto: producto.producto.nombreProducto,
+          precioFinal: parseFloat(producto.producto.precioFinal), // Convertimos a número
+          iva: producto.producto.iva,
+          precioSinIVA: parseFloat(producto.producto.precioSinIVA), // Convertimos a número
+        },
+      }))]);
+    }
+
+    if (task.servicios && task.servicios.length > 0) {
+      // Actualizamos el estado de serviciosSeleccionados
+      onServiciosChange([...task.servicios.map((servicio) => ({
+        id_servorden: Date.now(), // Usamos un ID temporal, ya que no viene de la base de datos
+        id_orden: ordenId, // Usamos el ID de la orden
+        id_servicio: servicio.id_servicio,
+        servicio: {
+          // Aquí debes agregar la información del servicio
+          id_servicio: servicio.id_servicio,
+          nombre: servicio.servicio.nombre,
+          precio: servicio.servicio.precio,
+        },
+      }))]);
+    }
     // Agregamos la nueva tarea a la lista de tareas
     setTaskItems((prevTasks) => [...prevTasks, newTaskOrden]);
 
@@ -136,7 +171,7 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
           <div className="mt-4 flex justify-start">
             <Button type="button"
               onClick={() => setIsTaskModalOpen(true)} // Abre el modal de agregar tarea
-              className="bg-customGreen hover:bg-darkGreen/50 text-black">
+              className="bg-customGreen hover:bg-darkGreen/50 text-black flex items-center space-x-2 px-4 py-2 text-sm sm:px-6 sm:text-base rounded-md w-full sm:w-auto">
               <PlusCircle className="mr-2 h-4 w-4" /> Agregar Tarea
             </Button>
           </div>
@@ -150,7 +185,7 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
 
       <TabsContent value="imagenes">
         <div className="mt-4">
-        {existingImages.length === 0 && selectedImages.length === 0 ? (
+          {existingImages.length === 0 && selectedImages.length === 0 ? (
             <p className="text-center text-muted-foreground">No hay imágenes cargadas.</p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -188,7 +223,7 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
             </div>
           )}
           <div className="mt-4 flex justify-start">
-            <Button type="button" onClick={() => document.getElementById('fileInput')?.click()} className="bg-customGreen hover:bg-darkGreen/50 hover:text-black">
+            <Button type="button" onClick={() => document.getElementById('fileInput')?.click()} className="bg-customGreen hover:bg-darkGreen/50 text-black flex items-center space-x-2 px-4 py-2 text-sm sm:px-6 sm:text-base rounded-md w-full sm:w-auto">
               <ImagePlus className="mr-2 h-4 w-4" /> Agregar Imágenes
             </Button>
             <input
