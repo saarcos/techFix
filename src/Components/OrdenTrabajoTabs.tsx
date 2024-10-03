@@ -19,19 +19,20 @@ interface OrdenTrabajoTabsProps {
   setExistingImages: React.Dispatch<React.SetStateAction<string[]>>; // Función para actualizar imágenes existentes
   onProductosChange: (productos: ProductoOrden[]) => void; // Callback para productos
   onServiciosChange: (servicios: ServicioOrden[]) => void;  // Callback para servicios
+  productosSeleccionados: ProductoOrden[];
+  serviciosSeleccionados: ServicioOrden[];
 }
-export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSelectedImages, existingImages, setExistingImages, onProductosChange, onServiciosChange }: OrdenTrabajoTabsProps) {
+export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSelectedImages, existingImages, setExistingImages, onProductosChange, onServiciosChange, productosSeleccionados, serviciosSeleccionados }: OrdenTrabajoTabsProps) {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [taskItems, setTaskItems] = useState<TareaOrden[]>(tasks || []);
 
   const handleAddTask = (task: Tarea) => {
-    // Creamos el nuevo objeto TareaOrden según la estructura proporcionada
     const newTaskOrden: TareaOrden = {
-      id_taskord: Date.now(), // Usamos un ID temporal, ya que no viene de la base de datos
+      id_taskord: Date.now(),
       id_tarea: task.id_tarea,
-      id_orden: ordenId, // Usamos el ID de la orden
-      id_usuario: null, // Si el usuario existe, se asigna; si no, será null
-      status: false, // Asumimos que la tarea no está completada al agregarla
+      id_orden: ordenId,
+      id_usuario: null,
+      status: false,
       tarea: {
         id_tarea: task.id_tarea,
         titulo: task.titulo,
@@ -40,46 +41,46 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
       },
       usuario: null,
     };
-
-    // Verificamos si la tarea contiene productos o servicios
+  
+    // Verificar si la tarea contiene productos y agregarlos a los existentes
     if (task.productos && task.productos.length > 0) {
-      // Actualizamos el estado de productosSeleccionados
-      onProductosChange([...task.productos.map((producto) => ({
-        id_prodorde: Date.now(), // Usamos un ID temporal, ya que no viene de la base de datos
-        id_orden: ordenId, // Usamos el ID de la orden
+      const nuevosProductos: ProductoOrden[] = task.productos.map((producto) => ({
+        id_prodorde: Date.now(), // ID temporal
+        id_orden: ordenId,
         id_producto: producto.id_producto,
         cantidad: producto.cantidad,
         producto: {
-          // Aquí debes agregar la información del producto
           nombreProducto: producto.producto.nombreProducto,
-          precioFinal: parseFloat(producto.producto.precioFinal), // Convertimos a número
+          precioFinal: parseFloat(producto.producto.precioFinal),
           iva: producto.producto.iva,
-          precioSinIVA: parseFloat(producto.producto.precioSinIVA), // Convertimos a número
+          precioSinIVA: parseFloat(producto.producto.precioSinIVA),
         },
-      }))]);
+      }));
+  
+      // Concatenar los nuevos productos con los productos ya existentes
+      onProductosChange([...productosSeleccionados, ...nuevosProductos]);
     }
-
+  
+    // Verificar si la tarea contiene servicios y agregarlos a los existentes
     if (task.servicios && task.servicios.length > 0) {
-      // Actualizamos el estado de serviciosSeleccionados
-      onServiciosChange([...task.servicios.map((servicio) => ({
-        id_servorden: Date.now(), // Usamos un ID temporal, ya que no viene de la base de datos
-        id_orden: ordenId, // Usamos el ID de la orden
+      const nuevosServicios: ServicioOrden[] = task.servicios.map((servicio) => ({
+        id_servorden: Date.now(),
+        id_orden: ordenId,
         id_servicio: servicio.id_servicio,
         servicio: {
-          // Aquí debes agregar la información del servicio
           id_servicio: servicio.id_servicio,
           nombre: servicio.servicio.nombre,
           precio: servicio.servicio.precio,
         },
-      }))]);
+      }));
+  
+      // Concatenar los nuevos servicios con los servicios ya existentes
+      onServiciosChange([...serviciosSeleccionados, ...nuevosServicios]);
     }
-    // Agregamos la nueva tarea a la lista de tareas
+  
     setTaskItems((prevTasks) => [...prevTasks, newTaskOrden]);
-
-    // Cerramos el modal
     setIsTaskModalOpen(false);
   };
-
   useEffect(() => {
     // Cada vez que se agregue una tarea nueva, se actualiza la lista de tareas en la tabla
     setTaskItems(tasks);

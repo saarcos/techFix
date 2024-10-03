@@ -199,7 +199,7 @@ export default function OrdenTrabajoEditForm() {
       };
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
-            const imageUrls = [];
+            const imageUrls = [...existingImages]; // Incluir imágenes existentes
             for (const file of selectedImages) {
                 const url = await uploadImage(file);
                 imageUrls.push(url);
@@ -245,10 +245,14 @@ export default function OrdenTrabajoEditForm() {
             toast.error('Error al subir las imágenes');
         }
     };
-
     useEffect(() => {
-      console.log("Productos Seleccionados", productosSeleccionados)
-    }, [productosSeleccionados])
+        if (ordenTrabajo && ordenTrabajo.productos) {
+          setProductosSeleccionados(ordenTrabajo.productos);
+        }
+        if(ordenTrabajo && ordenTrabajo.servicios){
+            setServiciosSeleccionados(ordenTrabajo.servicios)
+        }
+    }, [ordenTrabajo]);
     
     if (isLoading) return <div>Loading...</div>;
     if (isError || plantillasError) return <div>Error al cargar los datos</div>;
@@ -535,7 +539,16 @@ export default function OrdenTrabajoEditForm() {
                                     onProductosChange={handleProductosChange}
                                     onServiciosChange={handleServiciosChange}
                                 />
-                                <OrdenTrabajoTabs tasks={ordenTrabajo?.tareas || []} ordenId={id_orden || 1} selectedImages={selectedImages} setSelectedImages={setSelectedImages} existingImages={existingImages} setExistingImages={setExistingImages} onProductosChange={handleProductosChange} onServiciosChange={handleServiciosChange} />
+                                <OrdenTrabajoTabs
+                                    tasks={ordenTrabajo?.tareas || []}
+                                    ordenId={id_orden || 1} selectedImages={selectedImages}
+                                    setSelectedImages={setSelectedImages}
+                                    existingImages={existingImages}
+                                    setExistingImages={setExistingImages}
+                                    onProductosChange={handleProductosChange}
+                                    onServiciosChange={handleServiciosChange}
+                                    productosSeleccionados={productosSeleccionados}
+                                    serviciosSeleccionados={serviciosSeleccionados}  />
                                 <div className="flex justify-end">
                                     <Button
                                         type="button"

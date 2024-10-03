@@ -59,6 +59,16 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
   };
   
   const handleAddService = (service: Service) => {
+    // Busca si el servicio ya está en la lista
+    const existingServiceIndex = servicios.findIndex(item => item.id_servicio === service.id_servicio);
+  
+    if (existingServiceIndex !== -1) {
+      // Si el servicio ya existe, no lo añade y simplemente cierra el modal
+      setIsServiceModalOpen(false);
+      return; // Sale de la función sin añadir el servicio
+    }
+  
+    // Si no existe, lo añade a la lista
     const newServicioOrden: ServicioOrden = {
       id_servorden: Date.now(),
       id_servicio: service.id_servicio,
@@ -66,13 +76,15 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
       servicio: {
         nombre: service.nombre,
         precio: service.precio,
-      }
-    }
+      },
+    };
   
     const updatedServicios = [...servicios, newServicioOrden];
     setServiceItems(updatedServicios);
     onServiciosChange(updatedServicios);
+    setIsServiceModalOpen(false);
   };
+  
   
 
   const calculateSubtotal = (item: ProductoOrden | ServicioOrden) => {
