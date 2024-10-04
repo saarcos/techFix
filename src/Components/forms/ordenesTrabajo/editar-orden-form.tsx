@@ -32,6 +32,7 @@ import { PlantillaCombobox } from '@/Components/comboBoxes/plantilla-combobox';
 import { getPlantillas, Plantilla } from '@/api/plantillaService';
 import { addProductsToOrder } from '@/api/productOrdenService';
 import { addServicesToOrder } from '@/api/serviceOrdenService';
+import { TareaOrden } from '@/api/tareasOrdenService';
 interface Producto {
     id_producto: number;
     cantidad: number;
@@ -80,6 +81,7 @@ export default function OrdenTrabajoEditForm() {
     // Estado para productos y servicios seleccionados
     const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoOrden[]>(ordenTrabajo?.productos || []);
     const [serviciosSeleccionados, setServiciosSeleccionados] = useState<ServicioOrden[]>(ordenTrabajo?.servicios || []);
+    const [tareasSeleccionadas, setTareasSeleccionadas] = useState<TareaOrden[]>(ordenTrabajo?.tareas || []);
     const navigate = useNavigate();
     const { data: clientes = [], isLoading: isClientesLoading } = useQuery({
         queryKey: ['clients'],
@@ -141,7 +143,7 @@ export default function OrdenTrabajoEditForm() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['ordenesTrabajo'] });
             toast.success('Orden de trabajo actualizada exitosamente');
-            navigate('/taller/ordenes'); // Redirige después de la creación
+            navigate('/taller/ordenes'); // Redirige a la página
         },
         onError: (error) => {
             toast.error('Error al actualizar la orden de trabajo');
@@ -193,10 +195,14 @@ export default function OrdenTrabajoEditForm() {
     // Funciones para manejar los productos y servicios seleccionados
     const handleProductosChange = (productos: ProductoOrden[]) => {
         setProductosSeleccionados(productos);
-      };
-      const handleServiciosChange = (servicios: ServicioOrden[]) => {
+    };
+    const handleServiciosChange = (servicios: ServicioOrden[]) => {
         setServiciosSeleccionados(servicios);
-      };
+    };
+    // Función para manejar las tareas seleccionadas
+    const handleTareasChange = (tareas: TareaOrden[]) => {
+        setTareasSeleccionadas(tareas);
+    };
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             const imageUrls = [...existingImages]; // Incluir imágenes existentes
@@ -252,7 +258,15 @@ export default function OrdenTrabajoEditForm() {
         if(ordenTrabajo && ordenTrabajo.servicios){
             setServiciosSeleccionados(ordenTrabajo.servicios)
         }
+        if(ordenTrabajo && ordenTrabajo.tareas){
+            setTareasSeleccionadas(ordenTrabajo.tareas);
+        }
     }, [ordenTrabajo]);
+
+    useEffect(() => {
+      console.log("Tareas: ",tareasSeleccionadas)
+    }, [tareasSeleccionadas])
+    
     
     if (isLoading) return <div>Loading...</div>;
     if (isError || plantillasError) return <div>Error al cargar los datos</div>;
@@ -540,13 +554,14 @@ export default function OrdenTrabajoEditForm() {
                                     onServiciosChange={handleServiciosChange}
                                 />
                                 <OrdenTrabajoTabs
-                                    tasks={ordenTrabajo?.tareas || []}
+                                    tasks={tareasSeleccionadas}
                                     ordenId={id_orden || 1} selectedImages={selectedImages}
                                     setSelectedImages={setSelectedImages}
                                     existingImages={existingImages}
                                     setExistingImages={setExistingImages}
                                     onProductosChange={handleProductosChange}
                                     onServiciosChange={handleServiciosChange}
+                                    onTareasChange={handleTareasChange}
                                     productosSeleccionados={productosSeleccionados}
                                     serviciosSeleccionados={serviciosSeleccionados}  />
                                 <div className="flex justify-end">

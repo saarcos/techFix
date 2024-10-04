@@ -19,10 +19,11 @@ interface OrdenTrabajoTabsProps {
   setExistingImages: React.Dispatch<React.SetStateAction<string[]>>; // Función para actualizar imágenes existentes
   onProductosChange: (productos: ProductoOrden[]) => void; // Callback para productos
   onServiciosChange: (servicios: ServicioOrden[]) => void;  // Callback para servicios
+  onTareasChange: (tareas: TareaOrden[]) => void;  // Añadimos esta función
   productosSeleccionados: ProductoOrden[];
   serviciosSeleccionados: ServicioOrden[];
 }
-export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSelectedImages, existingImages, setExistingImages, onProductosChange, onServiciosChange, productosSeleccionados, serviciosSeleccionados }: OrdenTrabajoTabsProps) {
+export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSelectedImages, existingImages, setExistingImages, onProductosChange, onServiciosChange, productosSeleccionados, serviciosSeleccionados, onTareasChange }: OrdenTrabajoTabsProps) {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [taskItems, setTaskItems] = useState<TareaOrden[]>(tasks || []);
 
@@ -77,8 +78,9 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
       // Concatenar los nuevos servicios con los servicios ya existentes
       onServiciosChange([...serviciosSeleccionados, ...nuevosServicios]);
     }
-  
+    // Actualizar el estado de tareas
     setTaskItems((prevTasks) => [...prevTasks, newTaskOrden]);
+    onTareasChange([...taskItems, newTaskOrden]);
     setIsTaskModalOpen(false);
   };
   useEffect(() => {
@@ -129,8 +131,8 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
                   </TableCell>
                 </TableRow>
               ) : (
-                taskItems.map((task, index) => (
-                  <TableRow key={index}>
+                taskItems.map((task) => (
+                  <TableRow key={task.id_taskord}>
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         <span className="font-medium">{task.tarea.titulo}</span>

@@ -138,7 +138,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
             </div>
           </>
         ) : (
-          <p>Ninguna orden seleccionada</p>
+          <p>Ninguna orden seleccionada, por favor haz clic en alguna</p>
         )}
       </CardContent>
       <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">

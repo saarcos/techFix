@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs"
 import OrdenesTable from "@/tables/ordenesTrabajo/ordenes-table"
 import { useQuery } from "@tanstack/react-query"
 import {  File, ListFilter } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 import Spinner from '../assets/tube-spinner.svg';
@@ -20,12 +20,12 @@ const Ordenes = () => {
     queryKey: ['ordenesTrabajo'],
     queryFn: getOrdenesTrabajo,
   });
-
-  useEffect(() => {
-    if (ordenes.length > 0 && !selectedOrder) {
-      setSelectedOrder(ordenes[0]); 
-    }
-  }, [ordenes, selectedOrder]);
+  // Para predefinir una orden seleccionada, lo quito porque da error al actualizar a veces.
+  // useEffect(() => {
+  //   if (ordenes.length > 0 && !selectedOrder) {
+  //     setSelectedOrder(ordenes[0]); 
+  //   }
+  // }, [ordenes, selectedOrder]);
 
   if (isLoading ) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
   if (error ) return toast.error('Error al recuperar los datos');
