@@ -4,7 +4,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from '@/Components/
 import { Input } from '@/Components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -12,7 +12,6 @@ import * as z from 'zod';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
 import { getTareas } from '@/api/tareaService';
 import Spinner from '../../../assets/tube-spinner.svg';
-import IconMenu from '@/Components/icon-menu';
 import { TaskCombobox } from '@/Components/comboBoxes/tarea-combobox';
 
 const plantillaSchema = z.object({
@@ -202,7 +201,7 @@ export default function PlantillaForm({ setIsOpen, setIsCreatingTask, plantillaI
                                         <TableCell>{task.nombre}</TableCell>
                                         <TableCell className="text-right">
                                             <Button className='text-red-500 rounded-md p-2 transition-all duration-75 hover:bg-neutral-100 bg-white' onClick={() => handleRemoveTask(task.id)}>
-                                                <IconMenu text="Eliminar" icon={<Trash2 className="h-4 w-4" />} />
+                                                <X className="h-4 w-4 text-muted-foreground" />
                                             </Button>
                                         </TableCell>
                                     </TableRow>

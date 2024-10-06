@@ -32,7 +32,7 @@ import { PlantillaCombobox } from '@/Components/comboBoxes/plantilla-combobox';
 import { getPlantillas, Plantilla } from '@/api/plantillaService';
 import { addProductsToOrder } from '@/api/productOrdenService';
 import { addServicesToOrder } from '@/api/serviceOrdenService';
-import { TareaOrden } from '@/api/tareasOrdenService';
+import { addTareasToOrder, TareaOrden } from '@/api/tareasOrdenService';
 interface Producto {
     id_producto: number;
     cantidad: number;
@@ -170,6 +170,24 @@ export default function OrdenTrabajoEditForm() {
             console.error('Error al añadir servicios:', error);
         },
     });
+    const addTasksMutation = useMutation({
+        mutationFn: (data: { id_orden: number, tareas: { id_tarea: number, id_usuario?: number, status?: boolean }[] }) => {
+            // Aseguramos que cada tarea tenga el id_orden
+            const tareasConIdOrden = data.tareas.map((tarea) => ({
+                ...tarea,
+                id_orden: data.id_orden
+            }));
+            // Llamamos al método addTareasToOrder con el array de tareas modificado
+            return addTareasToOrder(tareasConIdOrden);
+        },
+        onSuccess: () => {
+            toast.success('Tareas añadidas exitosamente');
+        },
+        onError: (error) => {
+            toast.error('Error al añadir tareas a la orden');
+            console.error('Error al añadir tareas:', error);
+        },
+    });
     const isBeforeToday = (date: Date) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -245,6 +263,15 @@ export default function OrdenTrabajoEditForm() {
                     id_servicio: servicio.id_servicio,
                 }));
                 await addServicesMutation.mutateAsync({ id_orden: id_orden as number, servicios: serviciosToSend });
+            }
+            // Mutación para añadir tareas (si existen)
+            if (tareasSeleccionadas.length > 0) {
+                const tareasToSend = tareasSeleccionadas.map(tarea => ({
+                    id_tarea: tarea.id_tarea,
+                    id_usuario: tarea.id_usuario !== null ? tarea.id_usuario : undefined, // Cambiar null por undefined
+                    status: tarea.status, // opcional
+                }));
+                await addTasksMutation.mutateAsync({ id_orden: id_orden as number, tareas: tareasToSend });
             }
         } catch (error) {
             console.error("Error al subir las imágenes:", error);
