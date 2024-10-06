@@ -219,8 +219,8 @@ export default function OrdenTrabajoForm() {
         await createMultiplePlantillasOrden(newOrder.id_orden, plantillasIds);
       }
     } catch (error) {
-      console.error("Error al subir las imágenes:", error);
-      toast.error('Error al subir las imágenes');
+      console.error("Error al crear la orden:", error);
+      toast.error('Error al crear la orden');
     }
   };
   useEffect(() => {

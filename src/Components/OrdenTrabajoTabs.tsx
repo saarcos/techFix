@@ -90,6 +90,7 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
   // Función para eliminar un producto por id_producto
   const handleRemoveTask = (id_taskord: number) => {
     setTaskItems((prevItems) => prevItems.filter((item) => item.id_taskord !== id_taskord));
+    onTareasChange(tasks.filter((item) => item.id_taskord !== id_taskord)); // Notificar al componente principal
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {

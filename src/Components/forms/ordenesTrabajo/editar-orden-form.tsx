@@ -105,7 +105,7 @@ export default function OrdenTrabajoEditForm() {
             id_equipo: 0,
             id_usuario: 0,
             id_cliente: 0,
-            area: 'entrada',
+            area: 'Entrada',
             prioridad: 'Normal',
             descripcion: '',
             estado: 'CHEQUEO',
@@ -291,7 +291,11 @@ export default function OrdenTrabajoEditForm() {
     }, [ordenTrabajo]);
 
     useEffect(() => {
-      console.log("Tareas: ",tareasSeleccionadas)
+      console.log("Productos Seleccionados: ", productosSeleccionados)
+    }, [productosSeleccionados])
+    
+    useEffect(() => {
+      console.log("Tareas Seleccionadas: ", tareasSeleccionadas)
     }, [tareasSeleccionadas])
     
     
@@ -426,9 +430,9 @@ export default function OrdenTrabajoEditForm() {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        <SelectItem value="entrada">Entrada</SelectItem>
-                                                        <SelectItem value="reparacion">Reparación</SelectItem>
-                                                        <SelectItem value="salida">Salida</SelectItem>
+                                                        <SelectItem value="Entrada">Entrada</SelectItem>
+                                                        <SelectItem value="Reparación">Reparación</SelectItem>
+                                                        <SelectItem value="Salida">Salida</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
