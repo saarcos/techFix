@@ -37,7 +37,7 @@ export const addAccesoriosToOrden = async (accesorios: AccesorioDeOrdenCreate[])
   };
 
 // Método para actualizar los accesorios de una orden de trabajo
-export const updateAccesoriosOrden = async (id_orden: number, accesorios: AccesorioDeOrden[]): Promise<string> => {
+export const updateAccesoriosOrden = async (id_orden: number, accesorios: AccesorioDeOrdenCreate[]): Promise<string> => {
   try {
     const response: AxiosResponse<{ message: string }> = await axiosInstance.put(`/accesorios-orden/${id_orden}`, {
       accesorios,
