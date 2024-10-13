@@ -21,7 +21,7 @@ import { toast } from 'sonner';
 import Spinner from '../../../assets/tube-spinner.svg';
 import fileUploader from '../../../assets/icons/file-upload.svg'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAsterisk, faCircleXmark, faFileCirclePlus, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faAsterisk, faCircleXmark, faFileAlt, faHeadphones, faPlus } from '@fortawesome/free-solid-svg-icons';
 import {
   Tooltip,
   TooltipContent,
@@ -45,7 +45,7 @@ import { DeviceType, getDeviceTypes } from '@/api/tipoEquipoService';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2, X } from 'lucide-react';
 import { Calendar } from '@/Components/ui/calendar';
 import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
@@ -54,6 +54,9 @@ import { uploadImage } from '@/lib/firebase'; // Asegúrate de importar la funci
 import { PlantillaCombobox } from '@/Components/comboBoxes/plantilla-combobox';
 import { getPlantillas, Plantilla } from '@/api/plantillaService';
 import { createMultiplePlantillasOrden } from '@/api/plantillaOrdenService';
+import { AccesoriosCombobox } from '@/Components/comboBoxes/accesorio-combobox';
+import { Accesorio, getAccesorios } from '@/api/accesorioService';
+import { addAccesoriosToOrden } from '@/api/accesorioOrdenService';
 
 const formSchema = z.object({
   id_equipo: z.number().min(1, 'Equipo es requerido'),
@@ -92,6 +95,7 @@ export default function OrdenTrabajoForm() {
   const [selectedClient, setSelectedClient] = useState(0);
   const [filteredDevices, setFilteredDevices] = useState<Equipo[]>([]);
   const [plantillasSeleccionadas, setPlantillasSeleccionadas] = useState<{ id_grupo: number; nombre: string }[]>([]);
+  const [selectedAccesorios, setSelectedAccesorios] = useState<Accesorio[]>([]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -112,6 +116,17 @@ export default function OrdenTrabajoForm() {
       // Añadimos la nueva plantilla al estado
       setPlantillasSeleccionadas([...plantillasSeleccionadas, nuevaPlantilla]);
     }
+  };
+
+  const handleAgregarAccesorio = (accesorio: Accesorio) => {
+    // Verifica que el accesorio no esté ya seleccionado
+    if (!selectedAccesorios.some((a) => a.id_accesorio === accesorio.id_accesorio)) {
+      setSelectedAccesorios((prev) => [...prev, accesorio]);
+    }
+  };
+
+  const handleEliminarAccesorio = (id_accesorio: number) => {
+    setSelectedAccesorios((prev) => prev.filter((a) => a.id_accesorio !== id_accesorio));
   };
 
   // Función para eliminar una plantilla seleccionada
@@ -146,6 +161,10 @@ export default function OrdenTrabajoForm() {
   const { data: plantillas = [], isLoadingError: plantillasError } = useQuery<Plantilla[]>({
     queryKey: ['plantillas'],
     queryFn: getPlantillas,
+  });
+  const { data: accesorios = [] } = useQuery<Accesorio[]>({
+    queryKey: ['accesorios'],
+    queryFn: getAccesorios,
   });
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -217,6 +236,17 @@ export default function OrdenTrabajoForm() {
 
         // Asignar las plantillas a la orden de trabajo creada
         await createMultiplePlantillasOrden(newOrder.id_orden, plantillasIds);
+      }
+      // Verificar si hay accesorios seleccionados
+      if (selectedAccesorios.length > 0) {
+        // Crear un array de objetos que incluyan el id de la orden y el id del accesorio
+        const accesoriosData = selectedAccesorios.map((accesorio) => ({
+          id_orden: newOrder.id_orden,  // Aquí se pasa el id de la orden creada
+          id_accesorio: accesorio.id_accesorio,
+        }));
+
+        // Asignar los accesorios a la orden creada
+        await addAccesoriosToOrden(accesoriosData);
       }
     } catch (error) {
       console.error("Error al crear la orden:", error);
@@ -411,9 +441,9 @@ export default function OrdenTrabajoForm() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="entrada">Entrada</SelectItem>
-                            <SelectItem value="reparacion">Reparación</SelectItem>
-                            <SelectItem value="salida">Salida</SelectItem>
+                            <SelectItem value="Entrada">Entrada</SelectItem>
+                            <SelectItem value="Reparación">Reparación</SelectItem>
+                            <SelectItem value="Salida">Salida</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -526,42 +556,105 @@ export default function OrdenTrabajoForm() {
                       </FormItem>
                     )}
                   />
-                  <div className="col-span-1">
-                    <p className="text-sm font-medium text-black mb-1">Plantillas</p>
-                    <PlantillaCombobox
-                      plantillas={plantillas}
-                      onSelect={handleAgregarPlantilla}
-                    />
+                </div>
+                <div className="grid gap-4 mt-4">
+                  {/* Combos de Plantillas y Accesorios - Ocupan todo el ancho disponible */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                    <div className="w-full">
+                      <p className="text-sm font-medium text-black mb-1">Plantillas de tareas</p>
+                      <PlantillaCombobox
+                        plantillas={plantillas}
+                        onSelect={handleAgregarPlantilla}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <p className="text-sm font-medium text-black mb-1">Accesorios</p>
+                      <AccesoriosCombobox
+                        accesorios={accesorios}
+                        onSelect={handleAgregarAccesorio}
+                      />
+                    </div>
                   </div>
-
-                  <Card className="p-4 mt-2 shadow-sm border border-gray-200 rounded-md">
-                    <CardContent className="space-y-4">
-                      {plantillasSeleccionadas.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {plantillasSeleccionadas.map((plantilla) => (
+                  {/* Áreas de Plantillas y Accesorios seleccionados - Ocupan todo el ancho disponible */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                    {/* Área de Plantillas seleccionadas */}
+                    <div className="p-4 shadow-md border rounded-lg bg-gray-50 w-full" style={{ minHeight: '8rem' }}>
+                      <div className={`grid gap-4 ${plantillasSeleccionadas.length > 0 ? 'grid-cols-2' : 'place-items-center'}`}>
+                        {plantillasSeleccionadas.length > 0 ? (
+                          plantillasSeleccionadas.map((plantilla) => (
                             <div
                               key={plantilla.id_grupo}
-                              className="flex items-center justify-between bg-customGreen text-white px-4 py-2 rounded-md shadow-lg"
+                              className="flex items-center justify-between bg-customGreen px-4 py-2 border rounded-lg shadow-sm text-sm cursor-pointer"
                             >
-                              <span className="text-sm font-semibold">{plantilla.nombre}</span>
-                              <Button
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="truncate text-black font-bold">
+                                      {plantilla.nombre}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-customGray text-white">
+                                    <p>{plantilla.nombre}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              <button
                                 type="button"
-                                className="ml-2 bg-black hover:bg-gray-600 text-white rounded-full h-8 w-8 flex items-center justify-center"
+                                className="ml-3 text-white rounded-full h-6 w-6 flex items-center justify-center"
                                 onClick={() => handleEliminarPlantilla(plantilla.id_grupo)}
                               >
-                                <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
-                              </Button>
+                                <X className="h-4 w-4 text-muted-foreground" />
+                              </button>
                             </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center p-4 text-gray-500 border border-dashed border-gray-300 rounded-md">
-                          <FontAwesomeIcon icon={faFileCirclePlus} className="w-10 h-10 mb-2" />
-                          <p className="text-sm">No se ha seleccionado ninguna plantilla</p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                          ))
+                        ) : (
+                          <div className="flex flex-col items-center justify-center p-4 text-gray-500 border border-dashed rounded-md w-auto h-28">
+                            <FontAwesomeIcon icon={faFileAlt} className="w-10 h-10 mb-2" />
+                            <p className="text-sm text-center">No se ha seleccionado ninguna plantilla</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Área de Accesorios seleccionados */}
+                    <div className="p-4 shadow-md border rounded-lg bg-gray-50 w-full" style={{ minHeight: '8rem' }}>
+                      <div className={`grid gap-4 ${selectedAccesorios.length > 0 ? 'grid-cols-2' : 'place-items-center'}`}>
+                        {selectedAccesorios.length > 0 ? (
+                          selectedAccesorios.map((accesorio) => (
+                            <div
+                              key={accesorio.id_accesorio}
+                              className="flex items-center justify-between bg-customGreen px-4 py-2 border rounded-lg shadow-sm text-sm truncate cursor-pointer"
+                            >
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="truncate text-black font-bold">
+                                      {accesorio.nombre}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-customGray text-white">
+                                    <p>{accesorio.nombre}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              <button
+                                type="button"
+                                className="ml-3 text-white rounded-full h-6 w-6 flex items-center justify-center"
+                                onClick={() => handleEliminarAccesorio(accesorio.id_accesorio)}
+                              >
+                                <X className="h-4 w-4 text-muted-foreground" />
+                              </button>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="flex flex-col items-center justify-center p-4 text-gray-500 border border-dashed rounded-md w-auto h-28">
+                            <FontAwesomeIcon icon={faHeadphones} className="w-10 h-10 mb-2" />
+                            <p className="text-sm text-center">No se han seleccionado accesorios</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <FormField
                   name="descripcion"

@@ -15,9 +15,11 @@ interface ProductServiceTableProps {
   ordenId: number;
   onProductosChange: (productos: ProductoOrden[]) => void; // Callback para productos
   onServiciosChange: (servicios: ServicioOrden[]) => void;  // Callback para servicios
+  onTotalChange: (total: number) => void;
+  adelanto?: number; // Adelanto opcional
 }
 
-const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosChange, onServiciosChange }: ProductServiceTableProps) => {
+const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosChange, onServiciosChange, onTotalChange, adelanto }: ProductServiceTableProps) => {
   const [items, setItems] = useState<ProductoOrden[]>(productos || []);
   const [serviceItems, setServiceItems] = useState<ServicioOrden[]>(servicios || []);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -25,7 +27,7 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
   const handleAddProduct = (product: Product, cantidad: number) => {
     // Busca si el producto ya está en la lista
     const existingProductIndex = items.findIndex(item => item.id_producto === product.id_producto);
-  
+
     if (existingProductIndex !== -1) {
       // Si el producto ya existe, actualiza su cantidad
       setItems(prevItems => {
@@ -48,26 +50,26 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
           precioSinIVA: product.precioSinIVA,
         },
       };
-  
+
       const updatedProductos = [...items, newProductoOrden];
       setItems(updatedProductos);
       onProductosChange(updatedProductos);
     }
-  
+
     // Cierra el modal después de agregar o actualizar
     setIsProductModalOpen(false);
   };
-  
+
   const handleAddService = (service: Service) => {
     // Busca si el servicio ya está en la lista
     const existingServiceIndex = servicios.findIndex(item => item.id_servicio === service.id_servicio);
-  
+
     if (existingServiceIndex !== -1) {
       // Si el servicio ya existe, no lo añade y simplemente cierra el modal
       setIsServiceModalOpen(false);
       return; // Sale de la función sin añadir el servicio
     }
-  
+
     // Si no existe, lo añade a la lista
     const newServicioOrden: ServicioOrden = {
       id_servorden: Date.now(),
@@ -78,14 +80,14 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
         precio: service.precio,
       },
     };
-  
+
     const updatedServicios = [...servicios, newServicioOrden];
     setServiceItems(updatedServicios);
     onServiciosChange(updatedServicios);
     setIsServiceModalOpen(false);
   };
-  
-  
+
+
 
   const calculateSubtotal = (item: ProductoOrden | ServicioOrden) => {
     if ('producto' in item) {
@@ -98,7 +100,19 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
   const calculateTotal = () => {
     const productTotal = items.reduce((acc, item) => acc + parseFloat(calculateSubtotal(item)), 0);
     const serviceTotal = serviceItems.reduce((acc, item) => acc + parseFloat(calculateSubtotal(item)), 0);
-    return (productTotal + serviceTotal).toFixed(2);
+
+    let totalCalculado = productTotal + serviceTotal;
+    let mensajeAdelanto = ""; // Variable para el mensaje del adelanto
+
+    // Restar el adelanto si existe y es menor que el total
+    if (adelanto && totalCalculado > adelanto) {
+      totalCalculado -= adelanto;
+      mensajeAdelanto = ` (restando el adelanto de $${adelanto})`; // Mensaje que muestra que el adelanto fue restado
+    }
+
+    // Pasar el total calculado al componente padre
+    onTotalChange(parseFloat(totalCalculado.toFixed(2)));
+    return { total: totalCalculado.toFixed(2), mensajeAdelanto };
   };
   // Función para eliminar un producto por id_producto
   const handleRemoveProduct = (id_producto: number) => {
@@ -115,7 +129,7 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
   useEffect(() => {
     setItems(productos);
   }, [productos]);
-  
+
   useEffect(() => {
     setServiceItems(servicios);
   }, [servicios]);
@@ -191,8 +205,13 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
               )}
             </TableBody>
           </Table>
-          <div className="flex justify-end mt-4">
-            <p className="font-semibold text-lg">Total: ${calculateTotal()}</p>
+          <div className="flex flex-col items-end mt-4">
+            {/* Mostrar el total en grande */}
+            <p className="font-semibold text-lg">Total: ${calculateTotal().total}</p>
+            {/* Mostrar el mensaje de adelanto debajo, si existe */}
+            {calculateTotal().mensajeAdelanto && (
+              <p className="text-sm text-muted-foreground mt-1">{calculateTotal().mensajeAdelanto}</p>
+            )}
           </div>
           <div className="flex justify-start mt-4 gap-2 flex-wrap">
             <Button

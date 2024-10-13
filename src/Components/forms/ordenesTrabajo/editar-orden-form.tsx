@@ -21,11 +21,11 @@ import { getUsers, User } from '@/api/userService';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon, CreditCard, Info, Loader2, Mail, MonitorSmartphone, Phone } from 'lucide-react';
+import { CalendarIcon, CreditCard, Info, Loader2, Mail, MonitorSmartphone, Phone, X } from 'lucide-react';
 import { Calendar } from '@/Components/ui/calendar';
 import { es } from 'date-fns/locale';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFileCirclePlus, faIdCard, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faFileAlt, faHeadphones, faIdCard } from '@fortawesome/free-solid-svg-icons';
 import ProductServiceTableShadCN from '@/tables/productosyservicios/ProductsServicesTable';
 import OrdenTrabajoTabs from '@/Components/OrdenTrabajoTabs';
 import { PlantillaCombobox } from '@/Components/comboBoxes/plantilla-combobox';
@@ -33,6 +33,12 @@ import { getPlantillas, Plantilla } from '@/api/plantillaService';
 import { addProductsToOrder } from '@/api/productOrdenService';
 import { addServicesToOrder } from '@/api/serviceOrdenService';
 import { addTareasToOrder, TareaOrden } from '@/api/tareasOrdenService';
+import { Accesorio, getAccesorios } from '@/api/accesorioService';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
+import { AccesoriosCombobox } from '@/Components/comboBoxes/accesorio-combobox';
+import { getAccesoriosByOrden, updateAccesoriosOrden } from '@/api/accesorioOrdenService';
+import Spinner from '../../../assets/tube-spinner.svg';
+
 interface Producto {
     id_producto: number;
     cantidad: number;
@@ -71,6 +77,7 @@ export default function OrdenTrabajoEditForm() {
     const [existingImages, setExistingImages] = useState<string[]>([]); // Imágenes existentes (URLs)
     const [selectedClient, setSelectedClient] = useState(0);
     const [plantillasSeleccionadas, setPlantillasSeleccionadas] = useState<{ id_grupo: number; nombre: string }[]>([]);
+    const [selectedAccesorios, setSelectedAccesorios] = useState<Accesorio[]>([]);
 
     // Consulta para obtener los datos de la orden de trabajo por ID
     const { data: ordenTrabajo, isLoading, isError } = useQuery({
@@ -82,6 +89,7 @@ export default function OrdenTrabajoEditForm() {
     const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoOrden[]>(ordenTrabajo?.productos || []);
     const [serviciosSeleccionados, setServiciosSeleccionados] = useState<ServicioOrden[]>(ordenTrabajo?.servicios || []);
     const [tareasSeleccionadas, setTareasSeleccionadas] = useState<TareaOrden[]>(ordenTrabajo?.tareas || []);
+    const [totalOrden, setTotalOrden] = useState(0);
     const navigate = useNavigate();
     const { data: clientes = [], isLoading: isClientesLoading } = useQuery({
         queryKey: ['clients'],
@@ -98,6 +106,15 @@ export default function OrdenTrabajoEditForm() {
     const { data: plantillas = [], isLoadingError: plantillasError } = useQuery<Plantilla[]>({
         queryKey: ['plantillas'],
         queryFn: getPlantillas,
+    });
+    const { data: accesorios = [] } = useQuery<Accesorio[]>({
+        queryKey: ['accesorios'],
+        queryFn: getAccesorios,
+    });
+    const { data: accesoriosOrden = [], isLoading: isLoadingAccesorios } = useQuery({
+        queryKey: ['accesoriosOrden', id_orden],
+        queryFn: () => id_orden ? getAccesoriosByOrden(id_orden) : Promise.resolve([]),
+        enabled: !!id_orden,
     });
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -137,7 +154,7 @@ export default function OrdenTrabajoEditForm() {
         }
     }, [ordenTrabajo, form, selectedClient]);
 
-    
+
     const updateMutation = useMutation({
         mutationFn: updateOrdenTrabajo,
         onSuccess: () => {
@@ -210,6 +227,15 @@ export default function OrdenTrabajoEditForm() {
     const handleEliminarPlantilla = (id_grupo: number) => {
         setPlantillasSeleccionadas(plantillasSeleccionadas.filter(p => p.id_grupo !== id_grupo));
     };
+    const handleAgregarAccesorio = (accesorio: Accesorio) => {
+        // Verifica que el accesorio no esté ya seleccionado
+        if (!selectedAccesorios.some((a) => a.id_accesorio === accesorio.id_accesorio)) {
+            setSelectedAccesorios((prev) => [...prev, accesorio]);
+        }
+    };
+    const handleEliminarAccesorio = (id_accesorio: number) => {
+        setSelectedAccesorios((prev) => prev.filter((a) => a.id_accesorio !== id_accesorio));
+    };
     // Funciones para manejar los productos y servicios seleccionados
     const handleProductosChange = (productos: ProductoOrden[]) => {
         setProductosSeleccionados(productos);
@@ -217,6 +243,9 @@ export default function OrdenTrabajoEditForm() {
     const handleServiciosChange = (servicios: ServicioOrden[]) => {
         setServiciosSeleccionados(servicios);
     };
+    const handleTotalOrden = (total: number) => {
+        setTotalOrden(total);
+    }
     // Función para manejar las tareas seleccionadas
     const handleTareasChange = (tareas: TareaOrden[]) => {
         setTareasSeleccionadas(tareas);
@@ -228,7 +257,6 @@ export default function OrdenTrabajoEditForm() {
                 const url = await uploadImage(file);
                 imageUrls.push(url);
             }
-            // Asegúrate de que 'total' y 'confirmacion' están presentes
             const ordenTrabajoData: OrdenTrabajoUpdate = {
                 id_orden: id_orden as number,  // El ID de la orden debe ser un número y no puede ser null
                 id_equipo: values.id_equipo,
@@ -241,8 +269,8 @@ export default function OrdenTrabajoEditForm() {
                 fecha_prometida: values.fecha_prometida ? new Date(values.fecha_prometida) : null,
                 presupuesto: values.presupuesto || null,
                 adelanto: values.adelanto || null,
-                total: 0, // Puedes ajustar este valor según tus necesidades
-                confirmacion: false, // Puedes ajustar este valor según tus necesidades
+                total: totalOrden,
+                confirmacion: false,
                 passwordequipo: values.passwordequipo || null,
                 imagenes: imageUrls, // Las imágenes subidas
             };
@@ -273,6 +301,18 @@ export default function OrdenTrabajoEditForm() {
                 }));
                 await addTasksMutation.mutateAsync({ id_orden: id_orden as number, tareas: tareasToSend });
             }
+            // Verificar si hay accesorios seleccionados
+            if (id_orden !== null && selectedAccesorios.length > 0) {
+                // Crear un array de objetos que incluyan el id de la orden y el id del accesorio
+                const accesoriosData = selectedAccesorios.map((accesorio) => ({
+                    id_orden: id_orden,  // Aquí se pasa el id de la orden creada
+                    id_accesorio: accesorio.id_accesorio,
+                }));
+
+                // Asignar los accesorios a la orden creada
+                await updateAccesoriosOrden(id_orden , accesoriosData);
+            }
+
         } catch (error) {
             console.error("Error al subir las imágenes:", error);
             toast.error('Error al subir las imágenes');
@@ -280,26 +320,39 @@ export default function OrdenTrabajoEditForm() {
     };
     useEffect(() => {
         if (ordenTrabajo && ordenTrabajo.productos) {
-          setProductosSeleccionados(ordenTrabajo.productos);
+            setProductosSeleccionados(ordenTrabajo.productos);
         }
-        if(ordenTrabajo && ordenTrabajo.servicios){
+        if (ordenTrabajo && ordenTrabajo.servicios) {
             setServiciosSeleccionados(ordenTrabajo.servicios)
         }
-        if(ordenTrabajo && ordenTrabajo.tareas){
+        if (ordenTrabajo && ordenTrabajo.tareas) {
             setTareasSeleccionadas(ordenTrabajo.tareas);
         }
-    }, [ordenTrabajo]);
+        if (accesoriosOrden && accesoriosOrden.length > 0) {
+            // Establece los accesorios seleccionados basados en la consulta
+            const accesoriosTransformados = accesoriosOrden.map(ordenAccesorio => ({
+                id_accesorio: ordenAccesorio.Accesorio.id_accesorio,
+                nombre: ordenAccesorio.Accesorio.nombre
+            }));
+            setSelectedAccesorios(accesoriosTransformados);
+        }
+        
+    }, [ordenTrabajo, accesoriosOrden]);
 
+    // useEffect(() => {
+    //   console.log("Productos Seleccionados: ", productosSeleccionados)
+    // }, [productosSeleccionados])
+
+    // useEffect(() => {
+    //   console.log("Tareas Seleccionadas: ", tareasSeleccionadas)
+    // }, [tareasSeleccionadas])
     useEffect(() => {
-      console.log("Productos Seleccionados: ", productosSeleccionados)
-    }, [productosSeleccionados])
-    
-    useEffect(() => {
-      console.log("Tareas Seleccionadas: ", tareasSeleccionadas)
-    }, [tareasSeleccionadas])
-    
-    
-    if (isLoading) return <div>Loading...</div>;
+      console.log("Accesorios Seleccionados: ", selectedAccesorios)
+    }, [selectedAccesorios])
+
+
+
+    if (isLoading || isLoadingAccesorios) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
     if (isError || plantillasError) return <div>Error al cargar los datos</div>;
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40 mt-5">
@@ -341,7 +394,7 @@ export default function OrdenTrabajoEditForm() {
                                                 render={({ field }) => (
                                                     <FormItem>
                                                         <FormControl>
-                                                            <ClienteCombobox field={field} clientes={clientes} setSelectedClient={setSelectedClient} isClienteLoading={isClientesLoading} />
+                                                            <ClienteCombobox field={field} clientes={clientes} setSelectedClient={setSelectedClient} isClienteLoading={isClientesLoading} disabled={!!ordenTrabajo} />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -372,7 +425,7 @@ export default function OrdenTrabajoEditForm() {
                                                 render={({ field }) => (
                                                     <FormItem>
                                                         <FormControl>
-                                                            <EquipoCombobox field={field} equipos={equipos} isEquipoLoading={isEquiposLoading} />
+                                                            <EquipoCombobox field={field} equipos={equipos} isEquipoLoading={isEquiposLoading} disabled={!!ordenTrabajo} />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -411,7 +464,7 @@ export default function OrdenTrabajoEditForm() {
                                             <FormItem>
                                                 <FormLabel>Contraseña</FormLabel>
                                                 <FormControl>
-                                                    <Input type="text" placeholder="Contraseña equipo/pin desbloqueo"  {...field}  />
+                                                    <Input type="text" placeholder="Contraseña equipo/pin desbloqueo"  {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -522,42 +575,105 @@ export default function OrdenTrabajoEditForm() {
                                             </FormItem>
                                         )}
                                     />
-                                    <div className="col-span-1">
-                                        <p className="text-sm font-medium text-black mb-1">Plantillas</p>
-                                        <PlantillaCombobox
-                                            plantillas={plantillas}
-                                            onSelect={handleAgregarPlantilla}
-                                        />
+                                </div>
+                                <div className="grid gap-4 mt-4">
+                                    {/* Combos de Plantillas y Accesorios - Ocupan todo el ancho disponible */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                                        <div className="w-full">
+                                            <p className="text-sm font-medium text-black mb-1">Plantillas de tareas</p>
+                                            <PlantillaCombobox
+                                                plantillas={plantillas}
+                                                onSelect={handleAgregarPlantilla}
+                                            />
+                                        </div>
+                                        <div className="w-full">
+                                            <p className="text-sm font-medium text-black mb-1">Accesorios</p>
+                                            <AccesoriosCombobox
+                                                accesorios={accesorios}
+                                                onSelect={handleAgregarAccesorio}
+                                            />
+                                        </div>
                                     </div>
-                                    {/* Selección de Plantillas */}
-                                    <Card className="p-4 mt-2 shadow-sm border border-gray-200 rounded-md">
-                                        <CardContent className="space-y-4">
-                                            {plantillasSeleccionadas.length > 0 ? (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    {plantillasSeleccionadas.map((plantilla) => (
+                                    {/* Áreas de Plantillas y Accesorios seleccionados - Ocupan todo el ancho disponible */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                                        {/* Área de Plantillas seleccionadas */}
+                                        <div className="p-4 shadow-md border rounded-lg bg-gray-50 w-full" style={{ minHeight: '8rem' }}>
+                                            <div className={`grid gap-4 ${plantillasSeleccionadas.length > 0 ? 'grid-cols-2' : 'place-items-center'}`}>
+                                                {plantillasSeleccionadas.length > 0 ? (
+                                                    plantillasSeleccionadas.map((plantilla) => (
                                                         <div
                                                             key={plantilla.id_grupo}
-                                                            className="flex items-center justify-between bg-customGreen text-white px-4 py-2 rounded-md shadow-lg"
+                                                            className="flex items-center justify-between bg-customGreen px-4 py-2 border rounded-lg shadow-sm text-sm cursor-pointer"
                                                         >
-                                                            <span className="text-sm font-semibold">{plantilla.nombre}</span>
-                                                            <Button
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <span className="truncate text-black font-bold">
+                                                                            {plantilla.nombre}
+                                                                        </span>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent className="bg-customGray text-white">
+                                                                        <p>{plantilla.nombre}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                            <button
                                                                 type="button"
-                                                                className="ml-2 bg-black hover:bg-gray-600 text-white rounded-full h-8 w-8 flex items-center justify-center"
+                                                                className="ml-3 text-white rounded-full h-6 w-6 flex items-center justify-center"
                                                                 onClick={() => handleEliminarPlantilla(plantilla.id_grupo)}
                                                             >
-                                                                <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
-                                                            </Button>
+                                                                <X className="h-4 w-4 text-muted-foreground" />
+                                                            </button>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col items-center justify-center p-4 text-gray-500 border border-dashed border-gray-300 rounded-md">
-                                                    <FontAwesomeIcon icon={faFileCirclePlus} className="w-10 h-10 mb-2" />
-                                                    <p className="text-sm">No se ha seleccionado ninguna plantilla</p>
-                                                </div>
-                                            )}
-                                        </CardContent>
-                                    </Card>
+                                                    ))
+                                                ) : (
+                                                    <div className="flex flex-col items-center justify-center p-4 text-gray-500 border border-dashed rounded-md w-auto h-28">
+                                                        <FontAwesomeIcon icon={faFileAlt} className="w-10 h-10 mb-2" />
+                                                        <p className="text-sm text-center">No se ha seleccionado ninguna plantilla</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Área de Accesorios seleccionados */}
+                                        <div className="p-4 shadow-md border rounded-lg bg-gray-50 w-full" style={{ minHeight: '8rem' }}>
+                                            <div className={`grid gap-4 ${selectedAccesorios.length > 0 ? 'grid-cols-2' : 'place-items-center'}`}>
+                                                {selectedAccesorios.length > 0 ? (
+                                                    selectedAccesorios.map((accesorio) => (
+                                                        <div
+                                                            key={accesorio.id_accesorio}
+                                                            className="flex items-center justify-between bg-customGreen px-4 py-2 border rounded-lg shadow-sm text-sm truncate cursor-pointer"
+                                                        >
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <span className="truncate text-black font-bold">
+                                                                            {accesorio.nombre}
+                                                                        </span>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent className="bg-customGray text-white">
+                                                                        <p>{accesorio.nombre}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                            <button
+                                                                type="button"
+                                                                className="ml-3 text-white rounded-full h-6 w-6 flex items-center justify-center"
+                                                                onClick={() => handleEliminarAccesorio(accesorio.id_accesorio)}
+                                                            >
+                                                                <X className="h-4 w-4 text-muted-foreground" />
+                                                            </button>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="flex flex-col items-center justify-center p-4 text-gray-500 border border-dashed rounded-md w-auto h-28">
+                                                        <FontAwesomeIcon icon={faHeadphones} className="w-10 h-10 mb-2" />
+                                                        <p className="text-sm text-center">No se han seleccionado accesorios</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <FormField
                                     name="descripcion"
@@ -583,6 +699,8 @@ export default function OrdenTrabajoEditForm() {
                                     ordenId={id_orden || 0}
                                     onProductosChange={handleProductosChange}
                                     onServiciosChange={handleServiciosChange}
+                                    onTotalChange={handleTotalOrden}
+                                    adelanto={form.watch('adelanto')}
                                 />
                                 <OrdenTrabajoTabs
                                     tasks={tareasSeleccionadas}
@@ -594,7 +712,7 @@ export default function OrdenTrabajoEditForm() {
                                     onServiciosChange={handleServiciosChange}
                                     onTareasChange={handleTareasChange}
                                     productosSeleccionados={productosSeleccionados}
-                                    serviciosSeleccionados={serviciosSeleccionados}  />
+                                    serviciosSeleccionados={serviciosSeleccionados} />
                                 <div className="flex justify-end">
                                     <Button
                                         type="button"
