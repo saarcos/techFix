@@ -21,7 +21,7 @@ import { toast } from 'sonner';
 import Spinner from '../../../assets/tube-spinner.svg';
 import fileUploader from '../../../assets/icons/file-upload.svg'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAsterisk, faCircleXmark, faFileAlt, faHeadphones, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faAsterisk, faCircleXmark, faHeadphones, faPlus } from '@fortawesome/free-solid-svg-icons';
 import {
   Tooltip,
   TooltipContent,
@@ -51,9 +51,6 @@ import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { createOrdenTrabajo, OrdenTrabajoCreate } from '@/api/ordenTrabajoService';
 import { uploadImage } from '@/lib/firebase'; // Asegúrate de importar la función correcta
-import { PlantillaCombobox } from '@/Components/comboBoxes/plantilla-combobox';
-import { getPlantillas, Plantilla } from '@/api/plantillaService';
-import { createMultiplePlantillasOrden } from '@/api/plantillaOrdenService';
 import { AccesoriosCombobox } from '@/Components/comboBoxes/accesorio-combobox';
 import { Accesorio, getAccesorios } from '@/api/accesorioService';
 import { addAccesoriosToOrden } from '@/api/accesorioOrdenService';
@@ -61,7 +58,7 @@ import { addAccesoriosToOrden } from '@/api/accesorioOrdenService';
 const formSchema = z.object({
   id_equipo: z.number().min(1, 'Equipo es requerido'),
   id_usuario: z.number().optional(), // Ahora es opcional
-  id_cliente: z.number().min(1, 'Cliente es requerido'),
+  cliente_id: z.number().min(1, 'Cliente es requerido'),
   area: z.string().min(1, 'Área es requerida'),
   prioridad: z.string().min(1, 'Prioridad es requerida'),
   descripcion: z.string().min(1, 'Descripción es requerida'),
@@ -94,7 +91,6 @@ export default function OrdenTrabajoForm() {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [selectedClient, setSelectedClient] = useState(0);
   const [filteredDevices, setFilteredDevices] = useState<Equipo[]>([]);
-  const [plantillasSeleccionadas, setPlantillasSeleccionadas] = useState<{ id_grupo: number; nombre: string }[]>([]);
   const [selectedAccesorios, setSelectedAccesorios] = useState<Accesorio[]>([]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,19 +100,6 @@ export default function OrdenTrabajoForm() {
   const handleRemoveImage = (index: number) => {
     setSelectedImages((prevImages) => prevImages.filter((_, i) => i !== index));
   };
-  const handleAgregarPlantilla = (plantilla: Plantilla) => {
-    // Verificamos si la plantilla ya ha sido seleccionada por su id_grupo
-    if (!plantillasSeleccionadas.some(p => p.id_grupo === plantilla.id_grupo)) {
-      // Transformamos la plantilla para que use 'descripcion' como 'nombre'
-      const nuevaPlantilla = {
-        id_grupo: plantilla.id_grupo,
-        nombre: plantilla.descripcion, // Usamos descripcion en lugar de nombre
-      };
-
-      // Añadimos la nueva plantilla al estado
-      setPlantillasSeleccionadas([...plantillasSeleccionadas, nuevaPlantilla]);
-    }
-  };
 
   const handleAgregarAccesorio = (accesorio: Accesorio) => {
     // Verifica que el accesorio no esté ya seleccionado
@@ -124,16 +107,9 @@ export default function OrdenTrabajoForm() {
       setSelectedAccesorios((prev) => [...prev, accesorio]);
     }
   };
-
   const handleEliminarAccesorio = (id_accesorio: number) => {
     setSelectedAccesorios((prev) => prev.filter((a) => a.id_accesorio !== id_accesorio));
   };
-
-  // Función para eliminar una plantilla seleccionada
-  const handleEliminarPlantilla = (id_grupo: number) => {
-    setPlantillasSeleccionadas(plantillasSeleccionadas.filter(p => p.id_grupo !== id_grupo));
-  };
-
   const { data: equipos = [], isLoading: isEquipoLoading, error } = useQuery<Equipo[]>({
     queryKey: ['devices'],
     queryFn: getEquipos,
@@ -158,10 +134,6 @@ export default function OrdenTrabajoForm() {
     queryKey: ['deviceTypes'],
     queryFn: getDeviceTypes,
   });
-  const { data: plantillas = [], isLoadingError: plantillasError } = useQuery<Plantilla[]>({
-    queryKey: ['plantillas'],
-    queryFn: getPlantillas,
-  });
   const { data: accesorios = [] } = useQuery<Accesorio[]>({
     queryKey: ['accesorios'],
     queryFn: getAccesorios,
@@ -171,8 +143,8 @@ export default function OrdenTrabajoForm() {
     defaultValues: {
       id_equipo: 0,
       id_usuario: 0,
-      id_cliente: 0,
-      area: 'entrada',
+      cliente_id: 0,
+      area: 'Entrada',
       prioridad: 'Normal',
       descripcion: '',
       estado: 'CHEQUEO',
@@ -212,7 +184,7 @@ export default function OrdenTrabajoForm() {
       const ordenTrabajoData: OrdenTrabajoCreate = {
         id_equipo: values.id_equipo,
         id_usuario: values.id_usuario || null,
-        id_cliente: values.id_cliente,
+        cliente_id: values.cliente_id,
         area: values.area,
         prioridad: values.prioridad,
         descripcion: values.descripcion,
@@ -228,15 +200,6 @@ export default function OrdenTrabajoForm() {
 
       // Crear la orden de trabajo primero
       const newOrder = await createMutation.mutateAsync(ordenTrabajoData);
-
-      // Verificar si hay plantillas seleccionadas
-      if (plantillasSeleccionadas.length > 0) {
-        // Extraer los IDs de las plantillas seleccionadas
-        const plantillasIds = plantillasSeleccionadas.map((plantilla) => plantilla.id_grupo);
-
-        // Asignar las plantillas a la orden de trabajo creada
-        await createMultiplePlantillasOrden(newOrder.id_orden, plantillasIds);
-      }
       // Verificar si hay accesorios seleccionados
       if (selectedAccesorios.length > 0) {
         // Crear un array de objetos que incluyan el id de la orden y el id del accesorio
@@ -263,7 +226,7 @@ export default function OrdenTrabajoForm() {
   }, [selectedClient, equipos, form]);
 
   if (isEquipoLoading || isClienteLoading || isTecnicoLoading) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
-  if (error || marcasError || modelsError || deviceTypesError || plantillasError) return toast.error('Error al recuperar los datos');
+  if (error || marcasError || modelsError || deviceTypesError ) return toast.error('Error al recuperar los datos');
 
   const selectedArea = form.watch('area');
 
@@ -332,7 +295,7 @@ export default function OrdenTrabajoForm() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <FormField
-                    name="id_cliente"
+                    name="cliente_id"
                     control={form.control}
                     render={({ field }) => (
                       <FormItem>
@@ -450,7 +413,7 @@ export default function OrdenTrabajoForm() {
                       </FormItem>
                     )}
                   />
-                  {(selectedArea === 'reparacion' || selectedArea === 'salida') && (
+                  {(selectedArea === 'Reparación' || selectedArea === 'Salida') && (
                     <FormField
                       name="id_usuario"
                       control={form.control}
@@ -561,61 +524,12 @@ export default function OrdenTrabajoForm() {
                   {/* Combos de Plantillas y Accesorios - Ocupan todo el ancho disponible */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                     <div className="w-full">
-                      <p className="text-sm font-medium text-black mb-1">Plantillas de tareas</p>
-                      <PlantillaCombobox
-                        plantillas={plantillas}
-                        onSelect={handleAgregarPlantilla}
-                      />
-                    </div>
-                    <div className="w-full">
-                      <p className="text-sm font-medium text-black mb-1">Accesorios</p>
+                      <p className="text-sm font-medium text-black mb-1 mt-6">Accesorios</p>
                       <AccesoriosCombobox
                         accesorios={accesorios}
                         onSelect={handleAgregarAccesorio}
                       />
                     </div>
-                  </div>
-                  {/* Áreas de Plantillas y Accesorios seleccionados - Ocupan todo el ancho disponible */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                    {/* Área de Plantillas seleccionadas */}
-                    <div className="p-4 shadow-md border rounded-lg bg-gray-50 w-full" style={{ minHeight: '8rem' }}>
-                      <div className={`grid gap-4 ${plantillasSeleccionadas.length > 0 ? 'grid-cols-2' : 'place-items-center'}`}>
-                        {plantillasSeleccionadas.length > 0 ? (
-                          plantillasSeleccionadas.map((plantilla) => (
-                            <div
-                              key={plantilla.id_grupo}
-                              className="flex items-center justify-between bg-customGreen px-4 py-2 border rounded-lg shadow-sm text-sm cursor-pointer"
-                            >
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span className="truncate text-black font-bold">
-                                      {plantilla.nombre}
-                                    </span>
-                                  </TooltipTrigger>
-                                  <TooltipContent className="bg-customGray text-white">
-                                    <p>{plantilla.nombre}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                              <button
-                                type="button"
-                                className="ml-3 text-white rounded-full h-6 w-6 flex items-center justify-center"
-                                onClick={() => handleEliminarPlantilla(plantilla.id_grupo)}
-                              >
-                                <X className="h-4 w-4 text-muted-foreground" />
-                              </button>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="flex flex-col items-center justify-center p-4 text-gray-500 border border-dashed rounded-md w-auto h-28">
-                            <FontAwesomeIcon icon={faFileAlt} className="w-10 h-10 mb-2" />
-                            <p className="text-sm text-center">No se ha seleccionado ninguna plantilla</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
                     {/* Área de Accesorios seleccionados */}
                     <div className="p-4 shadow-md border rounded-lg bg-gray-50 w-full" style={{ minHeight: '8rem' }}>
                       <div className={`grid gap-4 ${selectedAccesorios.length > 0 ? 'grid-cols-2' : 'place-items-center'}`}>
@@ -746,7 +660,7 @@ export default function OrdenTrabajoForm() {
                     />
                   </div>
                 </div>
-                <div className="flex justify-between mt-6">
+                <div className="flex justify-end mt-6">
                   <Button
                     type="button"
                     variant="outline"
@@ -755,7 +669,7 @@ export default function OrdenTrabajoForm() {
                   >
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={isLoading} className='bg-customGreen hover:bg-customGreenHover'>
+                  <Button type="submit" disabled={isLoading} className='bg-customGreen hover:bg-customGreenHover text-black'>
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

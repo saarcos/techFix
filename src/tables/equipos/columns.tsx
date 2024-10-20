@@ -70,7 +70,7 @@ export const columns: ColumnDef<Equipo>[] = [
         ),
     },
     {
-        accessorKey: "marca.nombre",
+        accessorKey: "modelo.marca.nombre",
         header: ({column})=>(
           <DatatableColumnHeader title="Marca" column={column}/>
         ),

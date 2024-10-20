@@ -16,12 +16,12 @@ export const columns: ColumnDef<Service>[] = [
         )
     },
     {
-      accessorKey: "precio",
+      accessorKey: "preciofinal",
       header: "Precio",
       cell: ({row})=>(
         <span 
         className="font-medium text-customGray">
-          ${row.getValue("precio")}
+          ${row.getValue("preciofinal")}
         </span>
       ),
   },

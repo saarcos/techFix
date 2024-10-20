@@ -33,6 +33,7 @@ export function ProductCombobox({ field, products }: ProductComboboxProps) {
     console.log(value);
     field.onChange(parseInt(id_producto, 10)); 
     setOpen(false);
+    setSearchTerm("");
   };
 
   const filteredProducts = products.filter(product =>

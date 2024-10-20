@@ -35,10 +35,10 @@ const OrdenesTable = ({ onSelectOrder, ordenes, selectedOrder }: OrdenesTablePro
               onClick={() => onSelectOrder(orden)}
             >
               <TableCell>
-                <div className="font-medium">{orden.cliente.nombre} {orden.cliente.apellido}</div>
+                <div className="font-medium">{orden.equipo.cliente.nombre} {orden.equipo.cliente.apellido}</div>
                 <div className="hidden text-sm text-muted-foreground md:inline">
-                  <a href={`mailto:${orden.cliente.correo}`} className="font-medium hover:underline">
-                    {orden.cliente.correo}
+                  <a href={`mailto:${orden.equipo.cliente.correo}`} className="font-medium hover:underline">
+                    {orden.equipo.cliente.correo}
                   </a>
                 </div>
               </TableCell>

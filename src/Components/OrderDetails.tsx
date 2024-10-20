@@ -110,9 +110,9 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                 <div className="grid gap-3">
                   <div className="font-semibold">Shipping Information</div>
                   <address className="grid gap-0.5 not-italic text-muted-foreground">
-                    <span>{order.cliente.nombre} {order.cliente.apellido}</span>
-                    <span>{order.cliente.correo}</span>
-                    <span>{order.cliente.celular}</span>
+                    <span>{order.equipo.cliente.nombre} {order.equipo.cliente.apellido}</span>
+                    <span>{order.equipo.cliente.correo}</span>
+                    <span>{order.equipo.cliente.celular}</span>
                   </address>
                 </div>
                 <div className="grid auto-rows-max gap-3">

@@ -77,7 +77,9 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
       id_orden: ordenId,
       servicio: {
         nombre: service.nombre,
-        precio: service.precio,
+        preciofinal: service.preciofinal,
+        iva: service.iva,
+        preciosiniva: service.preciosiniva
       },
     };
 
@@ -93,7 +95,7 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
     if ('producto' in item) {
       return (item.producto.precioFinal * item.cantidad).toFixed(2);
     } else {
-      return (item.servicio.precio * 1).toFixed(2);
+      return (item.servicio.preciofinal * 1).toFixed(2);
     }
   };
 
@@ -186,9 +188,9 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
                     <TableRow key={item.id_servicio}>
                       <TableCell>Servicio</TableCell>
                       <TableCell>{item.servicio.nombre}</TableCell>
-                      <TableCell className="text-right hidden sm:table-cell">${item.servicio.precio}</TableCell>
+                      <TableCell className="text-right hidden sm:table-cell">${item.servicio.preciosiniva}</TableCell>
                       <TableCell className="text-right">1</TableCell>
-                      <TableCell className="text-right hidden sm:table-cell">0%</TableCell>
+                      <TableCell className="text-right hidden sm:table-cell">{item.servicio.iva}%</TableCell>
                       <TableCell className="text-right">${calculateSubtotal(item)}</TableCell>
                       <TableCell className="text-right">
                         <Button

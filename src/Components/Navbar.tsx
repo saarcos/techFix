@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTools, faBox, faWarehouse, faGear, faChevronDown, faHouseChimney, faPersonDigging, faPeopleGroup, faLayerGroup, faHandsHelping, faBoxesStacked, faBriefcase, faBarsProgress, faTasks, faCheckCircle, faPlug } from '@fortawesome/free-solid-svg-icons';
+import { faTools, faBox, faWarehouse, faGear, faChevronDown, faHouseChimney, faPersonDigging, faPeopleGroup, faLayerGroup, faHandsHelping, faBoxesStacked, faBriefcase, faTasks, faPlug } from '@fortawesome/free-solid-svg-icons';
 import { useState } from "react";
 import useWindowSize from '../hooks/useWindowSize'; // Asegúrate de importar el hook
 import { useAuth } from "./AuthProvider";
@@ -26,7 +26,6 @@ const Navbar = ({ isVisible, toggleNavbar }: Props) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
-  const [isTasksDropdownOpen, setIsTasksDropdownOpen] = useState(false);
   const toggleDropdown = () => {
     setDropdownOpen(!isDropdownOpen);
   };
@@ -36,9 +35,7 @@ const Navbar = ({ isVisible, toggleNavbar }: Props) => {
   const toggleServicesDropdown = () => {
     setIsServicesDropdownOpen(!isServicesDropdownOpen);
   };
-  const toggleTasksDropdown = () => {
-    setIsTasksDropdownOpen(!isTasksDropdownOpen);
-  };
+
   return (
     <div className={`fixed left-0 top-0 w-64 h-full bg-customGray p-4 font-inter transition-transform transform ${isVisible ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 z-50`}>
       <Link to="/" className="flex items-center pb-4 border-b border-b-gray-600 align-middle">
@@ -187,30 +184,11 @@ const Navbar = ({ isVisible, toggleNavbar }: Props) => {
             </ul>
           )}
         </li>
-        <li className="mb-2 ">
-          <div className='flex items-center text-gray-300 py-2 px-4 hover:bg-gray-950 hover:text-gray-100 rounded-full cursor-pointer' onClick={toggleTasksDropdown}>
-            <FontAwesomeIcon icon={faCheckCircle} className="mr-3 text-lg" />
+        <li className="mb-2">
+          <Link to="/taller/tareas" className={getLinkClass("/taller/tareas")} onClick={handleLinkClick}>
+            <FontAwesomeIcon icon={faTasks} className="mr-3 text-lg" />
             <span className="text-sm">Tareas</span>
-            <FontAwesomeIcon icon={faChevronDown}
-              className={`ml-auto text-sm transition-transform duration-700 transform ${isTasksDropdownOpen ? 'rotate-180' : 'rotate-0'}`}
-            />
-          </div>
-          {isTasksDropdownOpen && (
-            <ul className="left-0 mt-2 ml-4 w-48 bg-gray-800 rounded-lg overflow-hidden">
-              <li>
-                <Link to="/taller/plantillaTareas" className={getLinkClass("/taller/plantillaTareas")} onClick={handleLinkClick}>
-                  <FontAwesomeIcon icon={faBarsProgress} className="mr-3 text-lg" />
-                  <span className="text-sm">Plantillas</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/taller/tareas" className={getLinkClass("/taller/tareas")} onClick={handleLinkClick}>
-                  <FontAwesomeIcon icon={faTasks} className="mr-3 text-lg" />
-                  <span className="text-sm">Tareas</span>
-                </Link>
-              </li>
-            </ul>
-          )}
+          </Link>
         </li>
         <li className="mb-2">
           <Link to="/" className="flex items-center text-gray-300 py-2 px-4 hover:bg-gray-950 hover:text-gray-100  rounded-full" onClick={handleLinkClick}>

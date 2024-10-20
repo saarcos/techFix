@@ -34,6 +34,7 @@ export function TecnicoCombobox({ field, tecnicos, isTecnicoLoading }: TecnicoCo
     console.log(value);
     field.onChange(parseInt(id_usuario, 10)); 
     setOpen(false);
+    setSearchTerm("");
   };
 
   const filteredTecnicos = tecnicos.filter(tecnico =>

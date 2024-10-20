@@ -67,7 +67,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         title={
           isAddingBrand ? 'Nueva marca y modelo' : 
           isAddingTipoEquipo ? 'Nuevo tipo de equipo' : 
-          'Nuevo equipo'
+          `Editar equipo de ${row.original.cliente.nombre} ${row.original.cliente.apellido}`
         }  // Título dinámico
         description={
           isAddingBrand ? 'Por favor, ingrese la información de la nueva marca y modelo' :

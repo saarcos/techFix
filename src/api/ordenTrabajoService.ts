@@ -29,7 +29,9 @@ export interface ServicioOrden {
   id_orden: number;
   servicio: {
     nombre: string;
-    precio: number;
+    preciosiniva: number;
+    iva: number;
+    preciofinal: number;
   };
 }
 
@@ -37,7 +39,7 @@ export interface OrdenTrabajo {
   id_orden: number;
   id_equipo: number;
   id_usuario: number | null;
-  id_cliente: number;
+  cliente_id: number; // Cambiado de id_cliente a cliente_id
   numero_orden: string;
   area: string;
   prioridad: string;
@@ -53,11 +55,18 @@ export interface OrdenTrabajo {
   imagenes: { url_imagen: string }[];
   equipo: {
     nserie: string;
-    marca: {
-      nombre: string;
-    };
     modelo: {
       nombre: string;
+      marca: {
+        nombre: string;
+      }
+    };
+    cliente: {  // Ahora obtenemos el cliente a través de equipo
+      nombre: string;
+      apellido: string;
+      cedula: string;
+      correo: string;
+      celular: string;
     };
   };
   usuario: {
@@ -65,21 +74,14 @@ export interface OrdenTrabajo {
     apellido: string;
     email: string;
   };
-  cliente: {
-    nombre: string;
-    apellido: string;
-    cedula: string;
-    correo: string;
-    celular: string;
-  };
   productos: ProductoOrden[]; // Incluimos los productos relacionados con la orden de trabajo
-  servicios: ServicioOrden[]; // Incluimos los productos relacionados con la orden de trabajo
+  servicios: ServicioOrden[]; // Incluimos los servicios relacionados con la orden de trabajo
   tareas: TareaOrden[];
 }
 export interface OrdenTrabajoCreate {
   id_equipo: number;
   id_usuario: number | null;
-  id_cliente: number;
+  cliente_id: number; // Cambiado de id_cliente a cliente_id
   area: string;
   prioridad: string;
   descripcion: string;
@@ -96,7 +98,7 @@ export interface OrdenTrabajoUpdate {
   id_orden: number;
   id_equipo: number;
   id_usuario: number | null;
-  id_cliente: number;
+  cliente_id: number; // Cambiado de id_cliente a cliente_id
   area: string;
   prioridad: string;
   descripcion: string;

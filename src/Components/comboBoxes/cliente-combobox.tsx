@@ -37,6 +37,7 @@ export function ClienteCombobox({ field, clientes, isClienteLoading, setSelected
     field.onChange(parseInt(id_cliente, 10)); 
     setSelectedClient(parseInt(id_cliente,10))
     setOpen(false);
+    setSearchTerm("");
   };
 
   const filteredClientes = clientes.filter(cliente =>

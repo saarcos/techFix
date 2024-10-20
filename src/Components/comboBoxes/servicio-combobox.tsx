@@ -33,6 +33,7 @@ export function ServiceCombobox({ field, services }: ServiceComboboxProps) {
     console.log(value);
     field.onChange(parseInt(id_servicio, 10)); 
     setOpen(false);
+    setSearchTerm("");
   };
 
   const filteredServices = services.filter(service =>

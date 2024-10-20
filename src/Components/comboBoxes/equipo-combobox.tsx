@@ -35,10 +35,11 @@ export function EquipoCombobox({ field, equipos, isEquipoLoading, disabled }: Eq
     console.log(value);
     field.onChange(parseInt(id_equipo, 10)); 
     setOpen(false);
+    setSearchTerm("");
   };
 
   const filteredEquipos = equipos.filter(equipo =>
-    `${equipo.nserie} ${equipo.cliente.nombre} ${equipo.cliente.apellido} ${equipo.marca.nombre} ${equipo.modelo.nombre}`
+    `${equipo.nserie} ${equipo.cliente.nombre} ${equipo.cliente.apellido} ${equipo.modelo.marca.nombre} ${equipo.modelo.nombre}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
@@ -46,7 +47,7 @@ export function EquipoCombobox({ field, equipos, isEquipoLoading, disabled }: Eq
   const selectedEquipo = equipos.find(equipo => equipo.id_equipo.toString() === field.value?.toString());
 
   const getDisplayValue = (equipo: Equipo) =>
-    `${equipo.nserie} - ${equipo.cliente.nombre} ${equipo.cliente.apellido} - ${equipo.marca.nombre} ${equipo.modelo.nombre}`;
+    `${equipo.nserie} - ${equipo.cliente.nombre} ${equipo.cliente.apellido} - ${equipo.modelo.marca.nombre} ${equipo.modelo.nombre}`;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

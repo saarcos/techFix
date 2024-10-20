@@ -10,21 +10,22 @@ import {
 } from '@/Components/ui/form';
 import { Input } from '@/Components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm, useWatch } from 'react-hook-form';
+import * as z from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-
-import { ServiceCategory } from '@/api/serviceCategories';
-import { Loader2 } from 'lucide-react';
 import { createService, getServiceById, Service, updateService } from '@/api/servicioService';
+import { Loader2 } from 'lucide-react';
+import { ServiceCategory } from '@/api/serviceCategories';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
-const formSchema = z.object({
+const serviceSchema = z.object({
   id_catserv: z.number().min(1, 'Categoría de servicio es requerida'),
   nombre: z.string().min(1, 'Nombre es requerido'),
-  precio: z.number().min(0, 'El precio debe ser un número positivo'),
+  preciosiniva: z.number().min(0, 'El precio sin IVA debe ser un número positivo'),
+  iva: z.number().min(0, 'IVA es requerido'),
+  preciofinal: z.number(),
 });
 
 interface ServiceFormProps {
@@ -35,12 +36,14 @@ interface ServiceFormProps {
 }
 
 export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAddingCategory }: ServiceFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof serviceSchema>>({
+    resolver: zodResolver(serviceSchema),
     defaultValues: {
       id_catserv: 0,
       nombre: '',
-      precio: 0,
+      preciosiniva: 0,
+      iva: 12,
+      preciofinal: 0,
     },
   });
 
@@ -50,9 +53,39 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
     queryFn: () => serviceId ? getServiceById(serviceId) : Promise.resolve({
       id_catserv: 0,
       nombre: '',
-      precio: 0,
+      preciosiniva: 0,
+      iva: 12,
+      preciofinal: 0,
     } as Service),
     enabled: !!serviceId,
+  });
+
+  useEffect(() => {
+    if (service) {
+      form.reset({
+        id_catserv: service.id_catserv,
+        nombre: service.nombre,
+        preciosiniva: parseFloat(service.preciosiniva.toString()),  // Convertir a número
+        iva: parseFloat(service.iva.toString()),  // Convertir a número
+        preciofinal: parseFloat(service.preciofinal.toString()),  // Convertir a número
+      });
+    }
+    if (isError) {
+      console.error('Error fetching service data:', error);
+    }
+  }, [service, isError, error, form]);
+
+  const createMutation = useMutation({
+    mutationFn: createService,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      toast.success('Servicio creado exitosamente');
+      setIsOpen(false);
+    },
+    onError: (error) => {
+      toast.error('Error al crear el servicio');
+      console.error('Error de creación de servicio:', error);
+    },
   });
 
   const updateMutation = useMutation({
@@ -68,35 +101,22 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: createService,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['services'] });
-      toast.success('Servicio creado exitosamente');
-      setIsOpen(false);
-    },
-    onError: (error) => {
-      toast.error('Error al crear el servicio');
-      console.error('Error de creación de servicio:', error);
-    },
-  });
+  const preciosiniva = useWatch({ control: form.control, name: 'preciosiniva' });
+  const iva = useWatch({ control: form.control, name: 'iva' });
 
   useEffect(() => {
-    if (service) {
-      form.reset({
-        id_catserv: service.id_catserv,
-        nombre: service.nombre,
-        precio: service.precio,
-      });
+    const preciosinivaNum = typeof preciosiniva === 'number' ? preciosiniva : parseFloat(preciosiniva) || 0;
+    const ivaNum = typeof iva === 'number' ? iva : parseFloat(iva) || 0;
+  
+    if (preciosinivaNum > 0 || ivaNum >= 0) {
+      const nuevoPrecioFinal = preciosinivaNum + (preciosinivaNum * (ivaNum / 100));
+      form.setValue('preciofinal', parseFloat(nuevoPrecioFinal.toFixed(2)));
     }
-    if (isError) {
-      console.error('Error fetching service data:', error);
-    }
-  }, [service, isError, error, form]);
+  }, [preciosiniva, iva, form]);
 
   const isLoading = form.formState.isSubmitting;
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof serviceSchema>) => {
     try {
       if (serviceId) {
         updateMutation.mutate({
@@ -116,6 +136,7 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-2 gap-4">
+        {/* Campo de categoría de servicio */}
         <FormField
           name="id_catserv"
           control={form.control}
@@ -124,7 +145,7 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
               <FormLabel htmlFor="id_catserv">
                 Categoría de Servicio <span className="text-red-500">*</span>
               </FormLabel>
-              <div className='flex items-center gap-1'>
+              <div className="flex items-center gap-1">
                 <FormControl>
                   <select
                     id="id_catserv"
@@ -142,22 +163,20 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
                     ))}
                   </select>
                 </FormControl>
-                <span>
-                  <Button
-                    className='rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3'
-                    type="button"
-                    onClick={() => {
-                      setIsAddingCategory(true);
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faPlus} />
-                  </Button>
-                </span>
+                <Button
+                  className="rounded-md bg-customGreen text-white hover:bg-customGreenHover px-3"
+                  type="button"
+                  onClick={() => setIsAddingCategory(true)}
+                >
+                  <FontAwesomeIcon icon={faPlus} />
+                </Button>
               </div>
               <FormMessage className="text-left text-sm text-red-500" />
             </FormItem>
           )}
         />
+
+        {/* Nombre del servicio */}
         <FormField
           name="nombre"
           control={form.control}
@@ -177,24 +196,26 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
             </FormItem>
           )}
         />
+
+        {/* Precio sin IVA */}
         <FormField
-          name="precio"
+          name="preciosiniva"
           control={form.control}
           render={({ field }) => (
             <FormItem className="col-span-2">
-              <FormLabel htmlFor="precio">
-                Precio <span className="text-red-500">*</span>
+              <FormLabel htmlFor="preciosiniva">
+                Precio sin IVA <span className="text-red-500">*</span>
               </FormLabel>
               <FormControl>
-                <div className='flex items-center'>
-                  <span className='mr-2 text-customGray'>$</span>
+                <div className="flex items-center">
+                  <span className="mr-2 text-customGray">$</span>
                   <Input
-                    id="precio"
+                    id="preciosiniva"
                     type="number"
-                    placeholder="Ingrese el precio del servicio"
+                    placeholder="Ingrese el precio sin IVA"
                     {...field}
-                    value={field.value || ''}  // Asegúrate de que no sea undefined
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}  // Convierte el valor a número
+                    value={field.value || ''}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                   />
                 </div>
               </FormControl>
@@ -202,6 +223,65 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
             </FormItem>
           )}
         />
+
+        {/* IVA */}
+        <FormField
+          name="iva"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem className="col-span-1">
+              <FormLabel htmlFor="iva">
+                IVA (%) <span className="text-red-500">*</span>
+              </FormLabel>
+              <FormControl>
+                <select
+                  id="iva"
+                  className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-customGray shadow-sm cursor-pointer"
+                  {...field}
+                  value={field.value.toString()}
+                  onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+                  disabled={isServiceLoading}
+                >
+                  <option value="0">0%</option>
+                  <option value="10">10%</option>
+                  <option value="12">12%</option>
+                  <option value="15">15%</option>
+                  <option value="21">21%</option>
+                  <option value="27">27%</option>
+                </select>
+              </FormControl>
+              <FormMessage className="text-left text-sm text-red-500" />
+            </FormItem>
+          )}
+        />
+
+        {/* Precio Final */}
+        <FormField
+          name="preciofinal"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem className="col-span-2">
+              <FormLabel htmlFor="preciofinal">
+                Precio Final <span className="text-red-500">*</span>
+              </FormLabel>
+              <FormControl>
+                <div className="flex items-center">
+                  <span className="mr-2 text-customGray">$</span>
+                  <Input
+                    id="preciofinal"
+                    type="number"
+                    value={field.value}
+                    readOnly
+                    className="text-black"
+                  />
+                </div>
+              </FormControl>
+              <FormMessage className="text-left text-sm text-red-500" />
+            </FormItem>
+          )}
+        />
+
+        {/* Botón para guardar el servicio */}
         <div className="col-span-2 flex justify-end">
           <Button type="submit" disabled={isLoading || isServiceLoading} className="bg-customGreen text-white hover:bg-customGreenHover">
             {isLoading || isServiceLoading ? (

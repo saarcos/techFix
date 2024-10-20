@@ -25,10 +25,18 @@ interface AccesoriosComboboxProps {
 export function AccesoriosCombobox({ accesorios, onSelect }: AccesoriosComboboxProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAccesorio, setSelectedAccesorio] = useState<Accesorio | null>(null); // Estado para el accesorio seleccionado
 
   const filteredAccesorios = accesorios.filter((accesorio) =>
     accesorio.nombre.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleSelect = (accesorio: Accesorio) => {
+    setSelectedAccesorio(accesorio); // Actualiza el accesorio seleccionado
+    onSelect(accesorio); // Llama a la función onSelect del padre
+    setOpen(false);
+    setSearchTerm('');
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -41,7 +49,7 @@ export function AccesoriosCombobox({ accesorios, onSelect }: AccesoriosComboboxP
             "w-full justify-between h-10 sm:h-10 text-sm overflow-hidden text-ellipsis whitespace-nowrap bg-background text-black cursor-pointer mt-2"
           )}
         >
-          {'Seleccionar Accesorio'}
+          {selectedAccesorio ? selectedAccesorio.nombre : 'Seleccionar Accesorio'}
           <ArrowDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -58,13 +66,15 @@ export function AccesoriosCombobox({ accesorios, onSelect }: AccesoriosComboboxP
               {filteredAccesorios.map((accesorio) => (
                 <CommandItem
                   key={accesorio.id_accesorio}
-                  onSelect={() => {
-                    onSelect(accesorio); // Al seleccionar, lo pasamos al padre
-                    setOpen(false);
-                  }}
+                  onSelect={() => handleSelect(accesorio)}
                 >
                   {accesorio.nombre}
-                  <Check className="ml-auto h-4 w-4 opacity-0" />
+                  <Check
+                    className={cn(
+                      "ml-auto h-4 w-4",
+                      selectedAccesorio?.id_accesorio === accesorio.id_accesorio ? "opacity-100" : "opacity-0"
+                    )}
+                  />
                 </CommandItem>
               ))}
             </CommandGroup>

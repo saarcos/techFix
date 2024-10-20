@@ -46,7 +46,7 @@ const AddServiceModal = ({ isOpen, setIsOpen, onAddService }: AddServiceModalPro
           {servicios.map((servicio) => (
             <TableRow key={servicio.id_servicio}>
               <TableCell>{servicio.nombre}</TableCell>
-              <TableCell>${servicio.precio}</TableCell>              
+              <TableCell>${servicio.preciofinal}</TableCell>              
               <TableCell>
                 <Button
                   className="bg-customGreen hover:bg-customGreenHover"
