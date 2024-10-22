@@ -286,7 +286,7 @@ export default function OrdenTrabajoEditForm() {
                 }));
 
                 // Asignar los accesorios a la orden creada
-                await updateAccesoriosOrden(id_orden , accesoriosData);
+                await updateAccesoriosOrden(id_orden, accesoriosData);
             }
 
         } catch (error) {
@@ -312,7 +312,7 @@ export default function OrdenTrabajoEditForm() {
             }));
             setSelectedAccesorios(accesoriosTransformados);
         }
-        
+
     }, [ordenTrabajo, accesoriosOrden]);
 
     // useEffect(() => {
@@ -322,11 +322,6 @@ export default function OrdenTrabajoEditForm() {
     // useEffect(() => {
     //   console.log("Tareas Seleccionadas: ", tareasSeleccionadas)
     // }, [tareasSeleccionadas])
-    useEffect(() => {
-      console.log("Accesorios Seleccionados: ", selectedAccesorios)
-    }, [selectedAccesorios])
-
-
 
     if (isLoading || isLoadingAccesorios) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
     if (isError) return <div>Error al cargar los datos</div>;

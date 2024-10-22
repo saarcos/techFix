@@ -39,7 +39,7 @@ const Tareas = () => {
                             title={`Nueva tarea individual`}
                             description={'Por favor, ingresa los detalles de la tarea'}
                         >
-                            <div className="max-h-[80vh] overflow-y-auto">
+                            <div className="max-h-[80vh] overflow-y-auto w-full">
                                 <TareaForm setIsOpen={setIsCreateOpen} setIsCreatingTask={setIsCreateOpen} />
                             </div>
                         </ResponsiveDialogExtended>

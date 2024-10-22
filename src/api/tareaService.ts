@@ -27,7 +27,9 @@ export interface Servicio {
   id_servicio: number;
   id_catserv: number;
   nombre: string;
-  precio: number;
+  preciosiniva: number;
+  iva: number;
+  preciofinal: number;
 }
 
 export interface ServicioTarea {

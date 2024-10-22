@@ -37,7 +37,7 @@ export function ServiceCombobox({ field, services }: ServiceComboboxProps) {
   };
 
   const filteredServices = services.filter(service =>
-    `${service.nombre} ${service.precio} ${service.categoriaServicio.nombreCat}`
+    `${service.nombre} ${service.preciofinal} ${service.categoriaServicio.nombreCat}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
@@ -45,7 +45,7 @@ export function ServiceCombobox({ field, services }: ServiceComboboxProps) {
   const selectedService = services.find(service => service.id_servicio.toString() === field.value?.toString());
 
   const getDisplayValue = (service: Service) =>
-    `${service.nombre} - ${service.precio} - ${service.categoriaServicio.nombreCat}`;
+    `${service.nombre} - ${service.preciofinal} - ${service.categoriaServicio.nombreCat}`;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

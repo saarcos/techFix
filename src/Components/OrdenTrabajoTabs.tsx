@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
 import { Button } from '@/Components/ui/button';
-import { PlusCircle, ImagePlus, Clock, UserPlus, X } from "lucide-react";
+import { PlusCircle, Clock, UserPlus, X, ImagePlus } from "lucide-react";
 import { TareaOrden } from "@/api/tareasOrdenService";
 import { Tarea } from "@/api/tareaService";
 import { useEffect, useState } from "react";
@@ -9,6 +9,7 @@ import AddTaskModal from "./AddTaskModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { ProductoOrden, ServicioOrden } from "@/api/ordenTrabajoService";
+import fileUploader from '../assets/icons/file-upload.svg'
 
 interface OrdenTrabajoTabsProps {
   tasks: TareaOrden[]; // Recibe los productos como prop
@@ -42,7 +43,7 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
       },
       usuario: null,
     };
-  
+
     // Verificar si la tarea contiene productos y agregarlos a los existentes
     if (task.productos && task.productos.length > 0) {
       const nuevosProductos: ProductoOrden[] = task.productos.map((producto) => ({
@@ -57,11 +58,11 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
           precioSinIVA: parseFloat(producto.producto.precioSinIVA),
         },
       }));
-  
+
       // Concatenar los nuevos productos con los productos ya existentes
       onProductosChange([...productosSeleccionados, ...nuevosProductos]);
     }
-  
+
     // Verificar si la tarea contiene servicios y agregarlos a los existentes
     if (task.servicios && task.servicios.length > 0) {
       const nuevosServicios: ServicioOrden[] = task.servicios.map((servicio) => ({
@@ -71,10 +72,12 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
         servicio: {
           id_servicio: servicio.id_servicio,
           nombre: servicio.servicio.nombre,
-          precio: servicio.servicio.precio,
+          preciofinal: servicio.servicio.preciofinal,
+          preciosiniva: servicio.servicio.preciosiniva,
+          iva: servicio.servicio.iva
         },
       }));
-  
+
       // Concatenar los nuevos servicios con los servicios ya existentes
       onServiciosChange([...serviciosSeleccionados, ...nuevosServicios]);
     }
@@ -188,48 +191,71 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
       </TabsContent>
 
       <TabsContent value="imagenes">
-        <div className="mt-4">
-          {existingImages.length === 0 && selectedImages.length === 0 ? (
-            <p className="text-center text-muted-foreground">No hay imágenes cargadas.</p>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {/* Mostrar imágenes existentes */}
-              {existingImages.map((imageUrl, index) => (
-                <div key={index} className="relative border rounded p-2">
-                  <img src={imageUrl} alt={`Imagen ${index + 1}`} className="w-full h-auto object-cover" />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-1 right-1 hover:bg-transparent"
-                    onClick={() => handleRemoveExistingImage(imageUrl)}
-                  >
-                    <FontAwesomeIcon icon={faXmark} className="h-6 w-6 text-muted-foreground" />
-                  </Button>
-                </div>
-              ))}
+        <div className="flex flex-col items-center justify-center border-2 border-dashed border-customGreen/50 rounded-lg p-4 bg-customGreen/5 mt-4 w-full">
 
-              {/* Mostrar imágenes nuevas (seleccionadas pero no subidas aún) */}
-              {selectedImages.map((file, index) => (
-                <div key={index} className="relative border rounded p-2">
-                  <img src={URL.createObjectURL(file)} alt={`Nueva imagen ${index + 1}`} className="w-full h-auto object-cover" />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-1 right-1 hover:bg-transparent"
-                    onClick={() => handleRemoveImage(index)}
-                  >
-                    <FontAwesomeIcon icon={faXmark} className="h-6 w-6 text-muted-foreground" />
-                  </Button>
-                </div>
-              ))}
+          {existingImages.length === 0 && selectedImages.length === 0 ? (
+
+            <>
+              <img
+                src={fileUploader}
+                width={96}
+                height={77}
+                alt='file-upload'
+              />
+              <p className="text-sm text-gray-500 mt-2">Añade imagenes del equipo para adjuntar en la orden de trabajo</p>
+              <Button
+                type='button'
+                variant="secondary"
+                className="mt-2 bg-customGreen/60 hover:bg-customGreenHover/80"
+                onClick={() => document.getElementById('fileInput')?.click()} // Safe navigation operator
+              >
+                Navegar
+              </Button>
+            </>
+
+          ) : (
+            <div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* Mostrar imágenes existentes */}
+                {existingImages.map((imageUrl, index) => (
+                  <div key={index} className="relative border rounded p-2">
+                    <img src={imageUrl} alt={`Imagen ${index + 1}`} className="w-full h-auto object-cover" />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-1 right-1 hover:bg-transparent"
+                      onClick={() => handleRemoveExistingImage(imageUrl)}
+                    >
+                      <FontAwesomeIcon icon={faXmark} className="h-6 w-6 text-muted-foreground" />
+                    </Button>
+                  </div>
+                ))}
+                {/* Mostrar imágenes nuevas (seleccionadas pero no subidas aún) */}
+                {selectedImages.map((file, index) => (
+                  <div key={index} className="relative border rounded p-2">
+                    <img src={URL.createObjectURL(file)} alt={`Nueva imagen ${index + 1}`} className="w-full h-auto object-cover" />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-1 right-1 hover:bg-transparent"
+                      onClick={() => handleRemoveImage(index)}
+                    >
+                      <FontAwesomeIcon icon={faXmark} className="h-6 w-6 text-muted-foreground" />
+                    </Button>
+                  </div>
+                ))}
+
+              </div>
+              <div className="mt-4 flex justify-center">
+                <Button type="button" variant="secondary" onClick={() => document.getElementById('fileInput')?.click()} className="mt-4 bg-customGreen/30 hover:bg-customGreenHover/30">
+                  <ImagePlus className="mr-2 h-4 w-4" /> Agregar más imagenes
+                </Button>
+              </div>
             </div>
           )}
           <div className="mt-4 flex justify-start">
-            <Button type="button" onClick={() => document.getElementById('fileInput')?.click()} className="bg-customGreen hover:bg-darkGreen/50 text-black flex items-center space-x-2 px-4 py-2 text-sm sm:px-6 sm:text-base rounded-md w-full sm:w-auto">
-              <ImagePlus className="mr-2 h-4 w-4" /> Agregar Imágenes
-            </Button>
             <input
               id="fileInput"
               type="file"

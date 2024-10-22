@@ -109,7 +109,10 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
     // Restar el adelanto si existe y es menor que el total
     if (adelanto && totalCalculado > adelanto) {
       totalCalculado -= adelanto;
-      mensajeAdelanto = ` (restando el adelanto de $${adelanto})`; // Mensaje que muestra que el adelanto fue restado
+      mensajeAdelanto = ` (restando el adelanto de $${adelanto} del total) `; // Mensaje que muestra que el adelanto fue restado
+    }
+    else if(adelanto &&  totalCalculado>0 && totalCalculado < adelanto){
+      mensajeAdelanto = `¡El adelanto excede el total calculado!`
     }
 
     // Pasar el total calculado al componente padre

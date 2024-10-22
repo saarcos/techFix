@@ -33,7 +33,9 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         title={`Editar información de ${row.original.titulo}`}
         description='Por favor, ingresa la información solicitada'
       >
+        <div className='max-h-[80vh] overflow-y-auto w-full'>
         <TareaForm tareaId={tareaId} setIsOpen={setIsEditOpen}  setIsCreatingTask={setIsEditOpen}/>
+        </div> 
       </ResponsiveDialogExtended>
       <ResponsiveDialog
         isOpen={isDeleteOpen}

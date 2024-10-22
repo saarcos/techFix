@@ -21,7 +21,7 @@ import { toast } from 'sonner';
 import Spinner from '../../../assets/tube-spinner.svg';
 import fileUploader from '../../../assets/icons/file-upload.svg'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAsterisk, faCircleXmark, faHeadphones, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faAsterisk, faHeadphones, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import {
   Tooltip,
   TooltipContent,
@@ -45,7 +45,7 @@ import { DeviceType, getDeviceTypes } from '@/api/tipoEquipoService';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon, Loader2, X } from 'lucide-react';
+import { CalendarIcon, ImagePlus, Loader2, X } from 'lucide-react';
 import { Calendar } from '@/Components/ui/calendar';
 import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
@@ -226,7 +226,7 @@ export default function OrdenTrabajoForm() {
   }, [selectedClient, equipos, form]);
 
   if (isEquipoLoading || isClienteLoading || isTecnicoLoading) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
-  if (error || marcasError || modelsError || deviceTypesError ) return toast.error('Error al recuperar los datos');
+  if (error || marcasError || modelsError || deviceTypesError) return toast.error('Error al recuperar los datos');
 
   const selectedArea = form.watch('area');
 
@@ -594,33 +594,36 @@ export default function OrdenTrabajoForm() {
                   <div className="flex flex-col items-center justify-center border-2 border-dashed border-customGreen/50 rounded-lg p-4 bg-customGreen/5 mt-4 w-full">
                     {selectedImages.length > 0 ? (
                       <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           {selectedImages.map((file, index) => (
-                            <div key={index} className="relative">
+                            <div key={index} className="relative border rounded p-2">
                               <img
                                 src={URL.createObjectURL(file)}
                                 alt={`preview-${index}`}
-                                className="object-contain w-full h-48 md:h-64 rounded-lg shadow-md"
-                                style={{ objectPosition: 'center' }}
+                                className="w-full h-auto object-cover"
                               />
                               <Button
                                 type="button"
-                                className="absolute top-2 right-2 bg-transparent hover:bg-transparent"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute top-1 right-1 hover:bg-transparent"
                                 onClick={() => handleRemoveImage(index)}
                               >
-                                <FontAwesomeIcon icon={faCircleXmark} className='text-customGreen w-8 h-8 hover:text-customGreenHover' />
+                                <FontAwesomeIcon icon={faXmark} className="h-6 w-6 text-muted-foreground" />
                               </Button>
                             </div>
                           ))}
                         </div>
-                        <Button
-                          type='button'
-                          variant="secondary"
-                          className="mt-4 bg-customGreen/30 hover:bg-customGreenHover/30"
-                          onClick={() => document.getElementById('fileInput')?.click()} // Safe navigation operator
-                        >
-                          Agregar más imágenes
-                        </Button>
+                        <div className="mt-4 flex justify-center">
+                          <Button
+                            type='button'
+                            variant="secondary"
+                            className="mt-4 bg-customGreen/30 hover:bg-customGreenHover/30"
+                            onClick={() => document.getElementById('fileInput')?.click()} // Safe navigation operator
+                          >
+                            <ImagePlus className="mr-2 h-4 w-4" /> Agregar más imagenes
+                          </Button>
+                        </div>
                       </>
                     ) : (
                       <>
@@ -634,7 +637,7 @@ export default function OrdenTrabajoForm() {
                         <Button
                           type='button'
                           variant="secondary"
-                          className="mt-2 bg-customGreen/30 hover:bg-customGreenHover/30"
+                          className="mt-2 bg-customGreen/60 hover:bg-customGreenHover/80"
                           onClick={() => document.getElementById('fileInput')?.click()} // Safe navigation operator
                         >
                           Navegar
