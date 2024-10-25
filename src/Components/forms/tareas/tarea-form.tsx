@@ -94,7 +94,6 @@ export default function TareaForm({ tareaId, setIsOpen, setIsCreatingTask }: Tar
     mutationFn: createTarea,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tareas'] });
-      // toast.success('Tarea creada exitosamente');
       setIsCreatingTask(false);
     },
     onError: (error) => {

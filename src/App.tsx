@@ -55,7 +55,7 @@ function App() {
       <div className={`${isAuthenticated ? 'pt-16 transition-all duration-300' : ''} ${isAuthenticated && isNavbarVisible ? 'lg:ml-64' : 'ml-0'}`}>
         <Routes>
           <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <LoginForm />} />
-          <Route path="/sign-up" element={isAuthenticated ? <Navigate to="/" /> : <SignupForm />} />
+          {/* <Route path="/sign-up" element={isAuthenticated ? <Navigate to="/" /> : <SignupForm />} /> */}
           <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
           <Route path="/taller/productos" element={<ProtectedRoute><Productos /></ProtectedRoute>} />
           <Route path="/taller/tecnicos" element={<ProtectedRoute><Tecnicos /></ProtectedRoute>} />

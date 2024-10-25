@@ -42,9 +42,9 @@ const LoginForm = () => {
     }
   });
 
-  const goToSignUp = () => {
-    navigate('/sign-up');
-  };
+  // const goToSignUp = () => {
+  //   navigate('/sign-up');
+  // };
 
   return (
     <div className='flex w-full h-screen'>
@@ -96,13 +96,13 @@ const LoginForm = () => {
                 )}
 
               </button>
-              <button
+              {/* <button
                 type='button'
                 className='flex py-3 rounded-full border-2 border-gray-200 items-center justify-center active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all text-white'
                 onClick={goToSignUp}
               >
                 Registrarse
-              </button>
+              </button> */}
             </div>
           </form>
         </div>
