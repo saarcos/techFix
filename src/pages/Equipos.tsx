@@ -59,7 +59,7 @@ const Equipos = () => {
             "Número de Serie": device.nserie,
             "Cliente": `${device.cliente.nombre} ${device.cliente.apellido}`,
             "Tipo de Equipo": device.tipoEquipo.nombre,
-            "Marca": device.marca.nombre,
+            "Marca": device.modelo.marca.nombre,
             "Modelo": device.modelo.nombre,
             "Descripción": device.descripcion,
         })));
