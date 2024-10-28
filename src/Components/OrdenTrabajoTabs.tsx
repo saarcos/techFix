@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
 import { Button } from '@/Components/ui/button';
-import { PlusCircle, Clock, UserPlus, X, ImagePlus } from "lucide-react";
+import { PlusCircle, Clock, UserPlus, X, ImagePlus, Check } from "lucide-react";
 import { TareaOrden } from "@/api/tareasOrdenService";
 import { Tarea } from "@/api/tareaService";
 import { useEffect, useState } from "react";
@@ -9,24 +9,43 @@ import AddTaskModal from "./AddTaskModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { ProductoOrden, ServicioOrden } from "@/api/ordenTrabajoService";
-import fileUploader from '../assets/icons/file-upload.svg'
+import fileUploader from '../assets/icons/file-upload.svg';
+import { TecnicoComboboxNoForm } from "./comboBoxes/tecnico-combobox-noForm";
+import { User } from "@/api/userService";
+import { Switch } from "@/Components/ui/switch";
 
 interface OrdenTrabajoTabsProps {
-  tasks: TareaOrden[]; // Recibe los productos como prop
-  ordenId: number; // ID de la orden de trabajo
+  tasks: TareaOrden[];
+  ordenId: number;
   selectedImages: File[];
   setSelectedImages: React.Dispatch<React.SetStateAction<File[]>>;
-  existingImages: string[]; // Aquí pasamos las imágenes existentes
-  setExistingImages: React.Dispatch<React.SetStateAction<string[]>>; // Función para actualizar imágenes existentes
-  onProductosChange: (productos: ProductoOrden[]) => void; // Callback para productos
-  onServiciosChange: (servicios: ServicioOrden[]) => void;  // Callback para servicios
-  onTareasChange: (tareas: TareaOrden[]) => void;  // Añadimos esta función
+  existingImages: string[];
+  setExistingImages: React.Dispatch<React.SetStateAction<string[]>>;
+  onProductosChange: (productos: ProductoOrden[]) => void;
+  onServiciosChange: (servicios: ServicioOrden[]) => void;
+  onTareasChange: (tareas: TareaOrden[]) => void;
   productosSeleccionados: ProductoOrden[];
   serviciosSeleccionados: ServicioOrden[];
+  tecnicos: User[],
 }
-export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSelectedImages, existingImages, setExistingImages, onProductosChange, onServiciosChange, productosSeleccionados, serviciosSeleccionados, onTareasChange }: OrdenTrabajoTabsProps) {
+
+export default function OrdenTrabajoTabs({
+  tasks,
+  ordenId,
+  selectedImages,
+  setSelectedImages,
+  existingImages,
+  setExistingImages,
+  onProductosChange,
+  onServiciosChange,
+  productosSeleccionados,
+  serviciosSeleccionados,
+  onTareasChange,
+  tecnicos
+}: OrdenTrabajoTabsProps) {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [taskItems, setTaskItems] = useState<TareaOrden[]>(tasks || []);
+  const [showCombobox, setShowCombobox] = useState<{ [key: number]: boolean }>({});
 
   const handleAddTask = (task: Tarea) => {
     const newTaskOrden: TareaOrden = {
@@ -44,10 +63,9 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
       usuario: null,
     };
 
-    // Verificar si la tarea contiene productos y agregarlos a los existentes
     if (task.productos && task.productos.length > 0) {
       const nuevosProductos: ProductoOrden[] = task.productos.map((producto) => ({
-        id_prodorde: Date.now(), // ID temporal
+        id_prodorde: Date.now(),
         id_orden: ordenId,
         id_producto: producto.id_producto,
         cantidad: producto.cantidad,
@@ -58,12 +76,9 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
           precioSinIVA: parseFloat(producto.producto.precioSinIVA),
         },
       }));
-
-      // Concatenar los nuevos productos con los productos ya existentes
       onProductosChange([...productosSeleccionados, ...nuevosProductos]);
     }
 
-    // Verificar si la tarea contiene servicios y agregarlos a los existentes
     if (task.servicios && task.servicios.length > 0) {
       const nuevosServicios: ServicioOrden[] = task.servicios.map((servicio) => ({
         id_servorden: Date.now(),
@@ -77,23 +92,22 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
           iva: servicio.servicio.iva
         },
       }));
-
-      // Concatenar los nuevos servicios con los servicios ya existentes
       onServiciosChange([...serviciosSeleccionados, ...nuevosServicios]);
     }
-    // Actualizar el estado de tareas
+
     setTaskItems((prevTasks) => [...prevTasks, newTaskOrden]);
     onTareasChange([...taskItems, newTaskOrden]);
     setIsTaskModalOpen(false);
   };
+
   useEffect(() => {
-    // Cada vez que se agregue una tarea nueva, se actualiza la lista de tareas en la tabla
     setTaskItems(tasks);
   }, [tasks]);
-  // Función para eliminar un producto por id_producto
+
   const handleRemoveTask = (id_taskord: number) => {
-    setTaskItems((prevItems) => prevItems.filter((item) => item.id_taskord !== id_taskord));
-    onTareasChange(tasks.filter((item) => item.id_taskord !== id_taskord)); // Notificar al componente principal
+    const updatedTasks = taskItems.filter((item) => item.id_taskord !== id_taskord);
+    setTaskItems(updatedTasks);
+    onTareasChange(updatedTasks);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,8 +120,27 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
   };
 
   const handleRemoveExistingImage = (url: string) => {
-    setExistingImages((prevImages: string[]) => prevImages.filter(imageUrl => imageUrl !== url));
+    setExistingImages((prevImages) => prevImages.filter(imageUrl => imageUrl !== url));
   };
+
+  const handleAsignarUsuario = (id_taskord: number, id_usuario: number) => {
+    const updatedTasks = taskItems.map((task) =>
+      task.id_taskord === id_taskord ? { ...task, id_usuario } : task
+    );
+    setTaskItems(updatedTasks);
+    onTareasChange(updatedTasks);
+  };
+  const handleStatusChange = (id_taskord: number, newStatus: boolean) => {
+    const updatedTasks = taskItems.map((task) =>
+      task.id_taskord === id_taskord ? { ...task, status: newStatus } : task
+    );
+    setTaskItems(updatedTasks);
+    onTareasChange(updatedTasks);
+  };
+  const toggleCombobox = (id_taskord: number) => {
+    setShowCombobox((prev) => ({ ...prev, [id_taskord]: !prev[id_taskord] }));
+  };
+
   return (
     <Tabs defaultValue="tareas" className="w-full mt-4">
       <TabsList>
@@ -115,7 +148,6 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
         <TabsTrigger value="imagenes">Imágenes</TabsTrigger>
       </TabsList>
 
-      {/* Sección de Tareas */}
       <TabsContent value="tareas">
         <div className="mt-4">
           <Table>
@@ -125,6 +157,7 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
                 <TableHead className="hidden sm:table-cell">Descripción</TableHead>
                 <TableHead className="hidden sm:table-cell">Tiempo</TableHead>
                 <TableHead>Responsable</TableHead>
+                <TableHead>Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -151,22 +184,71 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       <div className="flex items-center space-x-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span>{task.tarea.tiempo} minutos</span>
+                        {task.status ? (
+                          <>
+                            <Check className="h-4 w-4 text-darkGreen" /> {/* Icono de checkmark en verde */}
+                            <span className="text-darkGreen font-semibold">Completada</span>
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="h-4 w-4 text-muted-foreground" /> {/* Icono de reloj en gris */}
+                            <span className="text-muted-foreground">{task.tarea.tiempo} minutos</span>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2 cursor-pointer">
-                        <UserPlus className="h-4 w-4 text-muted-foreground" />
-                        <span className="underline">Asignar</span>
+                    <div className="flex items-center space-x-2">
+                        {!showCombobox[task.id_taskord] ? (
+                          <div
+                            className="flex items-center space-x-2 cursor-pointer"
+                            onClick={() => toggleCombobox(task.id_taskord)}
+                          >
+                            <UserPlus className={`h-4 w-4 ${task.id_usuario ? 'text-darkGreen' : 'text-muted-foreground'}`}/>
+                            <span
+                              className={`underline ${task.id_usuario ? 'text-darkGreen font-semibold' : 'text-muted-foreground'
+                                }`}
+                            >
+                              {task.id_usuario ? 'Modificar' : 'Asignar'}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-1">
+                            <TecnicoComboboxNoForm
+                              tecnicos={tecnicos}
+                              isTecnicoLoading={false}
+                              onSelect={(id_usuario) => {
+                                handleAsignarUsuario(task.id_taskord, id_usuario);
+                                toggleCombobox(task.id_taskord); // Ocultar el combobox después de seleccionar
+                              }}
+                              defaultSelectedId={task.id_usuario ?? undefined}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleCombobox(task.id_taskord)}
+                              className="text-sm font-semibold text-black w-13"
+                            >
+                              Cancelar
+                            </Button>
+                          </div>
+                        )}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={task.status}
+                        onCheckedChange={(newStatus) => handleStatusChange(task.id_taskord, newStatus)}
+                      />
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleRemoveTask(task.id_taskord)}>
+                        onClick={() => handleRemoveTask(task.id_taskord)}
+                      >
                         <X className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </TableCell>
@@ -176,9 +258,11 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
             </TableBody>
           </Table>
           <div className="mt-4 flex justify-start">
-            <Button type="button"
-              onClick={() => setIsTaskModalOpen(true)} // Abre el modal de agregar tarea
-              className="bg-customGreen hover:bg-darkGreen/50 text-black flex items-center space-x-2 px-4 py-2 text-sm sm:px-6 sm:text-base rounded-md w-full sm:w-auto">
+            <Button
+              type="button"
+              onClick={() => setIsTaskModalOpen(true)}
+              className="bg-darkGreen hover:bg-darkGreen/50 text-white flex items-center space-x-2 px-4 py-2 text-sm sm:px-6 sm:text-base rounded-md w-full sm:w-auto"
+            >
               <PlusCircle className="mr-2 h-4 w-4" /> Agregar Tarea
             </Button>
           </div>
@@ -191,32 +275,23 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
       </TabsContent>
 
       <TabsContent value="imagenes">
-        <div className="flex flex-col items-center justify-center border-2 border-dashed border-customGreen/50 rounded-lg p-4 bg-customGreen/5 mt-4 w-full">
-
+        <div className="flex flex-col items-center justify-center border-2 border-dashed border-darkGreen/50 rounded-lg p-4 bg-darkGreen/5 mt-4 w-full">
           {existingImages.length === 0 && selectedImages.length === 0 ? (
-
             <>
-              <img
-                src={fileUploader}
-                width={96}
-                height={77}
-                alt='file-upload'
-              />
+              <img src={fileUploader} width={96} height={77} alt='file-upload' />
               <p className="text-sm text-gray-500 mt-2">Añade imagenes del equipo para adjuntar en la orden de trabajo</p>
               <Button
-                type='button'
+                type="button"
                 variant="secondary"
-                className="mt-2 bg-customGreen/60 hover:bg-customGreenHover/80"
-                onClick={() => document.getElementById('fileInput')?.click()} // Safe navigation operator
+                className="mt-2 bg-darkGreen/60 hover:bg-darkGreenHover/80"
+                onClick={() => document.getElementById('fileInput')?.click()}
               >
                 Navegar
               </Button>
             </>
-
           ) : (
             <div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {/* Mostrar imágenes existentes */}
                 {existingImages.map((imageUrl, index) => (
                   <div key={index} className="relative border rounded p-2">
                     <img src={imageUrl} alt={`Imagen ${index + 1}`} className="w-full h-auto object-cover" />
@@ -231,7 +306,6 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
                     </Button>
                   </div>
                 ))}
-                {/* Mostrar imágenes nuevas (seleccionadas pero no subidas aún) */}
                 {selectedImages.map((file, index) => (
                   <div key={index} className="relative border rounded p-2">
                     <img src={URL.createObjectURL(file)} alt={`Nueva imagen ${index + 1}`} className="w-full h-auto object-cover" />
@@ -246,10 +320,14 @@ export default function OrdenTrabajoTabs({ tasks, ordenId, selectedImages, setSe
                     </Button>
                   </div>
                 ))}
-
               </div>
               <div className="mt-4 flex justify-center">
-                <Button type="button" variant="secondary" onClick={() => document.getElementById('fileInput')?.click()} className="mt-4 bg-customGreen/30 hover:bg-customGreenHover/30">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => document.getElementById('fileInput')?.click()}
+                  className="mt-4 bg-darkGreen/30 hover:bg-darkGreenHover/30"
+                >
                   <ImagePlus className="mr-2 h-4 w-4" /> Agregar más imagenes
                 </Button>
               </div>

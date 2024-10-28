@@ -7,13 +7,9 @@ import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/Components/ui/form';
-import { ClienteCombobox } from '@/Components/comboBoxes/cliente-combobox';
 import { getOrdenTrabajoById, OrdenTrabajoUpdate, ProductoOrden, ServicioOrden, updateOrdenTrabajo } from '@/api/ordenTrabajoService'; // Importa correctamente tus servicios
 import { uploadImage } from '@/lib/firebase'; // Asegúrate de importar la función correcta
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
-import { getClients } from '@/api/clientService';
-import { EquipoCombobox } from '@/Components/comboBoxes/equipo-combobox';
-import { Equipo, getEquipos } from '@/api/equipoService';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Input } from '@/Components/ui/input';
 import { TecnicoCombobox } from '@/Components/comboBoxes/tecnico-combobox';
@@ -25,7 +21,7 @@ import { CalendarIcon, CreditCard, Info, Loader2, Mail, MonitorSmartphone, Phone
 import { Calendar } from '@/Components/ui/calendar';
 import { es } from 'date-fns/locale';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeadphones, faIdCard } from '@fortawesome/free-solid-svg-icons';
+import { faComputer, faHeadphones, faIdCard, faIdCardClip } from '@fortawesome/free-solid-svg-icons';
 import ProductServiceTableShadCN from '@/tables/productosyservicios/ProductsServicesTable';
 import OrdenTrabajoTabs from '@/Components/OrdenTrabajoTabs';
 import { addProductsToOrder } from '@/api/productOrdenService';
@@ -73,7 +69,6 @@ export default function OrdenTrabajoEditForm() {
     const queryClient = useQueryClient();
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
     const [existingImages, setExistingImages] = useState<string[]>([]); // Imágenes existentes (URLs)
-    const [selectedClient, setSelectedClient] = useState(0);
     const [selectedAccesorios, setSelectedAccesorios] = useState<Accesorio[]>([]);
 
     // Consulta para obtener los datos de la orden de trabajo por ID
@@ -88,14 +83,8 @@ export default function OrdenTrabajoEditForm() {
     const [tareasSeleccionadas, setTareasSeleccionadas] = useState<TareaOrden[]>(ordenTrabajo?.tareas || []);
     const [totalOrden, setTotalOrden] = useState(0);
     const navigate = useNavigate();
-    const { data: clientes = [], isLoading: isClientesLoading } = useQuery({
-        queryKey: ['clients'],
-        queryFn: getClients,
-    });
-    const { data: equipos = [], isLoading: isEquiposLoading } = useQuery<Equipo[]>({
-        queryKey: ['devices'],
-        queryFn: getEquipos,
-    });
+
+
     const { data: tecnicos = [], isLoading: isTecnicosLoading } = useQuery<User[]>({
         queryKey: ['users'],
         queryFn: getUsers,
@@ -145,7 +134,7 @@ export default function OrdenTrabajoEditForm() {
                 archivos: ordenTrabajo.imagenes || [],
             });
         }
-    }, [ordenTrabajo, form, selectedClient]);
+    }, [ordenTrabajo, form]);
 
 
     const updateMutation = useMutation({
@@ -226,6 +215,11 @@ export default function OrdenTrabajoEditForm() {
     const handleTareasChange = (tareas: TareaOrden[]) => {
         setTareasSeleccionadas(tareas);
     };
+
+    // useEffect(() => {
+    //   console.log("Tareas", tareasSeleccionadas)
+    // }, [tareasSeleccionadas])
+    
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             const imageUrls = [...existingImages]; // Incluir imágenes existentes
@@ -315,13 +309,6 @@ export default function OrdenTrabajoEditForm() {
 
     }, [ordenTrabajo, accesoriosOrden]);
 
-    // useEffect(() => {
-    //   console.log("Productos Seleccionados: ", productosSeleccionados)
-    // }, [productosSeleccionados])
-
-    // useEffect(() => {
-    //   console.log("Tareas Seleccionadas: ", tareasSeleccionadas)
-    // }, [tareasSeleccionadas])
 
     if (isLoading || isLoadingAccesorios) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
     if (isError) return <div>Error al cargar los datos</div>;
@@ -339,11 +326,14 @@ export default function OrdenTrabajoEditForm() {
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <Card className="p-3">
+                                    <Card className="p-4 shadow-md border rounded-lg bg-gray-50 relative">
+                                        <div className="absolute opacity-10 text-darkGreen/100 right-4 top-4">
+                                            <FontAwesomeIcon icon={faIdCardClip} size="6x" />
+                                        </div>
                                         <CardHeader className="pb-2">
                                             <CardTitle className="text-base font-semibold">Información del Cliente</CardTitle>
                                         </CardHeader>
-                                        <CardContent className="space-y-2 grid grid-cols-1 md:grid-cols-2 gap-1">
+                                        <CardContent className="space-y-2 grid grid-cols-1 md:grid-cols-2 gap-1 text-sm">
                                             <div className="flex items-center space-x-2">
                                                 <FontAwesomeIcon icon={faIdCard} className="w-4 h-4 text-darkGreen" />
                                                 <p className="text-sm font-medium">{ordenTrabajo?.equipo?.cliente?.cedula}</p>
@@ -358,22 +348,13 @@ export default function OrdenTrabajoEditForm() {
                                             <div className="flex items-center space-x-2">
                                                 <Phone className="w-4 h-4 text-darkGreen" />
                                                 <p className="text-sm font-medium">{ordenTrabajo?.equipo?.cliente?.celular}</p>
-                                            </div>
-                                            <FormField
-                                                name="cliente_id"
-                                                control={form.control}
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormControl>
-                                                            <ClienteCombobox field={field} clientes={clientes} setSelectedClient={setSelectedClient} isClienteLoading={isClientesLoading} disabled={!!ordenTrabajo} />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
+                                            </div>                                     
                                         </CardContent>
                                     </Card>
-                                    <Card className="p-3">
+                                    <Card className="p-4 shadow-md border rounded-lg bg-gray-50 relative">
+                                        <div className="absolute opacity-10 text-darkGreen/100 right-4 top-4">
+                                            <FontAwesomeIcon icon={faComputer} size="6x" />
+                                        </div>
                                         <CardHeader className="pb-2">
                                             <CardTitle className="text-base font-semibold">Información del Equipo</CardTitle>
                                         </CardHeader>
@@ -390,18 +371,6 @@ export default function OrdenTrabajoEditForm() {
                                                 <CreditCard className="w-4 h-4 text-darkGreen" />
                                                 <p className="text-sm font-medium">Número de Serie: {ordenTrabajo?.equipo?.nserie}</p>
                                             </div>
-                                            <FormField
-                                                name="id_equipo"
-                                                control={form.control}
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormControl>
-                                                            <EquipoCombobox field={field} equipos={equipos} isEquipoLoading={isEquiposLoading} disabled={!!ordenTrabajo} />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
                                         </CardContent>
                                     </Card>
                                 </div>
@@ -637,7 +606,9 @@ export default function OrdenTrabajoEditForm() {
                                     onServiciosChange={handleServiciosChange}
                                     onTareasChange={handleTareasChange}
                                     productosSeleccionados={productosSeleccionados}
-                                    serviciosSeleccionados={serviciosSeleccionados} />
+                                    serviciosSeleccionados={serviciosSeleccionados}
+                                    tecnicos ={tecnicos}
+                                    />
                                 <div className="flex justify-end">
                                     <Button
                                         type="button"
@@ -647,7 +618,7 @@ export default function OrdenTrabajoEditForm() {
                                     >
                                         Cancelar
                                     </Button>
-                                    <Button type="submit" className='bg-customGreen hover:bg-darkGreen/50 text-black font-semibold'>
+                                    <Button type="submit" className='bg-darkGreen hover:bg-darkGreen/50 text-white font-semibold'>
                                         {form.formState.isSubmitting ? (
                                             <>
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

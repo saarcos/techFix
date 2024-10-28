@@ -31,6 +31,10 @@ export const getTareasByOrderId = async (orderId: number): Promise<TareaOrden[]>
   const response: AxiosResponse<TareaOrden[]> = await axiosInstance.get<TareaOrden[]>(`/tareasorden/${orderId}`);
   return response.data;
 };
+export const getTareaFromOrderById = async (taskId: number): Promise<TareaOrden> => {
+  const response: AxiosResponse<TareaOrden> = await axiosInstance.get<TareaOrden>(`/tareaorden/${taskId}`);
+  return response.data;
+};
 
 // Método para agregar múltiples tareas a una orden
 export const addTareasToOrder = async (
@@ -49,18 +53,29 @@ export const addTareasToOrder = async (
 };
 
 // Método para actualizar una tarea en una orden
-export const updateTareaInOrder = async (
-  id_taskord: number,
-  id_tarea: number,
-  id_usuario?: number,
-  status?: boolean
-): Promise<TareaOrden> => {
+export const updateTareaInOrder = async ({
+  id_taskord,
+  id_tarea,
+  id_orden,
+  id_usuario,
+  status,
+}: {
+  id_taskord: number;
+  id_tarea: number;
+  id_orden: number;
+  id_usuario?: number;
+  status?: boolean;
+}): Promise<TareaOrden> => {
   try {
-    const response: AxiosResponse<TareaOrden> = await axiosInstance.put<TareaOrden>(`/tareasorden/${id_taskord}`, {
-      id_tarea,
-      id_usuario,
-      status,
-    });
+    const response: AxiosResponse<TareaOrden> = await axiosInstance.put<TareaOrden>(
+      `/tareasorden/${id_taskord}`,
+      {
+        id_tarea,
+        id_usuario,
+        id_orden,
+        status,
+      }
+    );
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

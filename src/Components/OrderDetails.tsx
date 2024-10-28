@@ -55,10 +55,10 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleEditClick} className="cursor-pointer">Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleEditClick} className="cursor-pointer">Editar</DropdownMenuItem>
             <DropdownMenuItem>Export</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Trash</DropdownMenuItem>
+              <DropdownMenuItem>Descartar</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

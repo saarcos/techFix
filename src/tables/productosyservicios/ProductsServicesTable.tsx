@@ -89,8 +89,6 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
     setIsServiceModalOpen(false);
   };
 
-
-
   const calculateSubtotal = (item: ProductoOrden | ServicioOrden) => {
     if ('producto' in item) {
       return (item.producto.precioFinal * item.cantidad).toFixed(2);
@@ -109,15 +107,15 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
     // Restar el adelanto si existe y es menor que el total
     if (adelanto && totalCalculado > adelanto) {
       totalCalculado -= adelanto;
-      mensajeAdelanto = ` (restando el adelanto de $${adelanto} del total) `; // Mensaje que muestra que el adelanto fue restado
+      mensajeAdelanto = ` (Con el adelanto de $${adelanto} falta por cobrar $${totalCalculado.toFixed(2)}) `; // Mensaje que muestra que el adelanto fue restado
     }
     else if(adelanto &&  totalCalculado>0 && totalCalculado < adelanto){
       mensajeAdelanto = `¡El adelanto excede el total calculado!`
     }
 
     // Pasar el total calculado al componente padre
-    onTotalChange(parseFloat(totalCalculado.toFixed(2)));
-    return { total: totalCalculado.toFixed(2), mensajeAdelanto };
+    onTotalChange(parseFloat((productTotal + serviceTotal).toFixed(2)));
+    return { total: (productTotal + serviceTotal).toFixed(2), mensajeAdelanto };
   };
   // Función para eliminar un producto por id_producto
   const handleRemoveProduct = (id_producto: number) => {
@@ -222,7 +220,7 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
             <Button
               type="button"
               onClick={() => setIsProductModalOpen(true)}
-              className="bg-customGreen hover:bg-darkGreen/50 text-black flex items-center space-x-2 px-4 py-2 text-sm sm:px-6 sm:text-base rounded-md w-full sm:w-auto"
+              className="bg-darkGreen hover:bg-darkGreen/50 text-white flex items-center space-x-2 px-4 py-2 text-sm sm:px-6 sm:text-base rounded-md w-full sm:w-auto"
             >
               <Package className="w-4 h-4" />
               <span>Agregar Producto</span>
@@ -230,7 +228,7 @@ const ProductServiceTableShadCN = ({ productos, servicios, ordenId, onProductosC
             <Button
               type="button"
               onClick={() => setIsServiceModalOpen(true)}
-              className="bg-customGreen hover:bg-darkGreen/50 text-black flex items-center space-x-2 px-4 py-2 text-sm sm:px-6 sm:text-base rounded-md w-full sm:w-auto"
+              className="bg-darkGreen hover:bg-darkGreen/50 text-white flex items-center space-x-2 px-4 py-2 text-sm sm:px-6 sm:text-base rounded-md w-full sm:w-auto"
             >
               <Badge className="w-4 h-4" />
               <span>Agregar Servicio</span>
