@@ -124,6 +124,11 @@ export const getOrdenTrabajoById = async (ordenTrabajoId: number): Promise<Orden
   const response: AxiosResponse<OrdenTrabajo> = await axiosInstance.get<OrdenTrabajo>(`/ordenes/${ordenTrabajoId}`);
   return response.data;
 };
+// Método para recuperar una orden de trabajo por ID de equipo (getOrdenTrabajoByEquipoId)
+export const getOrdenTrabajoByEquipoId = async (id_equipo: number): Promise<OrdenTrabajo[]> => {
+  const response: AxiosResponse<OrdenTrabajo[]> = await axiosInstance.get<OrdenTrabajo[]>(`/ordenes-equipo/${id_equipo}`);
+  return response.data;
+};
 
 // Método para crear una nueva orden de trabajo
 export const createOrdenTrabajo = async (ordenTrabajoData: OrdenTrabajoCreate): Promise<OrdenTrabajo> => {

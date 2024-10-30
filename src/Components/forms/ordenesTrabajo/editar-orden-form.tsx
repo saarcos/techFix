@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom'; // Asegúrate de tener el hook de react-router-dom
+import { Link, useNavigate, useParams } from 'react-router-dom'; // Asegúrate de tener el hook de react-router-dom
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -17,7 +17,7 @@ import { getUsers, User } from '@/api/userService';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon, CreditCard, Info, Loader2, Mail, MonitorSmartphone, Phone, X } from 'lucide-react';
+import { AlertTriangle, CalendarIcon, CreditCard, Info, Loader2, Mail, MonitorSmartphone, Phone, X } from 'lucide-react';
 import { Calendar } from '@/Components/ui/calendar';
 import { es } from 'date-fns/locale';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -32,6 +32,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Comp
 import { AccesoriosCombobox } from '@/Components/comboBoxes/accesorio-combobox';
 import { getAccesoriosByOrden, updateAccesoriosOrden } from '@/api/accesorioOrdenService';
 import Spinner from '../../../assets/tube-spinner.svg';
+import { countRepairs } from '@/api/equipoService';
 
 interface Producto {
     id_producto: number;
@@ -70,6 +71,7 @@ export default function OrdenTrabajoEditForm() {
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
     const [existingImages, setExistingImages] = useState<string[]>([]); // Imágenes existentes (URLs)
     const [selectedAccesorios, setSelectedAccesorios] = useState<Accesorio[]>([]);
+    const [repairCount, setRepairCount] = useState<number | null>(null); // Para almacenar la cantidad de reparaciones
 
     // Consulta para obtener los datos de la orden de trabajo por ID
     const { data: ordenTrabajo, isLoading, isError } = useQuery({
@@ -136,6 +138,21 @@ export default function OrdenTrabajoEditForm() {
         }
     }, [ordenTrabajo, form]);
 
+     // Llama a la función countRepairs para obtener la cantidad de reparaciones
+     useEffect(() => {
+        const fetchRepairCount = async () => {
+            if (ordenTrabajo && ordenTrabajo.id_equipo) {
+                try {
+                    const { repairCount } = await countRepairs(ordenTrabajo.id_equipo);
+                    setRepairCount(repairCount);
+                } catch (error) {
+                    console.error("Error al obtener el conteo de reparaciones:", error);
+                    toast.error("Error al obtener el conteo de reparaciones");
+                }
+            }
+        };
+        fetchRepairCount();
+    }, [ordenTrabajo]);
 
     const updateMutation = useMutation({
         mutationFn: updateOrdenTrabajo,
@@ -323,6 +340,21 @@ export default function OrdenTrabajoEditForm() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
+                        {repairCount !== null && repairCount > 1 && (
+                            <div className="bg-customGreen/60 border border-gray-300 text-gray-700 rounded-md w-full p-3 mb-4 flex items-center justify-center shadow-sm">
+                                <AlertTriangle className="h-5 w-5 mr-2 " />
+                                <span>
+                                    <strong className="text-gray-700">¡Atención!</strong> Este equipo ha sido reparado {repairCount-1}{" "}
+                                    {repairCount-1 === 1 ? "vez" : "veces"} antes,
+                                </span>
+                                <Link
+                                    to={`/taller/equipo/${ordenTrabajo?.id_equipo}/ordenes`}
+                                    className="ml-2 font-bold text-gray-600 hover:text-gray-800 underline"
+                                >
+                                    ver órdenes anteriores.
+                                </Link>
+                            </div>
+                        )}
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -560,7 +592,7 @@ export default function OrdenTrabajoEditForm() {
                                                         </div>
                                                     ))
                                                 ) : (
-                                                    <div className="flex flex-col items-center justify-center p-4 text-gray-500 border border-dashed rounded-md w-auto h-28">
+                                                    <div className="flex flex-col items-center justify-center p-4 text-gray-500 border border-dashed rounded-md  h-28">
                                                         <FontAwesomeIcon icon={faHeadphones} className="w-10 h-10 mb-2" />
                                                         <p className="text-sm text-center">No se han seleccionado accesorios</p>
                                                     </div>

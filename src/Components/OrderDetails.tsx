@@ -18,7 +18,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
 
   const handleEditClick = () => {
     if (order) {
-      navigate(`${order.id_orden}/edit`); // Redirigir al formulario de edición
+      navigate(`/taller/ordenes/${order.id_orden}/edit`);
     }
   };
   return (

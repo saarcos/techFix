@@ -85,3 +85,15 @@ export const countEquipos = async (data: {id_tipoe: number; marca_id: number; id
     }
   }
 }
+export const countRepairs = async (id_equipo: number) => {
+  try {
+    const response = await axiosInstance.get(`/equipos/count-repairs/${id_equipo}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw error.response?.data;
+    } else {
+      throw new Error('Error inesperado');
+    }
+  }
+}

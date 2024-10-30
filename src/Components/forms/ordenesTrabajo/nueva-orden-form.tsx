@@ -45,15 +45,16 @@ import { DeviceType, getDeviceTypes } from '@/api/tipoEquipoService';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon, ImagePlus, Loader2, X } from 'lucide-react';
+import { CalendarIcon, ImagePlus, Loader2, X, AlertTriangle } from 'lucide-react';
 import { Calendar } from '@/Components/ui/calendar';
 import { es } from 'date-fns/locale';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createOrdenTrabajo, OrdenTrabajoCreate } from '@/api/ordenTrabajoService';
 import { uploadImage } from '@/lib/firebase'; // Asegúrate de importar la función correcta
 import { AccesoriosCombobox } from '@/Components/comboBoxes/accesorio-combobox';
 import { Accesorio, getAccesorios } from '@/api/accesorioService';
 import { addAccesoriosToOrden } from '@/api/accesorioOrdenService';
+import { countRepairs } from '@/api/equipoService'; // Importa tu método countRepairs
 
 const formSchema = z.object({
   id_equipo: z.number().min(1, 'Equipo es requerido'),
@@ -92,6 +93,7 @@ export default function OrdenTrabajoForm() {
   const [selectedClient, setSelectedClient] = useState(0);
   const [filteredDevices, setFilteredDevices] = useState<Equipo[]>([]);
   const [selectedAccesorios, setSelectedAccesorios] = useState<Accesorio[]>([]);
+  const [repairCount, setRepairCount] = useState(0); // Estado para el conteo de reparaciones
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -224,6 +226,25 @@ export default function OrdenTrabajoForm() {
       setFilteredDevices([]);
     }
   }, [selectedClient, equipos, form]);
+  const selectedEquipo = form.watch('id_equipo');
+  // Llamada al servicio para contar las reparaciones del equipo seleccionado
+  useEffect(() => {
+    if (selectedEquipo) {
+      const checkRepairCount = async () => {
+        try {
+          const { repairCount } = await countRepairs(selectedEquipo);
+          setRepairCount(repairCount);
+        } catch (error) {
+          console.error("Error al obtener el conteo de reparaciones:", error);
+          toast.error("Error al obtener el conteo de reparaciones");
+        }
+      };
+      checkRepairCount();
+    } else {
+      setRepairCount(0); // Resetea el conteo si no hay equipo seleccionado
+    }
+  }, [selectedEquipo]);
+
 
   if (isEquipoLoading || isClienteLoading || isTecnicoLoading) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
   if (error || marcasError || modelsError || deviceTypesError) return toast.error('Error al recuperar los datos');
@@ -291,6 +312,21 @@ export default function OrdenTrabajoForm() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {repairCount > 0 && (
+              <div className="bg-customGreen/60 border border-gray-300 text-gray-700 rounded-md w-full p-3 mb-4 flex items-center justify-center shadow-sm">
+                <AlertTriangle className="h-5 w-5 mr-2 " />
+                <span>
+                  <strong className="text-gray-700">¡Atención!</strong> Este equipo ha sido reparado {repairCount}{" "}
+                  {repairCount === 1 ? "vez" : "veces"} antes,
+                </span>
+                <Link
+                  to={`/taller/equipo/${selectedEquipo}/ordenes`}
+                  className="ml-2 font-bold text-gray-600 hover:text-gray-800 underline"
+                >
+                  ver órdenes anteriores.
+                </Link>
+              </div>
+            )}
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -531,7 +567,7 @@ export default function OrdenTrabajoForm() {
                       />
                     </div>
                     {/* Área de Accesorios seleccionados */}
-                    <div className="p-4 shadow-md border rounded-lg bg-gray-50 w-full" style={{ minHeight: '8rem' }}>
+                    <div className="p-4 shadow-md border rounded-lg bg-gray-100 w-full" style={{ minHeight: '8rem' }}>
                       <div className={`grid gap-4 ${selectedAccesorios.length > 0 ? 'grid-cols-2' : 'place-items-center'}`}>
                         {selectedAccesorios.length > 0 ? (
                           selectedAccesorios.map((accesorio) => (
@@ -561,7 +597,7 @@ export default function OrdenTrabajoForm() {
                             </div>
                           ))
                         ) : (
-                          <div className="flex flex-col items-center justify-center p-4 text-gray-500 border border-dashed rounded-md w-auto h-28">
+                          <div className="flex flex-col items-center justify-center p-4 text-gray-500 border border-dashed rounded-md  h-28">
                             <FontAwesomeIcon icon={faHeadphones} className="w-10 h-10 mb-2" />
                             <p className="text-sm text-center">No se han seleccionado accesorios</p>
                           </div>

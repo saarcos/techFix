@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTools, faBox, faWarehouse, faGear, faChevronDown, faHouseChimney, faPersonDigging, faPeopleGroup, faLayerGroup, faHandsHelping, faBoxesStacked, faBriefcase, faTasks, faPlug } from '@fortawesome/free-solid-svg-icons';
 import { useState } from "react";
-import useWindowSize from '../hooks/useWindowSize'; // Asegúrate de importar el hook
+import useWindowSize from './hooks/useWindowSize'; // Asegúrate de importar el hook
 import { useAuth } from "./AuthProvider";
 import { MonitorSmartphone } from "lucide-react";
 interface Props {

@@ -17,23 +17,31 @@ import Spinner from '../assets/tube-spinner.svg';
 interface OrdenesPorArea {
   [key: string]: OrdenTrabajo[];
 }
+interface OrdenesProps {
+  ordenesProp?: OrdenTrabajo[];
+}
 
-const Ordenes = () => {
-  const navigate = useNavigate(); 
+const Ordenes = ({ ordenesProp }: OrdenesProps) => {
+  const navigate = useNavigate();
   const [selectedOrder, setSelectedOrder] = useState<OrdenTrabajo | null>(null);
   const { data: ordenes = [], isLoading, error } = useQuery<OrdenTrabajo[]>({
     queryKey: ['ordenesTrabajo'],
     queryFn: getOrdenesTrabajo,
+    enabled: !ordenesProp,
   });
 
+  // Usar las órdenes de `ordenesProp` si están definidas, de lo contrario usar las de la consulta `getOrdenesTrabajo`
+  const ordenesData = ordenesProp || ordenes;
+
+
   // Si está cargando, muestra el spinner
-  if (isLoading) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
-  
+  if (isLoading && !ordenesProp) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
+
   // Si hay un error, muestra un mensaje
   if (error) return toast.error('Error al recuperar los datos');
 
   // Organizar las órdenes por área
-  const ordenesPorArea: OrdenesPorArea = ordenes.reduce((acc: OrdenesPorArea, orden: OrdenTrabajo) => {
+  const ordenesPorArea: OrdenesPorArea = ordenesData.reduce((acc: OrdenesPorArea, orden: OrdenTrabajo) => {
     const area = orden.area || 'Sin Asignar'; // Asignar un valor por defecto si no hay área
     if (!acc[area]) {
       acc[area] = [];
@@ -44,6 +52,13 @@ const Ordenes = () => {
 
   // Definir el orden de las tabs
   const ordenTabs = ['Entrada', 'Reparación', 'Salida'];
+  type Area = typeof ordenTabs[number]; // Crea un tipo literal basado en el array
+  // Conteo de órdenes por área 
+  const ordenesCount: Record<Area, number> = {
+    Entrada: ordenesPorArea['Entrada']?.length || 0,
+    Reparación: ordenesPorArea['Reparación']?.length || 0,
+    Salida: ordenesPorArea['Salida']?.length || 0,
+  };
 
   return (
     <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3 mt-3">
@@ -97,11 +112,13 @@ const Ordenes = () => {
         <Tabs defaultValue={ordenTabs[0]}>
           <div className="flex items-center">
             <TabsList>
-              {ordenTabs.map((area) => (
-                <TabsTrigger key={area} value={area}>
-                  {area}
-                </TabsTrigger>
-              ))}
+              <TabsList>
+                {ordenTabs.map((area) => (
+                  <TabsTrigger key={area} value={area}>
+                    {area} ({ordenesCount[area]})
+                  </TabsTrigger>
+                ))}
+              </TabsList>
             </TabsList>
             <div className="ml-auto flex items-center gap-2">
               <DropdownMenu>
@@ -141,9 +158,9 @@ const Ordenes = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <OrdenesTable 
-                    onSelectOrder={setSelectedOrder} 
-                    selectedOrder={selectedOrder} 
+                  <OrdenesTable
+                    onSelectOrder={setSelectedOrder}
+                    selectedOrder={selectedOrder}
                     ordenes={ordenesPorArea[area] || []} // Usar el área correspondiente
                   />
                 </CardContent>
