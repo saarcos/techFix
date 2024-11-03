@@ -1,113 +1,108 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
 import { Button } from '@/Components/ui/button';
-import { PlusCircle, Clock, UserPlus, X, ImagePlus, Check } from "lucide-react";
-import { TareaOrden } from "@/api/tareasOrdenService";
-import { Tarea } from "@/api/tareaService";
-import { useEffect, useState } from "react";
-import AddTaskModal from "./AddTaskModal";
+import { PlusCircle, ImagePlus, Check, Clock, UserPlus, X } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
-import { ProductoOrden, ServicioOrden } from "@/api/ordenTrabajoService";
 import fileUploader from '../assets/icons/file-upload.svg';
-import { TecnicoComboboxNoForm } from "./comboBoxes/tecnico-combobox-noForm";
 import { User } from "@/api/userService";
-import { Switch } from "@/Components/ui/switch";
+import { DetalleOrden } from "@/api/detalleOrdenService";
+import { useEffect, useState } from "react";
+import { TecnicoComboboxNoForm } from "./comboBoxes/tecnico-combobox-noForm";
+import { Switch } from "./ui/switch";
+import AddDetalleModal from "./AddDetallesModal";
+import { Product } from "@/api/productsService";
+import { Service } from "@/api/servicioService";
 
 interface OrdenTrabajoTabsProps {
-  tasks: TareaOrden[];
+  detalles: DetalleOrden[];
+  onDetallesChange: (detalles: DetalleOrden[]) => void;
   ordenId: number;
   selectedImages: File[];
   setSelectedImages: React.Dispatch<React.SetStateAction<File[]>>;
   existingImages: string[];
   setExistingImages: React.Dispatch<React.SetStateAction<string[]>>;
-  onProductosChange: (productos: ProductoOrden[]) => void;
-  onServiciosChange: (servicios: ServicioOrden[]) => void;
-  onTareasChange: (tareas: TareaOrden[]) => void;
-  productosSeleccionados: ProductoOrden[];
-  serviciosSeleccionados: ServicioOrden[];
   tecnicos: User[],
+  onTotalChange: (total: number) => void;  // Agregar esta línea
 }
 
 export default function OrdenTrabajoTabs({
-  tasks,
+  detalles,
+  onDetallesChange,
   ordenId,
   selectedImages,
   setSelectedImages,
   existingImages,
   setExistingImages,
-  onProductosChange,
-  onServiciosChange,
-  productosSeleccionados,
-  serviciosSeleccionados,
-  onTareasChange,
-  tecnicos
+  tecnicos,
+  onTotalChange
 }: OrdenTrabajoTabsProps) {
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [taskItems, setTaskItems] = useState<TareaOrden[]>(tasks || []);
   const [showCombobox, setShowCombobox] = useState<{ [key: number]: boolean }>({});
+  const [isAddDetalleModalOpen, setIsAddDetalleModalOpen] = useState(false);
 
-  const handleAddTask = (task: Tarea) => {
-    const newTaskOrden: TareaOrden = {
-      id_taskord: Date.now(),
-      id_tarea: task.id_tarea,
+  const handleAddDetalle = (detalle: {
+    producto?: Product;
+    servicio?: Service;
+    cantidad?: number;
+    precioservicio?: number;
+    precioproducto?: number;
+  }) => {
+    const cantidad = detalle.producto ? detalle.cantidad || 1 : 0;
+    const precioservicio = Number(detalle.precioservicio) || 0;
+    const precioproducto = Number(detalle.precioproducto) || 0;
+    const preciototal = Number(((precioproducto * cantidad) + precioservicio).toFixed(2));
+
+    const nuevoDetalle: DetalleOrden = {
+      id_detalle: Math.random(), // Esto es solo temporal; utiliza un ID adecuado si es necesario
       id_orden: ordenId,
       id_usuario: null,
+      id_servicio: detalle.servicio?.id_servicio,
+      id_producto: detalle.producto?.id_producto,
+      precioservicio,
+      precioproducto,
+      cantidad,
+      preciototal,
       status: false,
-      tarea: {
-        id_tarea: task.id_tarea,
-        titulo: task.titulo,
-        descripcion: task.descripcion,
-        tiempo: task.tiempo,
-      },
-      usuario: null,
+      producto: detalle.producto
+        ? {
+          nombreProducto: detalle.producto.nombreProducto,
+          preciofinal: precioproducto,
+        }
+        : undefined,
+      servicio: detalle.servicio
+        ? {
+          nombre: detalle.servicio.nombre,
+          preciofinal: precioservicio,
+        }
+        : undefined,
     };
 
-    if (task.productos && task.productos.length > 0) {
-      const nuevosProductos: ProductoOrden[] = task.productos.map((producto) => ({
-        id_prodorde: Date.now(),
-        id_orden: ordenId,
-        id_producto: producto.id_producto,
-        cantidad: producto.cantidad,
-        producto: {
-          nombreProducto: producto.producto.nombreProducto,
-          precioFinal: parseFloat(producto.producto.precioFinal),
-          iva: producto.producto.iva,
-          precioSinIVA: parseFloat(producto.producto.precioSinIVA),
-        },
-      }));
-      onProductosChange([...productosSeleccionados, ...nuevosProductos]);
-    }
-
-    if (task.servicios && task.servicios.length > 0) {
-      const nuevosServicios: ServicioOrden[] = task.servicios.map((servicio) => ({
-        id_servorden: Date.now(),
-        id_orden: ordenId,
-        id_servicio: servicio.id_servicio,
-        servicio: {
-          id_servicio: servicio.id_servicio,
-          nombre: servicio.servicio.nombre,
-          preciofinal: servicio.servicio.preciofinal,
-          preciosiniva: servicio.servicio.preciosiniva,
-          iva: servicio.servicio.iva
-        },
-      }));
-      onServiciosChange([...serviciosSeleccionados, ...nuevosServicios]);
-    }
-
-    setTaskItems((prevTasks) => [...prevTasks, newTaskOrden]);
-    onTareasChange([...taskItems, newTaskOrden]);
-    setIsTaskModalOpen(false);
+    // Actualiza el estado con el nuevo detalle
+    onDetallesChange([...detalles, nuevoDetalle]);
   };
 
-  useEffect(() => {
-    setTaskItems(tasks);
-  }, [tasks]);
+  const handleAsignarUsuario = (id_detalle: number, id_usuario: number | null) => {
+    const updatedDetalles = detalles.map((detalle) =>
+      detalle.id_detalle === id_detalle ? { ...detalle, id_usuario } : detalle
+    );
+    console.log(id_usuario)
+    onDetallesChange(updatedDetalles);
+  };
 
-  const handleRemoveTask = (id_taskord: number) => {
-    const updatedTasks = taskItems.filter((item) => item.id_taskord !== id_taskord);
-    setTaskItems(updatedTasks);
-    onTareasChange(updatedTasks);
+  const handleStatusChange = (id_detalle: number, newStatus: boolean) => {
+    const updatedDetalles = detalles.map((detalle) =>
+      detalle.id_detalle === id_detalle ? { ...detalle, status: newStatus } : detalle
+    );
+    onDetallesChange(updatedDetalles);
+  };
+
+  const handleRemoveDetalle = (id_detalle: number) => {
+    const updatedDetalles = detalles.filter((detalle) => detalle.id_detalle !== id_detalle);
+    onDetallesChange(updatedDetalles);
+  };
+
+  const toggleCombobox = (id_taskord: number) => {
+    setShowCombobox((prev) => ({ ...prev, [id_taskord]: !prev[id_taskord] }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,93 +118,94 @@ export default function OrdenTrabajoTabs({
     setExistingImages((prevImages) => prevImages.filter(imageUrl => imageUrl !== url));
   };
 
-  const handleAsignarUsuario = (id_taskord: number, id_usuario: number) => {
-    const updatedTasks = taskItems.map((task) =>
-      task.id_taskord === id_taskord ? { ...task, id_usuario } : task
-    );
-    setTaskItems(updatedTasks);
-    onTareasChange(updatedTasks);
-  };
-  const handleStatusChange = (id_taskord: number, newStatus: boolean) => {
-    const updatedTasks = taskItems.map((task) =>
-      task.id_taskord === id_taskord ? { ...task, status: newStatus } : task
-    );
-    setTaskItems(updatedTasks);
-    onTareasChange(updatedTasks);
-  };
-  const toggleCombobox = (id_taskord: number) => {
-    setShowCombobox((prev) => ({ ...prev, [id_taskord]: !prev[id_taskord] }));
-  };
+  useEffect(() => {
+    const total = detalles.reduce((acc, detalle) => acc + Number(detalle.preciototal || 0), 0);
+    onTotalChange(total);  // Llama a onTotalChange con el total calculado
+  }, [detalles, onTotalChange]);
+
+  const totalOrden = detalles.reduce((acc, detalle) => acc + Number(detalle.preciototal || 0), 0).toFixed(2);
 
   return (
-    <Tabs defaultValue="tareas" className="w-full mt-4">
+    <Tabs defaultValue="detalles" className="w-full mt-4">
       <TabsList>
-        <TabsTrigger value="tareas">Tareas</TabsTrigger>
+        <TabsTrigger value="detalles">Detalles</TabsTrigger>
         <TabsTrigger value="imagenes">Imágenes</TabsTrigger>
       </TabsList>
-
-      <TabsContent value="tareas">
+      <TabsContent value="detalles">
         <div className="mt-4">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Título</TableHead>
-                <TableHead className="hidden sm:table-cell">Descripción</TableHead>
-                <TableHead className="hidden sm:table-cell">Tiempo</TableHead>
-                <TableHead>Responsable</TableHead>
-                <TableHead>Estado</TableHead>
+                <TableHead className="text-left">Servicio</TableHead>
+                <TableHead className="text-left">Producto</TableHead>
+                <TableHead className="text-center hidden sm:table-cell">Precio Servicio</TableHead>
+                <TableHead className="text-center hidden sm:table-cell">Precio Producto</TableHead>
+                <TableHead className="text-left">Precio Total</TableHead>
+                <TableHead className="text-left">Responsable</TableHead>
+                <TableHead className="text-left">Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {taskItems.length === 0 ? (
+              {detalles.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    No hay tareas agregadas.
+                  <TableCell colSpan={7 } className="text-center text-muted-foreground">
+                    No hay detalles agregados.
                   </TableCell>
                 </TableRow>
               ) : (
-                taskItems.map((task) => (
-                  <TableRow key={task.id_taskord}>
+                detalles.map((detalle) => (
+                  <TableRow key={detalle.id_detalle}>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium">{task.tarea.titulo}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {task.tarea.descripcion ? (
-                        <span>{task.tarea.descripcion}</span>
-                      ) : (
-                        <span className="text-gray-400">Sin descripción agregada</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <div className="flex items-center space-x-2">
-                        {task.status ? (
-                          <>
-                            <Check className="h-4 w-4 text-darkGreen" /> {/* Icono de checkmark en verde */}
-                            <span className="text-darkGreen font-semibold">Completada</span>
-                          </>
+                      <div className="flex items-center space-x-2 text-center">
+                        {detalle.servicio ? (
+                          <span className="font-medium">{detalle.servicio.nombre}</span>
                         ) : (
-                          <>
-                            <Clock className="h-4 w-4 text-muted-foreground" /> {/* Icono de reloj en gris */}
-                            <span className="text-muted-foreground">{task.tarea.tiempo} minutos</span>
-                          </>
+                          <span className="text-gray-400">Sin servicio agregado</span>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
-                    <div className="flex items-center space-x-2">
-                        {!showCombobox[task.id_taskord] ? (
+                      <div className="flex items-center space-x-2">
+                        {detalle.producto ? (
+                          <span className="font-medium">{detalle.producto.nombreProducto} (x{detalle.cantidad})</span>
+                        ) : (
+                          <span className="text-gray-400">Sin producto agregado</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center hidden sm:table-cell">
+                      <div>
+                        {detalle.servicio ? (
+                          <span className="font-normal">${detalle.servicio.preciofinal}</span>
+                        ) : (
+                          <span className="text-gray-400">Sin servicio agregado</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center hidden sm:table-cell">
+                      <div>
+                        {detalle.producto ? (
+                          <span className="font-normal">${detalle.producto.preciofinal}</span>
+                        ) : (
+                          <span className="text-gray-400">Sin producto agregado</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-center font-normal">${detalle.preciototal}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        {!showCombobox[detalle.id_detalle] ? (
                           <div
                             className="flex items-center space-x-2 cursor-pointer"
-                            onClick={() => toggleCombobox(task.id_taskord)}
+                            onClick={() => toggleCombobox(detalle.id_detalle)}
                           >
-                            <UserPlus className={`h-4 w-4 ${task.id_usuario ? 'text-darkGreen' : 'text-muted-foreground'}`}/>
+                            <UserPlus className={`h-4 w-4 ${detalle.id_usuario ? 'text-darkGreen' : 'text-muted-foreground'}`} />
                             <span
-                              className={`underline ${task.id_usuario ? 'text-darkGreen font-semibold' : 'text-muted-foreground'
-                                }`}
+                              className={`underline ${detalle.id_usuario ? 'text-darkGreen font-semibold' : 'text-muted-foreground'}`}
                             >
-                              {task.id_usuario ? 'Modificar' : 'Asignar'}
+                              {detalle.id_usuario ? 'Modificar' : 'Asignar'}
                             </span>
                           </div>
                         ) : (
@@ -218,16 +214,16 @@ export default function OrdenTrabajoTabs({
                               tecnicos={tecnicos}
                               isTecnicoLoading={false}
                               onSelect={(id_usuario) => {
-                                handleAsignarUsuario(task.id_taskord, id_usuario);
-                                toggleCombobox(task.id_taskord); // Ocultar el combobox después de seleccionar
+                                handleAsignarUsuario(detalle.id_detalle, id_usuario || null);
+                                toggleCombobox(detalle.id_detalle);
                               }}
-                              defaultSelectedId={task.id_usuario ?? undefined}
+                              defaultSelectedId={detalle.id_usuario ?? undefined}
                             />
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
-                              onClick={() => toggleCombobox(task.id_taskord)}
+                              onClick={() => toggleCombobox(detalle.id_detalle)}
                               className="text-sm font-semibold text-black w-13"
                             >
                               Cancelar
@@ -236,10 +232,25 @@ export default function OrdenTrabajoTabs({
                         )}
                       </div>
                     </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <div className="flex items-center space-x-2">
+                        {detalle.status ? (
+                          <>
+                            <Check className="h-4 w-4 text-darkGreen" />
+                            <span className="text-darkGreen font-semibold">Completado</span>
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground"> Pendiente</span>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Switch
-                        checked={task.status}
-                        onCheckedChange={(newStatus) => handleStatusChange(task.id_taskord, newStatus)}
+                        checked={detalle.status}
+                        onCheckedChange={(newStatus) => handleStatusChange(detalle.id_detalle, newStatus)}
                       />
                     </TableCell>
                     <TableCell className="text-right">
@@ -247,7 +258,7 @@ export default function OrdenTrabajoTabs({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleRemoveTask(task.id_taskord)}
+                        onClick={() => handleRemoveDetalle(detalle.id_detalle)}
                       >
                         <X className="h-4 w-4 text-muted-foreground" />
                       </Button>
@@ -255,31 +266,36 @@ export default function OrdenTrabajoTabs({
                   </TableRow>
                 ))
               )}
+            
             </TableBody>
           </Table>
+          <div className="flex justify-end mt-4 pr-4">
+            <span className="font-semibold text-base text-black">
+              Total Orden: <span className="font-medium text-lg text-darkGreen">${totalOrden}</span>
+            </span>
+          </div>
           <div className="mt-4 flex justify-start">
             <Button
               type="button"
-              onClick={() => setIsTaskModalOpen(true)}
+              onClick={() => setIsAddDetalleModalOpen(true)}
               className="bg-darkGreen hover:bg-darkGreen/50 text-white flex items-center space-x-2 px-4 py-2 text-sm sm:px-6 sm:text-base rounded-md w-full sm:w-auto"
             >
-              <PlusCircle className="mr-2 h-4 w-4" /> Agregar Tarea
+              <PlusCircle className="mr-2 h-4 w-4" /> Agregar Detalle
             </Button>
           </div>
         </div>
-        <AddTaskModal
-          isOpen={isTaskModalOpen}
-          setIsOpen={setIsTaskModalOpen}
-          onAddTask={handleAddTask}
+        <AddDetalleModal
+          isOpen={isAddDetalleModalOpen}
+          setIsOpen={setIsAddDetalleModalOpen}
+          onAddDetalle={handleAddDetalle}
         />
       </TabsContent>
-
       <TabsContent value="imagenes">
         <div className="flex flex-col items-center justify-center border-2 border-dashed border-darkGreen/50 rounded-lg p-4 bg-darkGreen/5 mt-4 w-full">
           {existingImages.length === 0 && selectedImages.length === 0 ? (
             <>
               <img src={fileUploader} width={96} height={77} alt='file-upload' />
-              <p className="text-sm text-gray-500 mt-2">Añade imagenes del equipo para adjuntar en la orden de trabajo</p>
+              <p className="text-sm text-gray-500 mt-2">Añade imágenes del equipo para adjuntar en la orden de trabajo</p>
               <Button
                 type="button"
                 variant="secondary"
@@ -328,21 +344,19 @@ export default function OrdenTrabajoTabs({
                   onClick={() => document.getElementById('fileInput')?.click()}
                   className="mt-4 bg-darkGreen/30 hover:bg-darkGreenHover/30"
                 >
-                  <ImagePlus className="mr-2 h-4 w-4" /> Agregar más imagenes
+                  <ImagePlus className="mr-2 h-4 w-4" /> Agregar más imágenes
                 </Button>
               </div>
             </div>
           )}
-          <div className="mt-4 flex justify-start">
-            <input
-              id="fileInput"
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handleImageChange}
-            />
-          </div>
+          <input
+            id="fileInput"
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={handleImageChange}
+          />
         </div>
       </TabsContent>
     </Tabs>

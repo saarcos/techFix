@@ -33,7 +33,6 @@ const productSchema = z.object({
   precioSinIVA: z.number().min(1, 'El precio debe ser un número positivo mayor que cero'),
   iva: z.number().min(0, 'IVA es requerido'),
   precioFinal: z.number(),
-  stock: z.number().min(1, 'El stock debe ser un número positivo mayor que cero'),
 });
 
 interface ProductFormProps {
@@ -53,7 +52,6 @@ export default function ProductForm({ setIsOpen, categorias, productId, setIsAdd
       precioSinIVA: 0,
       iva: 12,  
       precioFinal: 0,
-      stock: 0,
     },
   });
   const { data: producto, isLoading: isProductLoading, isError, error } = useQuery<Product>({
@@ -65,7 +63,6 @@ export default function ProductForm({ setIsOpen, categorias, productId, setIsAdd
       precioSinIVA: 0,
       iva: 12,  
       precioFinal: 0,
-      stock: 0,
     } as Product),
     enabled: !!productId,
   });
@@ -78,7 +75,6 @@ export default function ProductForm({ setIsOpen, categorias, productId, setIsAdd
         precioSinIVA: parseFloat(producto.precioSinIVA.toString()),  // Convertir a número
         iva: parseFloat(producto.iva.toString()),  // Convertir a número
         precioFinal: parseFloat(producto.precioFinal.toString()),  // Convertir a número
-        stock: parseInt(producto.stock.toString(), 10),  // Convertir a número entero
       });
     }
     if (isError) {
@@ -229,28 +225,6 @@ export default function ProductForm({ setIsOpen, categorias, productId, setIsAdd
                   placeholder="Ingrese el código del producto"
                   {...field}
                   onChange={(e) => field.onChange(e.target.value.toUpperCase())} 
-                />
-              </FormControl>
-              <FormMessage className="text-left text-sm text-red-500" />
-            </FormItem>
-          )}
-        />
-        <FormField
-          name="stock"
-          control={form.control}
-          render={({ field }) => (
-            <FormItem className="col-span-1">
-              <FormLabel htmlFor="stock">
-                Stock <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  id="stock"
-                  type="number"
-                  placeholder="Ingrese el stock disponible"
-                  {...field}
-                  min={0}
-                  onChange={(e) => field.onChange(parseInt(e.target.value))}
                 />
               </FormControl>
               <FormMessage className="text-left text-sm text-red-500" />

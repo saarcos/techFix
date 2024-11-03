@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/Components/ui/form';
-import { getOrdenTrabajoById, OrdenTrabajoUpdate, ProductoOrden, ServicioOrden, updateOrdenTrabajo } from '@/api/ordenTrabajoService'; // Importa correctamente tus servicios
+import { getOrdenTrabajoById, OrdenTrabajoUpdate, updateOrdenTrabajo } from '@/api/ordenTrabajoService'; // Importa correctamente tus servicios
 import { uploadImage } from '@/lib/firebase'; // Asegúrate de importar la función correcta
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -22,25 +22,16 @@ import { Calendar } from '@/Components/ui/calendar';
 import { es } from 'date-fns/locale';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faComputer, faHeadphones, faIdCard, faIdCardClip } from '@fortawesome/free-solid-svg-icons';
-import ProductServiceTableShadCN from '@/tables/productosyservicios/ProductsServicesTable';
 import OrdenTrabajoTabs from '@/Components/OrdenTrabajoTabs';
-import { addProductsToOrder } from '@/api/productOrdenService';
-import { addServicesToOrder } from '@/api/serviceOrdenService';
-import { addTareasToOrder, TareaOrden } from '@/api/tareasOrdenService';
 import { Accesorio, getAccesorios } from '@/api/accesorioService';
+import { DetalleOrden } from '@/api/detalleOrdenService';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
 import { AccesoriosCombobox } from '@/Components/comboBoxes/accesorio-combobox';
 import { getAccesoriosByOrden, updateAccesoriosOrden } from '@/api/accesorioOrdenService';
 import Spinner from '../../../assets/tube-spinner.svg';
 import { countRepairs } from '@/api/equipoService';
+import { createDetallesOrden, getDetallesByOrdenId } from '@/api/detalleOrdenService';
 
-interface Producto {
-    id_producto: number;
-    cantidad: number;
-}
-interface Servicio {
-    id_servicio: number;
-}
 const formSchema = z.object({
     id_equipo: z.number().min(1, 'Equipo es requerido'),
     id_usuario: z.number().optional(),
@@ -72,6 +63,7 @@ export default function OrdenTrabajoEditForm() {
     const [existingImages, setExistingImages] = useState<string[]>([]); // Imágenes existentes (URLs)
     const [selectedAccesorios, setSelectedAccesorios] = useState<Accesorio[]>([]);
     const [repairCount, setRepairCount] = useState<number | null>(null); // Para almacenar la cantidad de reparaciones
+    const [totalOrden, setTotalOrden] = useState<number>(0);
 
     // Consulta para obtener los datos de la orden de trabajo por ID
     const { data: ordenTrabajo, isLoading, isError } = useQuery({
@@ -79,13 +71,9 @@ export default function OrdenTrabajoEditForm() {
         queryFn: () => id_orden ? getOrdenTrabajoById(id_orden) : Promise.resolve(null),
         enabled: !!id_orden,
     });
-    // Estado para productos y servicios seleccionados
-    const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoOrden[]>(ordenTrabajo?.productos || []);
-    const [serviciosSeleccionados, setServiciosSeleccionados] = useState<ServicioOrden[]>(ordenTrabajo?.servicios || []);
-    const [tareasSeleccionadas, setTareasSeleccionadas] = useState<TareaOrden[]>(ordenTrabajo?.tareas || []);
-    const [totalOrden, setTotalOrden] = useState(0);
-    const navigate = useNavigate();
+    const [detallesSeleccionados, setDetallesSeleccionados] = useState<DetalleOrden[]>(ordenTrabajo?.detalles || []);
 
+    const navigate = useNavigate();
 
     const { data: tecnicos = [], isLoading: isTecnicosLoading } = useQuery<User[]>({
         queryKey: ['users'],
@@ -100,6 +88,14 @@ export default function OrdenTrabajoEditForm() {
         queryFn: () => id_orden ? getAccesoriosByOrden(id_orden) : Promise.resolve([]),
         enabled: !!id_orden,
     });
+    // En tu componente OrdenTrabajoEditForm
+    const { data: detallesOrden = [], isLoading: isLoadingDetalles } = useQuery({
+        queryKey: ['detallesOrden', id_orden],
+        queryFn: () => id_orden ? getDetallesByOrdenId(id_orden) : Promise.resolve([]),
+        enabled: !!id_orden,
+    });
+
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -138,8 +134,8 @@ export default function OrdenTrabajoEditForm() {
         }
     }, [ordenTrabajo, form]);
 
-     // Llama a la función countRepairs para obtener la cantidad de reparaciones
-     useEffect(() => {
+    // Llama a la función countRepairs para obtener la cantidad de reparaciones
+    useEffect(() => {
         const fetchRepairCount = async () => {
             if (ordenTrabajo && ordenTrabajo.id_equipo) {
                 try {
@@ -152,7 +148,7 @@ export default function OrdenTrabajoEditForm() {
             }
         };
         fetchRepairCount();
-    }, [ordenTrabajo]);
+    }, [ordenTrabajo, detallesOrden]);
 
     const updateMutation = useMutation({
         mutationFn: updateOrdenTrabajo,
@@ -166,44 +162,15 @@ export default function OrdenTrabajoEditForm() {
             console.error('Error de actualización de orden:', error);
         },
     });
-    const addProductsMutation = useMutation({
-        mutationFn: (data: { id_orden: number, productos: Producto[] }) => addProductsToOrder(data.id_orden, data.productos),
-        onSuccess: () => {
-            toast.success('Productos añadidos exitosamente');
-        },
+    // Mutación para agregar detalles a la orden de trabajo
+    const addDetallesMutation = useMutation({
+        mutationFn: createDetallesOrden,
         onError: (error) => {
-            toast.error('Error al añadir productos a la orden');
-            console.error('Error al añadir productos:', error);
+            toast.error('Error al agregar detalles a la orden');
+            console.error(error);
         },
     });
-    const addServicesMutation = useMutation({
-        mutationFn: (data: { id_orden: number, servicios: Servicio[] }) => addServicesToOrder(data.id_orden, data.servicios),
-        onSuccess: () => {
-            toast.success('Servicios añadidos exitosamente');
-        },
-        onError: (error) => {
-            toast.error('Error al añadir servicios a la orden');
-            console.error('Error al añadir servicios:', error);
-        },
-    });
-    const addTasksMutation = useMutation({
-        mutationFn: (data: { id_orden: number, tareas: { id_tarea: number, id_usuario?: number, status?: boolean }[] }) => {
-            // Aseguramos que cada tarea tenga el id_orden
-            const tareasConIdOrden = data.tareas.map((tarea) => ({
-                ...tarea,
-                id_orden: data.id_orden
-            }));
-            // Llamamos al método addTareasToOrder con el array de tareas modificado
-            return addTareasToOrder(tareasConIdOrden);
-        },
-        onSuccess: () => {
-            toast.success('Tareas añadidas exitosamente');
-        },
-        onError: (error) => {
-            toast.error('Error al añadir tareas a la orden');
-            console.error('Error al añadir tareas:', error);
-        },
-    });
+
     const isBeforeToday = (date: Date) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -218,25 +185,10 @@ export default function OrdenTrabajoEditForm() {
     const handleEliminarAccesorio = (id_accesorio: number) => {
         setSelectedAccesorios((prev) => prev.filter((a) => a.id_accesorio !== id_accesorio));
     };
-    // Funciones para manejar los productos y servicios seleccionados
-    const handleProductosChange = (productos: ProductoOrden[]) => {
-        setProductosSeleccionados(productos);
-    };
-    const handleServiciosChange = (servicios: ServicioOrden[]) => {
-        setServiciosSeleccionados(servicios);
-    };
-    const handleTotalOrden = (total: number) => {
-        setTotalOrden(total);
-    }
-    // Función para manejar las tareas seleccionadas
-    const handleTareasChange = (tareas: TareaOrden[]) => {
-        setTareasSeleccionadas(tareas);
+    const handleDetallesChange = (detalles: DetalleOrden[]) => {
+        setDetallesSeleccionados(detalles);
     };
 
-    // useEffect(() => {
-    //   console.log("Tareas", tareasSeleccionadas)
-    // }, [tareasSeleccionadas])
-    
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             const imageUrls = [...existingImages]; // Incluir imágenes existentes
@@ -264,29 +216,22 @@ export default function OrdenTrabajoEditForm() {
 
             // Primero, actualizar la orden de trabajo
             await updateMutation.mutateAsync(ordenTrabajoData);
-            // Mutación para añadir productos (si existen)
-            if (productosSeleccionados.length > 0) {
-                const productosToSend = productosSeleccionados.map(producto => ({
-                    id_producto: producto.id_producto,
-                    cantidad: producto.cantidad,
+            
+
+            // Agrega los detalles después de actualizar la orden
+            if (id_orden && detallesSeleccionados.length > 0) {
+                const detallesData = detallesSeleccionados.map((detalle) => ({
+                    id_orden: id_orden,
+                    id_usuario: detalle.id_usuario || undefined,  // Cambiar null por undefined
+                    id_servicio: detalle.servicio ? detalle.id_servicio : undefined,
+                    id_producto: detalle.producto ? detalle.id_producto : undefined,
+                    precioservicio: detalle.servicio ? parseFloat(detalle.precioservicio?.toString() || "0") : undefined,
+                    precioproducto: detalle.producto ? parseFloat(detalle.precioproducto?.toString() || "0") : undefined,
+                    cantidad: detalle.producto ? detalle.cantidad : undefined,
+                    status: detalle.status || false
                 }));
-                await addProductsMutation.mutateAsync({ id_orden: id_orden as number, productos: productosToSend });
-            }
-            // Mutación para añadir servicios (si existen)
-            if (serviciosSeleccionados.length > 0) {
-                const serviciosToSend = serviciosSeleccionados.map(servicio => ({
-                    id_servicio: servicio.id_servicio,
-                }));
-                await addServicesMutation.mutateAsync({ id_orden: id_orden as number, servicios: serviciosToSend });
-            }
-            // Mutación para añadir tareas (si existen)
-            if (tareasSeleccionadas.length > 0) {
-                const tareasToSend = tareasSeleccionadas.map(tarea => ({
-                    id_tarea: tarea.id_tarea,
-                    id_usuario: tarea.id_usuario !== null ? tarea.id_usuario : undefined, // Cambiar null por undefined
-                    status: tarea.status, // opcional
-                }));
-                await addTasksMutation.mutateAsync({ id_orden: id_orden as number, tareas: tareasToSend });
+                // Llama a createDetallesOrden para crear múltiples detalles a la vez
+                await addDetallesMutation.mutateAsync(detallesData); // Usar la mutación
             }
             // Verificar si hay accesorios seleccionados
             if (id_orden !== null && selectedAccesorios.length > 0) {
@@ -306,15 +251,7 @@ export default function OrdenTrabajoEditForm() {
         }
     };
     useEffect(() => {
-        if (ordenTrabajo && ordenTrabajo.productos) {
-            setProductosSeleccionados(ordenTrabajo.productos);
-        }
-        if (ordenTrabajo && ordenTrabajo.servicios) {
-            setServiciosSeleccionados(ordenTrabajo.servicios)
-        }
-        if (ordenTrabajo && ordenTrabajo.tareas) {
-            setTareasSeleccionadas(ordenTrabajo.tareas);
-        }
+
         if (accesoriosOrden && accesoriosOrden.length > 0) {
             // Establece los accesorios seleccionados basados en la consulta
             const accesoriosTransformados = accesoriosOrden.map(ordenAccesorio => ({
@@ -323,11 +260,19 @@ export default function OrdenTrabajoEditForm() {
             }));
             setSelectedAccesorios(accesoriosTransformados);
         }
+        if (ordenTrabajo && ordenTrabajo.detalles) {
+            setDetallesSeleccionados(ordenTrabajo.detalles);
+        }
 
     }, [ordenTrabajo, accesoriosOrden]);
 
+    useEffect(() => {
+      console.log("Detalles: ", detallesSeleccionados)
+    }, [detallesSeleccionados])
+    
 
-    if (isLoading || isLoadingAccesorios) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
+
+    if (isLoading || isLoadingAccesorios || isLoadingDetalles) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
     if (isError) return <div>Error al cargar los datos</div>;
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40 mt-5">
@@ -344,8 +289,8 @@ export default function OrdenTrabajoEditForm() {
                             <div className="bg-customGreen/60 border border-gray-300 text-gray-700 rounded-md w-full p-3 mb-4 flex items-center justify-center shadow-sm">
                                 <AlertTriangle className="h-5 w-5 mr-2 " />
                                 <span>
-                                    <strong className="text-gray-700">¡Atención!</strong> Este equipo ha sido reparado {repairCount-1}{" "}
-                                    {repairCount-1 === 1 ? "vez" : "veces"} antes,
+                                    <strong className="text-gray-700">¡Atención!</strong> Este equipo ha sido reparado {repairCount - 1}{" "}
+                                    {repairCount - 1 === 1 ? "vez" : "veces"} antes,
                                 </span>
                                 <Link
                                     to={`/taller/equipo/${ordenTrabajo?.id_equipo}/ordenes`}
@@ -380,7 +325,7 @@ export default function OrdenTrabajoEditForm() {
                                             <div className="flex items-center space-x-2">
                                                 <Phone className="w-4 h-4 text-darkGreen" />
                                                 <p className="text-sm font-medium">{ordenTrabajo?.equipo?.cliente?.celular}</p>
-                                            </div>                                     
+                                            </div>
                                         </CardContent>
                                     </Card>
                                     <Card className="p-4 shadow-md border rounded-lg bg-gray-50 relative">
@@ -619,28 +564,16 @@ export default function OrdenTrabajoEditForm() {
                                         </FormItem>
                                     )}
                                 />
-                                <ProductServiceTableShadCN
-                                    productos={productosSeleccionados || []}
-                                    servicios={serviciosSeleccionados || []}
-                                    ordenId={id_orden || 0}
-                                    onProductosChange={handleProductosChange}
-                                    onServiciosChange={handleServiciosChange}
-                                    onTotalChange={handleTotalOrden}
-                                    adelanto={form.watch('adelanto')}
-                                />
                                 <OrdenTrabajoTabs
-                                    tasks={tareasSeleccionadas}
+                                    detalles={detallesSeleccionados}
+                                    onDetallesChange={handleDetallesChange}
                                     ordenId={id_orden || 1} selectedImages={selectedImages}
                                     setSelectedImages={setSelectedImages}
                                     existingImages={existingImages}
                                     setExistingImages={setExistingImages}
-                                    onProductosChange={handleProductosChange}
-                                    onServiciosChange={handleServiciosChange}
-                                    onTareasChange={handleTareasChange}
-                                    productosSeleccionados={productosSeleccionados}
-                                    serviciosSeleccionados={serviciosSeleccionados}
-                                    tecnicos ={tecnicos}
-                                    />
+                                    tecnicos={tecnicos}
+                                    onTotalChange={setTotalOrden}  // Pasar setTotalOrden como onTotalChange
+                                />
                                 <div className="flex justify-end">
                                     <Button
                                         type="button"

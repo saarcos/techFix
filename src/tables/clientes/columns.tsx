@@ -19,7 +19,9 @@ export const columns: ColumnDef<Client>[] = [
       accessorKey: "tipo_cliente",
       header: "",
       cell: ({ row }) => (
-        <FontAwesomeIcon icon={row.original.tipo_cliente === "Empresa" ? faBuilding : faUser}  className="text-customGray w-4 h-4"/>
+        <div className="flex justify-center items-center">
+          <FontAwesomeIcon icon={row.original.tipo_cliente === "Empresa" ? faBuilding : faUser} className="text-customGray w-4 h-4" />
+        </div>
       ),
     },
     {

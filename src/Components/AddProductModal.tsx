@@ -63,7 +63,6 @@ const AddProductModal = ({ isOpen, setIsOpen, onAddProduct }: AddProductModalPro
             <TableRow key={product.id_producto}>
               <TableCell>{product.nombreProducto}</TableCell>
               <TableCell>${product.precioSinIVA}</TableCell>
-              <TableCell>{product.stock}</TableCell> {/* Stock traído desde la base de datos */}
               <TableCell>
                 <div className="flex items-center gap-1">
                   <Button

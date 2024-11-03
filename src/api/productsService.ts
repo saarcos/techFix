@@ -10,7 +10,6 @@ export interface Product {
   precioSinIVA: number;
   precioFinal: number;
   iva: number;
-  stock: number;
   categoriaProducto: {
     nombreCat: string;
   };
@@ -26,7 +25,7 @@ export const getProductById = async (ProductId: number): Promise<Product> => {
   return response.data;
 };
 //Método para crear nuevos productos
-export const createProduct = async (productoData: { id_catprod: number; nombreProducto: string; codigoProducto: string; precioSinIVA: number; precioFinal: number; iva: number; stock: number }) => {
+export const createProduct = async (productoData: { id_catprod: number; nombreProducto: string; codigoProducto: string; precioSinIVA: number; precioFinal: number; iva: number;  }) => {
   try {
     const response = await axiosInstance.post('/productos', productoData);
     return response.data;
@@ -39,7 +38,7 @@ export const createProduct = async (productoData: { id_catprod: number; nombrePr
   }
 };
 //Método para actualizar productos
-export const updateProduct = async (productoData: {id_producto: number,id_catprod: number; nombreProducto: string; codigoProducto: string; precioSinIVA: number; precioFinal: number; iva: number; stock: number  }) => {
+export const updateProduct = async (productoData: {id_producto: number,id_catprod: number; nombreProducto: string; codigoProducto: string; precioSinIVA: number; precioFinal: number; iva: number; }) => {
   try {
     const response = await axiosInstance.put(`/productos/${productoData.id_producto}`, productoData);
     return response.data;
