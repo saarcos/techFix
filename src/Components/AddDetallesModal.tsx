@@ -6,7 +6,7 @@ import { ServiceCombobox } from "@/Components/comboBoxes/servicio-combobox";
 import { Input } from '@/Components/ui/input';
 import { getProducts, Product } from '@/api/productsService';
 import { getServices, Service } from '@/api/servicioService';
-import {  useState } from "react";
+import { useState } from "react";
 import { useQuery } from '@tanstack/react-query';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus, faPlus, faXmark } from "@fortawesome/free-solid-svg-icons";
@@ -53,17 +53,17 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
 
   const handleAddDetalles = () => {
     if (selectedProduct || selectedService) {
-        onAddDetalle({
-            producto: selectedProduct ? selectedProduct.producto : undefined,
-            servicio: selectedService ? selectedService.servicio : undefined,
-            cantidad: selectedProduct ? selectedProduct.cantidad : undefined,
-            precioproducto: selectedProduct ? selectedProduct.precio : undefined,
-            precioservicio: selectedService ? selectedService.precio : undefined,
-        });
+      onAddDetalle({
+        producto: selectedProduct ? selectedProduct.producto : undefined,
+        servicio: selectedService ? selectedService.servicio : undefined,
+        cantidad: selectedProduct ? selectedProduct.cantidad : undefined,
+        precioproducto: selectedProduct ? selectedProduct.precio : undefined,
+        precioservicio: selectedService ? selectedService.precio : undefined,
+      });
     }
-    resetSelection(); 
+    resetSelection();
     setIsOpen(false);
-};
+  };
 
   const resetSelection = () => {
     setSelectedProduct(null);
@@ -90,8 +90,8 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
           products={products}
         />
       </div>
-      <Table>
-        <TableHeader>
+      <Table className="min-w-full divide-y divide-gray-200">
+        <TableHeader className="bg-gray-100">
           <TableRow>
             <TableHead>Producto</TableHead>
             <TableHead>Cantidad</TableHead>
@@ -155,8 +155,8 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
         />
       </div>
       {/* Servicios seleccionados */}
-      <Table>
-        <TableHeader>
+      <Table className="min-w-full divide-y divide-gray-200">
+        <TableHeader className="bg-gray-100">
           <TableRow>
             <TableHead>Servicio</TableHead>
             <TableHead className="text-right">Acción</TableHead>

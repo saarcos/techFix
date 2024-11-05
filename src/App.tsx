@@ -19,6 +19,8 @@ import OrdenTrabajoForm from "./Components/forms/ordenesTrabajo/nueva-orden-form
 import Accesorios from "./pages/Accesorios"
 import OrdenTrabajoUpdateForm from "./Components/forms/ordenesTrabajo/editar-orden-form"
 import EquipoOrdenesPage from "./pages/EquipoOrdenesPage"
+import Almacenes from "./pages/Almacenes"
+import Inventario from "./pages/Inventario"
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -68,6 +70,8 @@ function App() {
           <Route path="/taller/accesorios" element={<ProtectedRoute><Accesorios /></ProtectedRoute>} />
           <Route path="/taller/ordenes/:id/edit" element={<ProtectedRoute><OrdenTrabajoUpdateForm /></ProtectedRoute>} />
           <Route path="/taller/equipo/:id_equipo/ordenes" element={<EquipoOrdenesPage />} />
+          <Route path="/taller/almacenes" element={<ProtectedRoute><Almacenes /></ProtectedRoute>} />
+          <Route path="/taller/almacenes/inventario/:id_almacen" element={<ProtectedRoute><Inventario /></ProtectedRoute>} />
         </Routes>
       </div>
     </div>
