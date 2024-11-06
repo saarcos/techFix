@@ -160,3 +160,20 @@ export const deleteOrdenTrabajo = async (ordenTrabajoId: number): Promise<void> 
     }
   }
 };
+// Método para mover una orden de trabajo
+export const moveOrdenTrabajo = async (id_orden: number, area: string, estado: string, id_usuario: number | null): Promise<void> => {
+  try {
+    const response = await axiosInstance.put(`/ordenes/mover/${id_orden}`, {
+      area,
+      estado,
+      id_usuario,
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw error.response?.data;
+    } else {
+      throw new Error('Error inesperado');
+    }
+  }
+};

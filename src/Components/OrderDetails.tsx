@@ -8,6 +8,9 @@ import { ChevronLeft, ChevronRight, Copy, CreditCard, MoreVertical, Truck } from
 import { OrdenTrabajo } from "@/api/ordenTrabajoService";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/Components/ui/carousel";
 import { useNavigate } from "react-router-dom";
+import { ResponsiveDialog } from "./responsive-dialog";
+import MoveOrdenTrabajoForm from "./forms/ordenesTrabajo/mover-orden-form";
+import { toast } from 'sonner';
 
 interface OrderDetailsProps {
   order: OrdenTrabajo | null;
@@ -15,6 +18,7 @@ interface OrderDetailsProps {
 
 const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
   const navigate = useNavigate(); // Definir el hook useNavigate
+  const [isModalOpen, setIsModalOpen] = React.useState(false)
 
   const handleEditClick = () => {
     if (order) {
@@ -56,9 +60,20 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={handleEditClick} className="cursor-pointer">Editar</DropdownMenuItem>
-            <DropdownMenuItem>Export</DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => {
+                  if (order) {
+                    setIsModalOpen(true);
+                  } else {
+                    toast.warning("Por favor, selecciona una orden de trabajo primero");
+                  }
+                }}
+              >
+                Mover
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Descartar</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">Descartar</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -171,6 +186,14 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
           </PaginationContent>
         </Pagination>
       </CardFooter>
+      <ResponsiveDialog
+        isOpen={isModalOpen}
+        setIsOpen={setIsModalOpen}
+        title="Mover orden de trabajo"
+        description='Selecciona el área al que deseas mover la orden'
+      >
+          <MoveOrdenTrabajoForm  order={order} setIsOpen={setIsModalOpen}/>
+      </ResponsiveDialog>
     </Card>
   );
 };
