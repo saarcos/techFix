@@ -7,7 +7,7 @@ import { useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { getExistenciasByAlmacenId, updateExistencia } from '@/api/existenciasService';
 import { getAlmacenById } from '@/api/almacenesService';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faMinus, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -21,6 +21,7 @@ import { ResponsiveDialog } from '@/Components/responsive-dialog';
 import DeleteForm from '@/Components/forms/inventarios/inventario-delete-form';
 
 const Inventario = () => {
+    const navigate = useNavigate()
     const { id_almacen } = useParams();
     const almacenId = id_almacen ? parseInt(id_almacen, 10) : null;
     const dialogRef = useRef<HTMLButtonElement>(null);
@@ -218,6 +219,14 @@ const Inventario = () => {
                             </Table>
                         </div>
                         <div className="flex justify-end mt-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="mr-2"
+                                onClick={() => navigate('/taller/almacenes')}
+                            >
+                                Cancelar
+                            </Button>
                             <Button
                                 onClick={handleSaveChanges}
                                 className="bg-customGreen hover:bg-customGreenHovertext-white"

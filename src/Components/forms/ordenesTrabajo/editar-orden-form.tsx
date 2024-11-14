@@ -54,7 +54,16 @@ const formSchema = z.object({
         .transform((val) => (val ? parseFloat(val) : undefined))
         .optional(),
     archivos: z.any().optional(),
-});
+}).refine((data) => {
+    // Si el área es "Reparación" o "Salida", entonces `id_usuario` no debe ser null
+    if (data.area === 'Reparación' || data.area === 'Salida') {
+        return data.id_usuario && data.id_usuario > 0;
+    }
+    return true; // Para "Entrada" `id_usuario` puede ser null
+}, {
+    message: 'Técnico es requerido para el área de Reparación o Salida',
+    path: ['id_usuario'], // Especifica que el error es en `id_usuario`
+});;
 export default function OrdenTrabajoEditForm() {
     const { id } = useParams(); // Obtener el id desde la URL
     const id_orden = id ? parseInt(id, 10) : null; // Asegúrate de que id no sea undefined antes de convertirlo
@@ -64,6 +73,8 @@ export default function OrdenTrabajoEditForm() {
     const [selectedAccesorios, setSelectedAccesorios] = useState<Accesorio[]>([]);
     const [repairCount, setRepairCount] = useState<number | null>(null); // Para almacenar la cantidad de reparaciones
     const [totalOrden, setTotalOrden] = useState<number>(0);
+    const [areaSeleccionada, setAreaSeleccionada] = useState('Entrada'); // Valor inicial
+    const [tecnicoSeleccionado, setTecnicoSeleccionado] = useState<number | null>(null);
 
     // Consulta para obtener los datos de la orden de trabajo por ID
     const { data: ordenTrabajo, isLoading, isError } = useQuery({
@@ -131,8 +142,18 @@ export default function OrdenTrabajoEditForm() {
                 adelanto: ordenTrabajo.adelanto || undefined,
                 archivos: ordenTrabajo.imagenes || [],
             });
+            setAreaSeleccionada(ordenTrabajo.area); // Inicializar estado del área
+            setTecnicoSeleccionado(ordenTrabajo.id_usuario || null); // Inicializar estado del técnico
         }
     }, [ordenTrabajo, form]);
+    // Observa los cambios en el campo "area" y "id_usuario" en tiempo real
+    useEffect(() => {
+        const subscription = form.watch((value) => {
+            setAreaSeleccionada(value.area || "Entrada");
+            setTecnicoSeleccionado(value.id_usuario || 0);
+        });
+        return () => subscription.unsubscribe();
+    }, [form]);
 
     // Llama a la función countRepairs para obtener la cantidad de reparaciones
     useEffect(() => {
@@ -190,6 +211,10 @@ export default function OrdenTrabajoEditForm() {
     };
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        if (detallesSeleccionados.length === 0) {
+            toast.warning("Debes ingresar al menos un detalle antes de guardar.");
+            return;
+        }
         try {
             const imageUrls = [...existingImages]; // Incluir imágenes existentes
             for (const file of selectedImages) {
@@ -216,7 +241,7 @@ export default function OrdenTrabajoEditForm() {
 
             // Primero, actualizar la orden de trabajo
             await updateMutation.mutateAsync(ordenTrabajoData);
-            
+
 
             // Agrega los detalles después de actualizar la orden
             if (id_orden && detallesSeleccionados.length > 0) {
@@ -265,13 +290,7 @@ export default function OrdenTrabajoEditForm() {
         }
 
     }, [ordenTrabajo, accesoriosOrden]);
-
-    useEffect(() => {
-      console.log("Detalles: ", detallesSeleccionados)
-    }, [detallesSeleccionados])
-    
-
-
+    const isSubmitDisabled = (areaSeleccionada === 'Reparación' || areaSeleccionada === 'Salida' || detallesSeleccionados.length ===0) && !tecnicoSeleccionado;
     if (isLoading || isLoadingAccesorios || isLoadingDetalles) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
     if (isError) return <div>Error al cargar los datos</div>;
     return (
@@ -583,7 +602,9 @@ export default function OrdenTrabajoEditForm() {
                                     >
                                         Cancelar
                                     </Button>
-                                    <Button type="submit" className='bg-darkGreen hover:bg-darkGreen/50 text-white font-semibold'>
+                                    <Button type="submit"
+                                        className={`cursor-pointer bg-darkGreen hover:bg-darkGreen/50 text-white font-semibold ${isSubmitDisabled ? 'cursor-not-allowed' : ''}`}
+                                        disabled={isSubmitDisabled}>
                                         {form.formState.isSubmitting ? (
                                             <>
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

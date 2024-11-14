@@ -30,7 +30,10 @@ const productSchema = z.object({
   id_catprod: z.number().min(1, 'Categoría es requerida'),
   nombreProducto: z.string().min(1, 'Nombre del producto es requerido'),
   codigoProducto: z.string().min(1, 'Código del producto es requerido'),
-  precioSinIVA: z.number().min(1, 'El precio debe ser un número positivo mayor que cero'),
+  precioSinIVA: z.preprocess(
+    (value) => parseFloat(value as string),
+    z.number().min(1, 'El precio debe ser un número positivo mayor que cero')
+  ),
   iva: z.number().min(0, 'IVA es requerido'),
   precioFinal: z.number(),
 });
@@ -66,16 +69,18 @@ export default function ProductForm({ setIsOpen, categorias, productId, setIsAdd
     } as Product),
     enabled: !!productId,
   });
+  const precioSinIVA = useWatch({ control: form.control, name: 'precioSinIVA' });
+  const iva = useWatch({ control: form.control, name: 'iva' });
   useEffect(() => {
     if (producto) {
-      form.reset({
-        id_catprod: producto.id_catprod,
-        nombreProducto: producto.nombreProducto,
-        codigoProducto: producto.codigoProducto,
-        precioSinIVA: parseFloat(producto.precioSinIVA.toString()),  // Convertir a número
-        iva: parseFloat(producto.iva.toString()),  // Convertir a número
-        precioFinal: parseFloat(producto.precioFinal.toString()),  // Convertir a número
-      });
+      form.setValue('id_catprod', producto.id_catprod);
+      form.setValue('nombreProducto', producto.nombreProducto);
+      form.setValue('codigoProducto', producto.codigoProducto);
+      form.setValue('precioSinIVA', producto.precioSinIVA);
+      form.setValue('iva', producto.iva);
+      
+      const precioFinalCalculado = producto.precioSinIVA + (producto.precioSinIVA * (producto.iva / 100));
+      form.setValue('precioFinal', parseFloat(precioFinalCalculado.toFixed(2)));
     }
     if (isError) {
       console.error('Error fetching producto data:', error);
@@ -110,19 +115,25 @@ export default function ProductForm({ setIsOpen, categorias, productId, setIsAdd
     },
   });
 
-  const precioSinIVA = useWatch({ control: form.control, name: 'precioSinIVA' });
-  const iva = useWatch({ control: form.control, name: 'iva' });
+  
 
   useEffect(() => {
     const precioSinIVANum = typeof precioSinIVA === 'number' ? precioSinIVA : parseFloat(precioSinIVA) || 0;
     const ivaNum = typeof iva === 'number' ? iva : parseFloat(iva) || 0;
-  
-    // Solo realiza el cálculo si precioSinIVANum es mayor que 0 o si ivaNum es válido (incluyendo 0%)
+    
+    console.log("Precio Sin Iva: ", precioSinIVA)
+    console.log("Iva: ",iva)
     if (precioSinIVANum > 0 || ivaNum >= 0) {
       const nuevoPrecioFinal = precioSinIVANum + (precioSinIVANum * (ivaNum / 100));
       form.setValue('precioFinal', parseFloat(nuevoPrecioFinal.toFixed(2)));
     }
   }, [precioSinIVA, iva, form]);
+  const handleBlur = () => {
+    const currentPrice = form.getValues('precioSinIVA');
+    if (!currentPrice || isNaN(currentPrice) || currentPrice < 0) {
+        form.setValue('precioSinIVA', 1);
+    }
+  };
 
   const isLoading = form.formState.isSubmitting;
 
@@ -250,7 +261,7 @@ export default function ProductForm({ setIsOpen, categorias, productId, setIsAdd
                         type="number"
                         placeholder="Ingrese el precio sin IVA"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onBlur={handleBlur}
                       />
                     </div>
                   </FormControl>

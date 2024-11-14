@@ -107,7 +107,7 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
   useEffect(() => {
     const preciosinivaNum = typeof preciosiniva === 'number' ? preciosiniva : parseFloat(preciosiniva) || 0;
     const ivaNum = typeof iva === 'number' ? iva : parseFloat(iva) || 0;
-  
+
     if (preciosinivaNum > 0 || ivaNum >= 0) {
       const nuevoPrecioFinal = preciosinivaNum + (preciosinivaNum * (ivaNum / 100));
       form.setValue('preciofinal', parseFloat(nuevoPrecioFinal.toFixed(2)));
@@ -196,91 +196,89 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
             </FormItem>
           )}
         />
-
-        {/* Precio sin IVA */}
-        <FormField
-          name="preciosiniva"
-          control={form.control}
-          render={({ field }) => (
-            <FormItem className="col-span-2">
-              <FormLabel htmlFor="preciosiniva">
-                Precio sin IVA <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormControl>
-                <div className="flex items-center">
-                  <span className="mr-2 text-customGray">$</span>
-                  <Input
-                    id="preciosiniva"
-                    type="number"
-                    placeholder="Ingrese el precio sin IVA"
-                    {...field}
-                    value={field.value || ''}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-              </FormControl>
-              <FormMessage className="text-left text-sm text-red-500" />
-            </FormItem>
-          )}
-        />
-
-        {/* IVA */}
-        <FormField
-          name="iva"
-          control={form.control}
-          render={({ field }) => (
-            <FormItem className="col-span-1">
-              <FormLabel htmlFor="iva">
-                IVA (%) <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormControl>
-                <select
-                  id="iva"
-                  className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-customGray shadow-sm cursor-pointer"
-                  {...field}
-                  value={field.value.toString()}
-                  onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
-                  disabled={isServiceLoading}
-                >
-                  <option value="0">0%</option>
-                  <option value="10">10%</option>
-                  <option value="12">12%</option>
-                  <option value="15">15%</option>
-                  <option value="21">21%</option>
-                  <option value="27">27%</option>
-                </select>
-              </FormControl>
-              <FormMessage className="text-left text-sm text-red-500" />
-            </FormItem>
-          )}
-        />
-
-        {/* Precio Final */}
-        <FormField
-          name="preciofinal"
-          control={form.control}
-          render={({ field }) => (
-            <FormItem className="col-span-2">
-              <FormLabel htmlFor="preciofinal">
-                Precio Final <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormControl>
-                <div className="flex items-center">
-                  <span className="mr-2 text-customGray">$</span>
-                  <Input
-                    id="preciofinal"
-                    type="number"
-                    value={field.value}
-                    readOnly
-                    className="text-black"
-                  />
-                </div>
-              </FormControl>
-              <FormMessage className="text-left text-sm text-red-500" />
-            </FormItem>
-          )}
-        />
-
+        <div className='col-span-2'>
+          <h2 className="text-lg font-semibold mb-4">Datos económicos</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              name="preciosiniva"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem className="col-span-1">
+                  <FormLabel htmlFor="preciosiniva">
+                    Precio sin IVA <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <div className="flex items-center">
+                      <span className="mr-2 text-customGray">$</span>
+                      <Input
+                        id="preciosiniva"
+                        type="number"
+                        placeholder="Ingrese el precio sin IVA"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-left text-sm text-red-500" />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="iva"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem className="col-span-1">
+                  <FormLabel htmlFor="iva">
+                    IVA (%) <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <select
+                      id="iva"
+                      className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-customGray shadow-sm cursor-pointer"
+                      {...field}
+                      value={field.value.toString()}
+                      onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+                      disabled={isServiceLoading}
+                    >
+                      <option value="0">0%</option>
+                      <option value="10">10%</option>
+                      <option value="12">12%</option>
+                      <option value="15">15%</option>
+                      <option value="21">21%</option>
+                      <option value="27">27%</option>
+                    </select>
+                  </FormControl>
+                  <FormMessage className="text-left text-sm text-red-500" />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="preciofinal"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem className="col-span-1">
+                  <FormLabel htmlFor="preciofinal">
+                    Precio Final <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <div className="flex items-center">
+                      <span className="mr-2 text-customGray">$</span>
+                      <Input
+                        id="preciofinal"
+                        type="number"
+                        value={field.value}
+                        readOnly
+                        className="text-black"
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-left text-sm text-red-500" />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
         {/* Botón para guardar el servicio */}
         <div className="col-span-2 flex justify-end">
           <Button type="submit" disabled={isLoading || isServiceLoading} className="bg-customGreen text-white hover:bg-customGreenHover">

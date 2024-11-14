@@ -85,7 +85,6 @@ export default function OrdenTrabajoTabs({
     const updatedDetalles = detalles.map((detalle) =>
       detalle.id_detalle === id_detalle ? { ...detalle, id_usuario } : detalle
     );
-    console.log(id_usuario)
     onDetallesChange(updatedDetalles);
   };
 

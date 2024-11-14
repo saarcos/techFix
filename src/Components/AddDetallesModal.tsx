@@ -194,7 +194,7 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
           className="bg-customGreen ml-2 text-black hover:bg-customGreenHover"
           disabled={!selectedProduct && !selectedService} // Deshabilitar si no hay producto o servicio seleccionado
         >
-          Agregar Detalles
+          Agregar Detalle
         </Button>
       </div>
     </ResponsiveDialogExtended>
