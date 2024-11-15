@@ -50,6 +50,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           <ServiceCategoryForm setIsOpen={setIsEditOpen} setIsAddingCategory={setIsAddingCategory} />
         ) : (
           <ServiceForm
+            key={serviceId || "new"}
             serviceId={serviceId}
             setIsOpen={setIsEditOpen}
             categorias={serviceCategories}

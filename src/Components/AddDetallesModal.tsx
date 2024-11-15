@@ -28,7 +28,7 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
     queryFn: getServices,
   });
 
-  const [selectedProduct, setSelectedProduct] = useState<{ producto: Product; cantidad: number; precio: number } | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<{ producto: Product; cantidad: number | ''; precio: number } | null>(null);
   const [selectedService, setSelectedService] = useState<{ servicio: Service; precio: number } | null>(null);
 
   const addProduct = (id_producto: number) => {
@@ -45,9 +45,10 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
     }
   };
 
-  const updateProductQuantity = (cantidad: number) => {
+  const updateProductQuantity = (cantidad: number | '') => {
     if (selectedProduct) {
-      setSelectedProduct({ ...selectedProduct, cantidad });
+        const validatedCantidad = cantidad === '' || isNaN(cantidad) ? '' : cantidad;
+        setSelectedProduct({ ...selectedProduct, cantidad: validatedCantidad });
     }
   };
 
@@ -56,7 +57,7 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
       onAddDetalle({
         producto: selectedProduct ? selectedProduct.producto : undefined,
         servicio: selectedService ? selectedService.servicio : undefined,
-        cantidad: selectedProduct ? selectedProduct.cantidad : undefined,
+        cantidad: selectedProduct ? (selectedProduct.cantidad === '' ? 1 : selectedProduct.cantidad) : undefined, // Usa 1 si cantidad está vacío
         precioproducto: selectedProduct ? selectedProduct.precio : undefined,
         precioservicio: selectedService ? selectedService.precio : undefined,
       });
@@ -106,7 +107,11 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
                 <div className="flex items-center gap-2">
                   <Button
                     type="button"
-                    onClick={() => updateProductQuantity(Math.max(1, selectedProduct.cantidad - 1))}
+                    onClick={() =>
+                      updateProductQuantity(
+                        Math.max(1, (typeof selectedProduct.cantidad === 'number' ? selectedProduct.cantidad : 1) - 1)
+                      )
+                    }
                     className="h-8 w-8 bg-customGreen hover:bg-customGreenHover rounded-full text-black"
                   >
                     <FontAwesomeIcon icon={faMinus} />
@@ -117,10 +122,19 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
                     onChange={(e) => updateProductQuantity(parseInt(e.target.value))}
                     min={1}
                     className="w-16 text-center"
+                    onBlur={(e) => {
+                      if (e.target.value === '') {
+                        updateProductQuantity(1);
+                      }
+                    }}
                   />
                   <Button
                     type="button"
-                    onClick={() => updateProductQuantity(selectedProduct.cantidad + 1)}
+                    onClick={() =>
+                      updateProductQuantity(
+                        (typeof selectedProduct.cantidad === 'number' ? selectedProduct.cantidad : 0) + 1
+                      )
+                    }
                     className="h-8 w-8 bg-customGreen hover:bg-customGreenHover rounded-full text-black"
                   >
                     <FontAwesomeIcon icon={faPlus} />

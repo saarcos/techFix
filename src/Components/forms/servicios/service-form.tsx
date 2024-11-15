@@ -23,7 +23,10 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 const serviceSchema = z.object({
   id_catserv: z.number().min(1, 'Categoría de servicio es requerida'),
   nombre: z.string().min(1, 'Nombre es requerido'),
-  preciosiniva: z.number().min(0, 'El precio sin IVA debe ser un número positivo'),
+  preciosiniva: z.preprocess(
+    (value) => parseFloat(value as string),
+    z.number().min(1, 'El precio debe ser un número positivo mayor que cero')
+  ),
   iva: z.number().min(0, 'IVA es requerido'),
   preciofinal: z.number(),
 });
@@ -59,15 +62,17 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
     } as Service),
     enabled: !!serviceId,
   });
+  const preciosiniva = useWatch({ control: form.control, name: 'preciosiniva' });
+  const iva = useWatch({ control: form.control, name: 'iva' });
 
   useEffect(() => {
     if (service) {
       form.reset({
         id_catserv: service.id_catserv,
         nombre: service.nombre,
-        preciosiniva: parseFloat(service.preciosiniva.toString()),  // Convertir a número
-        iva: parseFloat(service.iva.toString()),  // Convertir a número
-        preciofinal: parseFloat(service.preciofinal.toString()),  // Convertir a número
+        preciosiniva: service.preciosiniva,  
+        iva: service.iva,  
+        preciofinal: service.preciofinal,  
       });
     }
     if (isError) {
@@ -101,9 +106,7 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
     },
   });
 
-  const preciosiniva = useWatch({ control: form.control, name: 'preciosiniva' });
-  const iva = useWatch({ control: form.control, name: 'iva' });
-
+ 
   useEffect(() => {
     const preciosinivaNum = typeof preciosiniva === 'number' ? preciosiniva : parseFloat(preciosiniva) || 0;
     const ivaNum = typeof iva === 'number' ? iva : parseFloat(iva) || 0;
@@ -113,6 +116,12 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
       form.setValue('preciofinal', parseFloat(nuevoPrecioFinal.toFixed(2)));
     }
   }, [preciosiniva, iva, form]);
+  const handleBlur = () => {
+    const currentPrice = form.getValues('preciosiniva');
+    if (!currentPrice || isNaN(currentPrice) || currentPrice < 0) {
+        form.setValue('preciosiniva', 1);
+    }
+  };
 
   const isLoading = form.formState.isSubmitting;
 
@@ -215,8 +224,8 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
                         type="number"
                         placeholder="Ingrese el precio sin IVA"
                         {...field}
-                        value={field.value || ''}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        value={field.value || ""}
+                        onBlur={handleBlur}
                       />
                     </div>
                   </FormControl>
@@ -262,14 +271,17 @@ export default function ServiceForm({ serviceId, setIsOpen, categorias, setIsAdd
                     Precio Final <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
-                    <div className="flex items-center">
-                      <span className="mr-2 text-customGray">$</span>
+                    <div
+                      className={`flex items-center ${field.value > 0 ? "text-black" : "text-gray-400"
+                        }`}
+                    >
+                      <span className={`mr-2 ${field.value > 0 ? "text-black" : "text-gray-400"}`}>$</span>
                       <Input
                         id="preciofinal"
                         type="number"
                         value={field.value}
                         readOnly
-                        className="text-black"
+                        className={field.value > 0 ? "text-black" : "text-gray-400"}
                       />
                     </div>
                   </FormControl>

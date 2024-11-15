@@ -50,6 +50,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
                 <ProductCategoryForm setIsOpen={setIsEditOpen} setIsAddingCategory={setIsAddingCategory} />
               ) : (
                 <ProductForm
+                  key={productId || "new"}
                   productId={productId}
                   setIsOpen={setIsEditOpen}
                   categorias={productCategories}

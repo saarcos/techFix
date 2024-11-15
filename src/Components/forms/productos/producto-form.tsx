@@ -73,14 +73,14 @@ export default function ProductForm({ setIsOpen, categorias, productId, setIsAdd
   const iva = useWatch({ control: form.control, name: 'iva' });
   useEffect(() => {
     if (producto) {
-      form.setValue('id_catprod', producto.id_catprod);
-      form.setValue('nombreProducto', producto.nombreProducto);
-      form.setValue('codigoProducto', producto.codigoProducto);
-      form.setValue('precioSinIVA', producto.precioSinIVA);
-      form.setValue('iva', producto.iva);
-      
-      const precioFinalCalculado = producto.precioSinIVA + (producto.precioSinIVA * (producto.iva / 100));
-      form.setValue('precioFinal', parseFloat(precioFinalCalculado.toFixed(2)));
+      form.reset({
+        id_catprod: producto.id_catprod,
+        nombreProducto: producto.nombreProducto,
+        codigoProducto: producto.codigoProducto,
+        precioSinIVA: producto.precioSinIVA,
+        iva: producto.iva,
+        precioFinal: producto.precioFinal
+      })
     }
     if (isError) {
       console.error('Error fetching producto data:', error);
@@ -121,13 +121,12 @@ export default function ProductForm({ setIsOpen, categorias, productId, setIsAdd
     const precioSinIVANum = typeof precioSinIVA === 'number' ? precioSinIVA : parseFloat(precioSinIVA) || 0;
     const ivaNum = typeof iva === 'number' ? iva : parseFloat(iva) || 0;
     
-    console.log("Precio Sin Iva: ", precioSinIVA)
-    console.log("Iva: ",iva)
     if (precioSinIVANum > 0 || ivaNum >= 0) {
       const nuevoPrecioFinal = precioSinIVANum + (precioSinIVANum * (ivaNum / 100));
       form.setValue('precioFinal', parseFloat(nuevoPrecioFinal.toFixed(2)));
     }
   }, [precioSinIVA, iva, form]);
+
   const handleBlur = () => {
     const currentPrice = form.getValues('precioSinIVA');
     if (!currentPrice || isNaN(currentPrice) || currentPrice < 0) {
@@ -261,6 +260,7 @@ export default function ProductForm({ setIsOpen, categorias, productId, setIsAdd
                         type="number"
                         placeholder="Ingrese el precio sin IVA"
                         {...field}
+                        value={field.value || ""}
                         onBlur={handleBlur}
                       />
                     </div>

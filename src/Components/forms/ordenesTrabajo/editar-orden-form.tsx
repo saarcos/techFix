@@ -63,7 +63,7 @@ const formSchema = z.object({
 }, {
     message: 'Técnico es requerido para el área de Reparación o Salida',
     path: ['id_usuario'], // Especifica que el error es en `id_usuario`
-});;
+});
 export default function OrdenTrabajoEditForm() {
     const { id } = useParams(); // Obtener el id desde la URL
     const id_orden = id ? parseInt(id, 10) : null; // Asegúrate de que id no sea undefined antes de convertirlo
@@ -290,7 +290,7 @@ export default function OrdenTrabajoEditForm() {
         }
 
     }, [ordenTrabajo, accesoriosOrden]);
-    const isSubmitDisabled = (areaSeleccionada === 'Reparación' || areaSeleccionada === 'Salida' || detallesSeleccionados.length ===0) && !tecnicoSeleccionado;
+    const isSubmitDisabled = (areaSeleccionada === 'Reparación' || areaSeleccionada === 'Salida' ) && !tecnicoSeleccionado;
     if (isLoading || isLoadingAccesorios || isLoadingDetalles) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
     if (isError) return <div>Error al cargar los datos</div>;
     return (

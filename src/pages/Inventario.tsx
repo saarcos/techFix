@@ -31,7 +31,7 @@ const Inventario = () => {
     const [isDeletingExistencia, setIsDeletingExistencia] = useState(false);
     const [selectedExistenciaId, setSelectedExistenciaId] = useState<number | null>(null); // Define el ID seleccionado
     const queryClient = useQueryClient();
-    const [editedStock, setEditedStock] = useState<{ [key: number]: number }>({});
+    const [editedStock, setEditedStock] = useState<{ [key: number]: number | '' }>({});
 
     const { data: existencias, isLoading, isError } = useQuery({
         queryKey: ['existencias', almacenId],
@@ -59,9 +59,8 @@ const Inventario = () => {
         },
     });
 
-    const handleStockChange = (id_existencias: number, cantidad: number) => {
-        const validatedCantidad = isNaN(cantidad) || cantidad < 0 ? 0 : cantidad;
-        setEditedStock((prev) => ({ ...prev, [id_existencias]: validatedCantidad }));
+    const handleStockChange = (id_existencias: number, cantidad: number | '') => {
+        setEditedStock((prev) => ({ ...prev, [id_existencias]: cantidad }));
     };
 
 
@@ -77,12 +76,14 @@ const Inventario = () => {
         if (existencias) {
             existencias.forEach((existencia) => {
                 const newCantidad = editedStock[existencia.id_existencias];
-                if (newCantidad !== undefined && newCantidad !== existencia.cantidad) {
+                const validatedCantidad = typeof newCantidad === 'number' && newCantidad >= 0 ? newCantidad : existencia.cantidad;
+
+                if (validatedCantidad !== existencia.cantidad) {
                     mutation.mutate({
                         id_existencias: existencia.id_existencias,
                         id_almacen: existencia.id_almacen,
                         id_producto: existencia.id_producto,
-                        cantidad: newCantidad,
+                        cantidad: validatedCantidad,
                     });
                 }
             });
@@ -93,7 +94,7 @@ const Inventario = () => {
         setSelectedExistenciaId(id_existencias);
         setIsDeletingExistencia(true);
     };
-    
+
     if (isLoading || isAlmacenLoading) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
     if (isError) return toast.error('Error al recuperar los datos');
 
@@ -109,14 +110,14 @@ const Inventario = () => {
                     </CardHeader>
                     <CardContent>
                         <ResponsiveDialogExtended
-                           isOpen={isCreateOpen}
-                           setIsOpen={(open) => {
-                            setIsCreateOpen(open);
-                            if (!open) {
-                                setIsAddingProduct(false);
-                                setIsAddingCategory(false);
-                            }
-                        }}
+                            isOpen={isCreateOpen}
+                            setIsOpen={(open) => {
+                                setIsCreateOpen(open);
+                                if (!open) {
+                                    setIsAddingProduct(false);
+                                    setIsAddingCategory(false);
+                                }
+                            }}
                             title={isAddingCategory ? "Nueva categoría de producto" : isAddingProduct ? "Nuevo producto" : "Agregar producto"}
                             description={isAddingCategory ? "Por favor, ingrese la información de la nueva categoría" : "Por favor, ingresa la información solicitada"}
                         >
@@ -182,7 +183,11 @@ const Inventario = () => {
                                                     <div className="flex items-center gap-2">
                                                         <Button
                                                             type="button"
-                                                            onClick={() => decrementStock(existencia.id_existencias, editedStock[existencia.id_existencias] ?? existencia.cantidad)}
+                                                            onClick={() => {
+                                                                const quantity = editedStock[existencia.id_existencias];
+                                                                const currentQuantity = typeof quantity === 'number' ? quantity : existencia.cantidad;
+                                                                decrementStock(existencia.id_existencias, currentQuantity as number);
+                                                            }}
                                                             className="h-8 w-8 bg-customGreen hover:bg-customGreenHover rounded-full text-black"
                                                         >
                                                             <FontAwesomeIcon icon={faMinus} />
@@ -191,12 +196,25 @@ const Inventario = () => {
                                                             type="number"
                                                             min={0}
                                                             value={editedStock[existencia.id_existencias] ?? existencia.cantidad}
-                                                            onChange={(e) => handleStockChange(existencia.id_existencias, parseInt(e.target.value, 10) || 0)}
+                                                            onChange={(e) => {
+                                                                const value = e.target.value === '' ? '' : parseInt(e.target.value, 10);
+                                                                handleStockChange(existencia.id_existencias, value);
+                                                            }}
+                                                            onBlur={(e) => {
+                                                                if (e.target.value === '') {
+                                                                    handleStockChange(existencia.id_existencias, 0);
+                                                                }
+                                                            }}
                                                             className="w-16 text-center"
+
                                                         />
                                                         <Button
                                                             type="button"
-                                                            onClick={() => incrementStock(existencia.id_existencias, editedStock[existencia.id_existencias] ?? existencia.cantidad)}
+                                                            onClick={() => {
+                                                                const quantity = editedStock[existencia.id_existencias];
+                                                                const currentQuantity = typeof quantity === 'number' ? quantity : existencia.cantidad;
+                                                                incrementStock(existencia.id_existencias, currentQuantity as number);
+                                                            }}
                                                             className="h-8 w-8 bg-customGreen hover:bg-customGreenHover rounded-full text-black"
                                                         >
                                                             <FontAwesomeIcon icon={faPlus} />
