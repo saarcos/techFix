@@ -59,6 +59,7 @@ const LoginForm = () => {
                 className='w-full border-2 border-black rounded-xl p-4 mt-1 bg-white'
                 placeholder='Ingresa tu correo electrónico'
                 type='email'
+                autoComplete="username" 
                 {...formik.getFieldProps('email')}
               />
               {formik.touched.email && formik.errors.email ? (
@@ -68,10 +69,11 @@ const LoginForm = () => {
             <div className='relative'>
               <label className='text-lg font-medium text-white'>Contraseña</label>
               <input
-                className='w-full border-2 border-black rounded-xl p-4 mt-1 bg-white pr-10' // Espacio a la derecha para el ícono
-                placeholder='************'
-                type={showPassword ? 'text' : 'password'} // Cambia el tipo según el estado
-                {...formik.getFieldProps('password')}
+                className="w-full border-2 border-black rounded-xl p-4 mt-1 bg-white pr-10"
+                placeholder="************"
+                type={showPassword ? "text" : "password"} // Cambia el tipo según el estado
+                autoComplete="current-password" // Atributo añadido para resolver el error
+                {...formik.getFieldProps("password")}
               />
               <span
                 onClick={() => setShowPassword(!showPassword)} // Cambia el estado al hacer clic

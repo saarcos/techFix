@@ -65,7 +65,7 @@ export default function BrandModelForm({ setIsOpen, setIsAddingBrand }: BrandMod
     mutationFn: createModel,
     onSuccess:()=>{
       queryClient.invalidateQueries({ queryKey: ['models'] });
-      toast.success('Modelo creadi exitosamente');
+      toast.success('Modelo creado exitosamente');
       setIsAddingBrand(false);
     },
     onError: (error) => {

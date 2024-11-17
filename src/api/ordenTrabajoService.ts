@@ -102,6 +102,18 @@ export interface OrdenTrabajoUpdate {
   imagenes?: string[]; 
 }
 
+// Método para recuperar las métricas de ganancias semanales y mensuales
+export interface OrdenesMetrics {
+  weekly: {
+    earnings: number;
+    change: number;
+  };
+  monthly: {
+    earnings: number;
+    change: number;
+  };
+}
+
 
 // Método para recuperar todas las órdenes de trabajo
 export const getOrdenesTrabajo = async (): Promise<OrdenTrabajo[]> => {
@@ -174,6 +186,18 @@ export const moveOrdenTrabajo = async (id_orden: number, area: string, estado: s
       throw error.response?.data;
     } else {
       throw new Error('Error inesperado');
+    }
+  }
+};
+export const getOrdenesMetrics = async (): Promise<OrdenesMetrics> => {
+  try {
+    const response: AxiosResponse<OrdenesMetrics> = await axiosInstance.get<OrdenesMetrics>('/ordenes/metrics');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw error.response?.data; // Manejo de errores específicos de Axios
+    } else {
+      throw new Error('Error inesperado'); // Otro tipo de errores
     }
   }
 };

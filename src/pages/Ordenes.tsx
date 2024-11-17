@@ -1,9 +1,8 @@
-import { getOrdenesTrabajo, OrdenTrabajo } from "@/api/ordenTrabajoService";
+import { getOrdenesMetrics, getOrdenesTrabajo, OrdenesMetrics, OrdenTrabajo } from "@/api/ordenTrabajoService";
 import OrderDetails from "@/Components/OrderDetails";
 import { Button } from "@/Components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/Components/ui/card";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/Components/ui/dropdown-menu";
-import { Progress } from "@/Components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 import OrdenesTable from "@/tables/ordenesTrabajo/ordenes-table";
 import { useQuery } from "@tanstack/react-query";
@@ -12,6 +11,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Spinner from '../assets/tube-spinner.svg';
+import CardSummary from "@/Components/CardSummary";
 
 // Define el tipo para el estado de las órdenes
 interface OrdenesPorArea {
@@ -29,13 +29,16 @@ const Ordenes = ({ ordenesProp }: OrdenesProps) => {
     queryFn: getOrdenesTrabajo,
     enabled: !ordenesProp,
   });
+  const { data: metrics, isLoading: areMetricsLoading } = useQuery<OrdenesMetrics>({
+    queryKey: ['ordenesMetrics'], // Clave única para esta consulta
+    queryFn: getOrdenesMetrics,
+  });
 
   // Usar las órdenes de `ordenesProp` si están definidas, de lo contrario usar las de la consulta `getOrdenesTrabajo`
   const ordenesData = ordenesProp || ordenes;
 
-
   // Si está cargando, muestra el spinner
-  if (isLoading && !ordenesProp) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
+  if (isLoading || areMetricsLoading && !ordenesProp) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
 
   // Si hay un error, muestra un mensaje
   if (error) return toast.error('Error al recuperar los datos');
@@ -64,11 +67,11 @@ const Ordenes = ({ ordenesProp }: OrdenesProps) => {
     <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3 mt-3">
       <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
-          <Card className="sm:col-span-2" x-chunk="dashboard-05-chunk-0">
+          <Card className="sm:col-span-2 transition-transform hover:scale-[1.02] cursor-pointer" x-chunk="dashboard-05-chunk-0">
             <CardHeader className="pb-3">
-              <CardTitle>Tus órdenes de trabajo</CardTitle>
+              <CardTitle className="text-3xl font-semibold">Tus órdenes de trabajo</CardTitle>
               <CardDescription className="text-balance max-w-lg leading-relaxed">
-                Administra y controla las órdenes de trabajo para los equipos ingresados al taller para darles un seguimiento preciso durante el proceso de reparación.
+                Administra y controla las órdenes de trabajo para los equipos ingresados al taller, para darles un seguimiento preciso durante el proceso de reparación.
               </CardDescription>
             </CardHeader>
             <CardFooter>
@@ -80,34 +83,24 @@ const Ordenes = ({ ordenesProp }: OrdenesProps) => {
               </Button>
             </CardFooter>
           </Card>
-          <Card x-chunk="dashboard-05-chunk-1">
-            <CardHeader className="pb-2">
-              <CardDescription>This Week</CardDescription>
-              <CardTitle className="text-4xl">$1,329</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xs text-muted-foreground">
-                +25% from last week
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Progress value={25} aria-label="25% increase" />
-            </CardFooter>
-          </Card>
-          <Card x-chunk="dashboard-05-chunk-2">
-            <CardHeader className="pb-2">
-              <CardDescription>This Month</CardDescription>
-              <CardTitle className="text-4xl">$5,329</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xs text-muted-foreground">
-                +10% from last month
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Progress value={12} aria-label="12% increase" />
-            </CardFooter>
-          </Card>
+          {metrics &&(
+            <>
+              <CardSummary
+                description="Esta semana"
+                earnings={metrics.weekly.earnings}
+                percentage={metrics.weekly.change}
+                content="que la semana anterior"
+                className="dashboard-05-chunk-1"
+              />
+              <CardSummary
+                description="Este mes"
+                earnings={metrics.monthly.earnings}
+                percentage={metrics.monthly.change}
+                content="que el mes anterior."
+                className="dashboard-05-chunk-2"
+              />
+            </>
+          )}
         </div>
         <Tabs defaultValue={ordenTabs[0]}>
           <div className="flex items-center">

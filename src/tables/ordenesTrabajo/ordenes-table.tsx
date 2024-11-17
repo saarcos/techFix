@@ -52,7 +52,7 @@ const OrdenesTable = ({ onSelectOrder, ordenes, selectedOrder }: OrdenesTablePro
                 <TableCell className="hidden sm:table-cell">
                   <Badge
                     className={`text-xs ${orden.prioridad === "Alta"
-                      ? "bg-[#FF5733] text-white" // Color rojo para "Alta"
+                      ? "bg-red-500 text-white" // Color rojo para "Alta"
                       : orden.prioridad === "Normal"
                         ? "bg-[#00E599] text-black hover:bg-customGreenHover" // customGreen para "Normal"
                         : "bg-[#1E293B] text-white" // customGray para "Baja"
