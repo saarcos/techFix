@@ -3,101 +3,111 @@ import CardHome from "@/Components/CardHome";
 import BarChartComponent from "@/Components/charts/barChart";
 import TechnicianPerformanceChart from "@/Components/charts/pieChart";
 import ProductStockChart from "@/Components/charts/stackedBarChart";
+import { useClientesMetrics, useGlobalOrdenesMetrics, useMonthlyEarnings, useOrdenesMetrics, useRecentOrdersMetrics, useRecurrentClientesMetrics, useTechnicianPerformance, useTopProducts } from "@/Components/hooks/metricasDashboard";
 import SalesCard from "@/Components/SalesCard";
+import Spinner from "../assets/tube-spinner.svg";
 import { CardContent } from "@/Components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/Components/ui/tooltip";
-import { Activity, Calendar, CreditCard, DollarSign, Info, Users } from "lucide-react";
+import { Activity, Calendar, CreditCard, DollarSign, HandCoinsIcon, Info, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Home = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const currentMonth = new Date().toLocaleDateString("es-ES", {
+    month: "long",
+  });
+  const { data, isLoading, isError } = useOrdenesMetrics();
+  const { data: metricasGlobales, isLoading: areGlobalMetricsLoading, isError: globalMetricsError } = useGlobalOrdenesMetrics();
+  const { data: clientesMetrics, isLoading: areClientesMetricsLoading, isError: clientesMetricsError } = useClientesMetrics();
+  const { data: recurrentClientsMetrics, isLoading: areRecurrentClientsLoading, isError: recurrentClientsError } = useRecurrentClientesMetrics();
+  const { data: recentOrders, isLoading: areRecentOrdersLoading, isError: recentOrdersError } = useRecentOrdersMetrics();
+  const { data: monthlyEarningsData, isLoading: isMonthlyEarningsLoading, isError: monthlyEarningsError } = useMonthlyEarnings();
+  const { data: technicianPerformanceData, isLoading: isTechnicianPerformanceLoading, isError: technicianPerformanceError } = useTechnicianPerformance();
+  const { data: topProductsData, isLoading: isTopProductsLoading, isError: isTopProductsError } = useTopProducts();
+
+  const monthly = data?.monthly ?? { earnings: 0, change: 0 };
+  const totalRecaudado = metricasGlobales?.totalRecaudado ?? 0;
+  const totalOrdenes = metricasGlobales?.totalOrdenes ?? 0;
+  const newClients = clientesMetrics?.newClients ?? 0;
+  const percentageChange = clientesMetrics?.percentageChange ?? 0;
+  const recurrentClients = recurrentClientsMetrics?.recurrentClients ?? 0;
+  const percentageRecurrent = recurrentClientsMetrics?.percentageRecurrent ?? 0;
+  // Verifica si hay datos de ganancias mensuales
+  const firstMonth = monthlyEarningsData?.[0]?.month_label || "";
+  const lastMonth = monthlyEarningsData?.[monthlyEarningsData.length - 1]?.month_label || "";
+  // Descripción dinámica basada en los datos
+  const description = `Ganancias desde ${firstMonth} a ${lastMonth}`;
+  const footerText = `Muestra las ganancias totales de ${firstMonth} a ${lastMonth}`;
   const cardData = [
     {
-      label: "Total Revenue",
-      amount: 45231.89,
-      percentage: 20.1,
-      description: "from last month",
-      icon: DollarSign,
+      label: "Total Recaudado",
+      amount: totalRecaudado,
+      secondaryLabel: "Órdenes procesadas en total",
+      secondaryValue: totalOrdenes,
+      secondaryIcon: CreditCard, // Representa transacciones y órdenes procesadas
+      description: "Total en ingresos",
+      icon: DollarSign, // Representa dinero recaudado
+      showProgress: false,
     },
     {
-      label: "Subscriptions",
-      amount: 2350,
-      percentage: -5,
-      description: "from last month",
-      icon: Users,
+      label: `Ingresos Mensuales (${currentMonth})`, // Incluye el mes actual
+      amount: monthly.earnings,
+      percentage: monthly.change,
+      description: "respecto al mes pasado",
+      icon: HandCoinsIcon,
+      showProgress: true,
     },
     {
-      label: "Sales",
-      amount: 12234,
-      percentage: 19,
-      description: "from last month",
-      icon: CreditCard,
+      label: `Nuevos Clientes (${currentMonth})`,
+      amount: newClients,
+      percentage: percentageChange,
+      description: "respecto al mes anterior",
+      icon: Users, // Representa usuarios o clientes
+      showProgress: true,
+      isCurrency: false,
     },
     {
-      label: "Active Now",
-      amount: 573,
-      percentage: -10,
-      description: "since last hour",
-      icon: Activity,
+      label: `Clientes Recurrentes`,
+      amount: recurrentClients,
+      percentage: percentageRecurrent,
+      description: "de clientes han vuelto al taller.",
+      icon: Activity, // Representa actividad continua
+      showProgress: true,
+      isCurrency: false,
     },
   ];
 
-  const customersSalesData = [
-    {
-      name: "Olivia Martin",
-      email: "olivia.martin@email.com",
-      saleAmount: 1999.0,
-    },
-    {
-      name: "Jackson Lee",
-      email: "jackson.lee@email.com",
-      saleAmount: 1999.0,
-    },
-    {
-      name: "Isabella Nguyen",
-      email: "isabella.nguyen@email.com",
-      saleAmount: 39.0,
-    },
-    {
-      name: "William Kim",
-      email: "will@email.com",
-      saleAmount: 299.0,
-    },
-    {
-      name: "Sofia Davis",
-      email: "sofia.davis@email.com",
-      saleAmount: 39.0,
-    },
-  ];
+  const barChartData = monthlyEarningsData?.map((item) => ({
+    month: item.month_label,
+    value: item.total_earnings,
+  })) || [];
 
-  const testData = [
-    { month: "January", value: 186 },
-    { month: "February", value: 305 },
-    { month: "March", value: 237 },
-    { month: "April", value: 73 },
-    { month: "May", value: 209 },
-    { month: "June", value: 214 },
-  ];
+  const technicianData = technicianPerformanceData?.map((item) => ({
+    technician: item.technician_name,
+    revenue: parseFloat(item.total_revenue), // Asegura que sea un número
+  })) || [];
 
-  const technicianData = [
-    { technician: "John Doe", revenue: 1500 },
-    { technician: "Jane Smith", revenue: 2000 },
-    { technician: "Sam Lee", revenue: 1000 },
-    { technician: "Emma Wilson", revenue: 1800 },
-    { technician: "Jack Taylor", revenue: 900 },
-  ];
-  const productData = [
-    { product: "Cargador", stock: 50, used: 30 },
-    { product: "Batería", stock: 20, used: 40 },
-    { product: "Pantalla", stock: 10, used: 25 },
-    { product: "Teclado", stock: 35, used: 10 },
-    { product: "Mouse", stock: 45, used: 15 },
-  ];
+  const productData = topProductsData?.map((item) => ({
+    product: item.product,
+    stock: item.stock,
+    used: item.used,
+  })) || [];
+  
+  if (isLoading || areGlobalMetricsLoading || areClientesMetricsLoading || areRecurrentClientsLoading || areRecentOrdersLoading || isMonthlyEarningsLoading || isTechnicianPerformanceLoading || isTopProductsLoading)
+    return (
+      <div className="flex justify-center items-center h-28">
+        <img src={Spinner} className="w-16 h-16" />
+      </div>
+    );
+
+  if (isError || globalMetricsError || clientesMetricsError || recurrentClientsError || recentOrdersError || monthlyEarningsError || technicianPerformanceError || isTopProductsError)
+    return toast.error("Error al recuperar los datos");
 
   return (
     <div className="flex flex-col gap-6 w-full p-6">
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between w-full py-4 gap-4 lg:gap-0">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between w-full py-2 gap-4 lg:gap-0">
         {/* Texto de bienvenida y descripción */}
         <div>
           <h1 className="text-xl lg:text-2xl font-bold text-gray-800">
@@ -133,6 +143,11 @@ const Home = () => {
             Icon={metrica.icon}
             label={metrica.label}
             percentage={metrica.percentage}
+            secondaryIcon={metrica?.secondaryIcon}
+            secondaryLabel={metrica?.secondaryLabel}
+            showProgress={metrica?.showProgress}
+            secondaryValue={metrica?.secondaryValue}
+            isCurrency={metrica?.isCurrency}
           />
         ))}
       </section>
@@ -161,12 +176,12 @@ const Home = () => {
             </TooltipProvider>
           </section>
           <div className="flex flex-col gap-3">
-            {customersSalesData.slice(0, 5).map((customer, i) => (
+            {recentOrders?.recentClients.map((client, i) => (
               <SalesCard
                 key={i}
-                email={customer.email}
-                name={customer.name}
-                saleAmount={customer.saleAmount}
+                name={`${client.nombre} ${client.apellido}`}
+                email={client.correo}
+                saleAmount={client.total_spent}
               />
             ))}
           </div>
@@ -174,10 +189,11 @@ const Home = () => {
         {/* Gráfico de Barras */}
         <CardContent className="flex flex-col gap-4 rounded-xl border p-6 shadow">
           <BarChartComponent
-            data={testData}
-            title="Monthly Earnings"
-            description="Revenue from January to June"
-            footerText="Showing total earnings for the last 6 months"
+            data={barChartData}
+            title="Ganancias Mensuales"
+            description={description}
+            footerText={footerText}
+            trendingNumber={monthly.change}
           />
         </CardContent>
         {/* Gráfico Circular */}

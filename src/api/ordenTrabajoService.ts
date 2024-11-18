@@ -113,8 +113,31 @@ export interface OrdenesMetrics {
     change: number;
   };
 }
-
-
+export interface GlobalOrdenesMetrics {
+  totalRecaudado: number;
+  totalOrdenes: number;
+}
+export interface RecurrentClientMetrics {
+  totalClients: number;
+  recurrentClients: number;
+  percentageRecurrent: number;
+}
+export interface RecentClient {
+  id_cliente: number; // ID del cliente
+  nombre: string; // Nombre del cliente
+  apellido: string; // Apellido del cliente
+  correo: string; // Correo del cliente
+  total_spent: number; // Total gastado por el cliente
+  last_order_date: string; // Fecha de la última orden
+}
+export interface RecentOrdersResponse {
+  recentClients: RecentClient[]; // Lista de clientes recientes
+  totalOrders: number; // Total de órdenes registradas
+}
+export interface MonthlyEarnings {
+  month_label: string; // Nombre del mes
+  total_earnings: number; // Ganancias totales del mes
+}
 // Método para recuperar todas las órdenes de trabajo
 export const getOrdenesTrabajo = async (): Promise<OrdenTrabajo[]> => {
   const response: AxiosResponse<OrdenTrabajo[]> = await axiosInstance.get<OrdenTrabajo[]>('/ordenes');
@@ -193,6 +216,55 @@ export const getOrdenesMetrics = async (): Promise<OrdenesMetrics> => {
   try {
     const response: AxiosResponse<OrdenesMetrics> = await axiosInstance.get<OrdenesMetrics>('/ordenes/metrics');
     return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw error.response?.data; // Manejo de errores específicos de Axios
+    } else {
+      throw new Error('Error inesperado'); // Otro tipo de errores
+    }
+  }
+};
+export const getGlobalMetricsOrdenes = async (): Promise<GlobalOrdenesMetrics> => {
+  try {
+    const response: AxiosResponse<GlobalOrdenesMetrics> = await axiosInstance.get<GlobalOrdenesMetrics>('/ordenes/globalMetrics');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw error.response?.data; // Manejo de errores específicos de Axios
+    } else {
+      throw new Error('Error inesperado'); // Otro tipo de errores
+    }
+  }
+};
+export const getRecurrentClients = async (): Promise<RecurrentClientMetrics> => {
+  try {
+    const response: AxiosResponse<RecurrentClientMetrics> = await axiosInstance.get<RecurrentClientMetrics>('/ordenes/clientMetrics');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw error.response?.data; // Manejo de errores específicos de Axios
+    } else {
+      throw new Error('Error inesperado'); // Otro tipo de errores
+    }
+  }
+};
+export const getRecentOrders = async (): Promise<RecentOrdersResponse> => {
+  try {
+    const response: AxiosResponse<RecentOrdersResponse> = await axiosInstance.get<RecentOrdersResponse>('/ordenes/recentOrders');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw error.response?.data; // Manejo de errores específicos de Axios
+    } else {
+      throw new Error('Error inesperado'); // Otro tipo de errores
+    }
+  }
+};
+export const getMonthlyEarnings = async (): Promise<MonthlyEarnings[]> => {
+  try {
+    const response: AxiosResponse<{ monthlyEarnings: MonthlyEarnings[] }> = 
+      await axiosInstance.get<{ monthlyEarnings: MonthlyEarnings[] }>('/ordenes/monthlyEarnings');
+    return response.data.monthlyEarnings;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw error.response?.data; // Manejo de errores específicos de Axios

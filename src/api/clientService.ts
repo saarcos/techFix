@@ -11,6 +11,11 @@ export interface Client {
   celular: string;
   tipo_cliente: string;
 }
+export interface ClientesMetrics {
+  newClients: number;
+  percentageChange: number;
+  previousMonthClients: number;
+}
 //Método para recuperar los clientes
 export const getClients = async (): Promise<Client[]> => {
     const response: AxiosResponse<Client[]> = await axiosInstance.get<Client[]>('/clientes');
@@ -57,6 +62,18 @@ export const deleteClient = async (ClientId: number) => {
       throw error.response?.data;
     } else {
       throw new Error('Error inesperado');
+    }
+  }
+};
+export const getNewClientsThisMonth = async (): Promise<ClientesMetrics> => {
+  try {
+    const response: AxiosResponse<ClientesMetrics> = await axiosInstance.get<ClientesMetrics>('/clientes/metrics');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw error.response?.data; // Manejo de errores específicos de Axios
+    } else {
+      throw new Error('Error inesperado'); // Otro tipo de errores
     }
   }
 };

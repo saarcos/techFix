@@ -48,7 +48,7 @@ const ProductStockChart: React.FC<ProductStockChartProps> = ({ data }) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
+        <ChartContainer config={chartConfig} className="min-h-[300px] min-w-[500px]">
           <BarChart data={data} width={600} height={300} className="mx-auto" style={{ cursor: "pointer" }} // Mantener cursor tipo pointer
           >
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -62,7 +62,7 @@ const ProductStockChart: React.FC<ProductStockChartProps> = ({ data }) => {
             />
 
             {/* Tooltip personalizado */}
-            <ChartTooltip content={<ChartTooltipContent hideLabel={true} />} />
+            <ChartTooltip content={<ChartTooltipContent hideLabel={true} cursor={{fill:"rgba(0, 229, 153, 0.07)"}}/>} />
 
             {/* Leyenda personalizada */}
             <ChartLegend content={<ChartLegendContent />} />

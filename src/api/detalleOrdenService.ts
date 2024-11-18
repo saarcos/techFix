@@ -23,6 +23,15 @@ export interface DetalleOrden {
         preciofinal: number;
     }
 }
+export interface PerformanceTecnicos {
+    technician_name: string;
+    total_revenue: string;
+}
+export interface ProductosMasVendidos {
+    product: string,
+    stock: number;
+    used: number;
+}
 
 // Crear múltiples detalles de orden con verificación de stock (createDetallesOrden)
 export const createDetallesOrden = async (detallesOrdenData: Partial<DetalleOrden>[]): Promise<DetalleOrden[]> => {
@@ -79,7 +88,6 @@ export const updateDetalleOrden = async (detalleOrdenId: number, detalleOrdenDat
         }
     }
 };
-
 // Eliminar un detalle de orden y restablecer el stock (deleteDetalleOrden)
 export const deleteDetalleOrden = async (detalleOrdenId: number): Promise<void> => {
     try {
@@ -91,5 +99,30 @@ export const deleteDetalleOrden = async (detalleOrdenId: number): Promise<void> 
         } else {
             throw new Error('Error inesperado'); // Otro tipo de errores
         }
+    }
+};
+
+export const getTecnicosPerformance = async (): Promise<PerformanceTecnicos[]> => {
+    try {
+      const response: AxiosResponse<PerformanceTecnicos[]> = await axiosInstance.get<PerformanceTecnicos[]>('/detalleorden/performanceTecnicos');
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw error.response?.data; // Manejo de errores específicos de Axios
+      } else {
+        throw new Error('Error inesperado'); // Otro tipo de errores
+      }
+    }
+};
+export const getProductStockAndSales = async (): Promise<ProductosMasVendidos[]> => {
+    try {
+      const response: AxiosResponse<ProductosMasVendidos[]> = await axiosInstance.get<ProductosMasVendidos[]>('/detalleorden/productosMasVendidos');
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw error.response?.data; // Manejo de errores específicos de Axios
+      } else {
+        throw new Error('Error inesperado'); // Otro tipo de errores
+      }
     }
 };

@@ -16,7 +16,10 @@ import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 const existenciaSchema = z.object({
     id_producto: z.number().min(1, 'Seleccione un producto'),
-    cantidad: z.number().min(1, 'La cantidad debe ser un número positivo'),
+    cantidad:  z.preprocess(
+        (value) => parseFloat(value as string),
+        z.number().min(1, 'la cantidad debe ser un número positivo')
+      ),
 });
 
 interface ExistenciaFormProps {
