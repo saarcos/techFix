@@ -48,8 +48,8 @@ const ProductStockChart: React.FC<ProductStockChartProps> = ({ data }) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="min-h-[300px] min-w-[500px]">
-          <BarChart data={data} width={600} height={300} className="mx-auto" style={{ cursor: "pointer" }} // Mantener cursor tipo pointer
+        <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <BarChart data={data} style={{ cursor: "pointer" }} // Mantener cursor tipo pointer
           >
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
 

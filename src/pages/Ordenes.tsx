@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMe
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 import OrdenesTable from "@/tables/ordenesTrabajo/ordenes-table";
 import { useQuery } from "@tanstack/react-query";
-import { File, ListFilter } from "lucide-react";
+import {  ListFilter } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -64,10 +64,10 @@ const Ordenes = ({ ordenesProp }: OrdenesProps) => {
   };
 
   return (
-    <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3 mt-3">
+    <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-2 xl:grid-cols-3 mt-3 overflow-x-hidden max-w-full">
       <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
-          <Card className="sm:col-span-2 transition-transform hover:scale-[1.02] cursor-pointer" x-chunk="dashboard-05-chunk-0">
+      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
+      <Card className="sm:col-span-2 transition-transform hover:scale-[1.02] cursor-pointer" x-chunk="dashboard-05-chunk-0">
             <CardHeader className="pb-3">
               <CardTitle className="text-3xl font-semibold">Tus órdenes de trabajo</CardTitle>
               <CardDescription className="text-balance max-w-lg leading-relaxed">
@@ -83,7 +83,7 @@ const Ordenes = ({ ordenesProp }: OrdenesProps) => {
               </Button>
             </CardFooter>
           </Card>
-          {metrics &&(
+          {metrics && (
             <>
               <CardSummary
                 description="Esta semana"
@@ -118,7 +118,7 @@ const Ordenes = ({ ordenesProp }: OrdenesProps) => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="h-7 gap-1 text-sm">
                     <ListFilter className="h-3.5 w-3.5" />
-                    <span className="sr-only sm:not-sr-only">Filter</span>
+                    <span className="sr-only sm:not-sr-only">Filtrar</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -135,10 +135,6 @@ const Ordenes = ({ ordenesProp }: OrdenesProps) => {
                   </DropdownMenuCheckboxItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button size="sm" variant="outline" className="h-7 gap-1 text-sm">
-                <File className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only">Export</span>
-              </Button>
             </div>
           </div>
           {ordenTabs.map((area) => (

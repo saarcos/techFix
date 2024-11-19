@@ -2,15 +2,17 @@ import * as React from "react";
 import { Button } from "@/Components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/Components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/Components/ui/dropdown-menu";
-import { Pagination, PaginationContent, PaginationItem } from "@/Components/ui/pagination";
 import { Separator } from "@/Components/ui/separator";
-import { ChevronLeft, ChevronRight, Copy, CreditCard, MoreVertical, Truck } from "lucide-react";
+import { Copy, Download, MoreVertical } from "lucide-react";
 import { OrdenTrabajo } from "@/api/ordenTrabajoService";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/Components/ui/carousel";
 import { useNavigate } from "react-router-dom";
 import { ResponsiveDialog } from "./responsive-dialog";
 import MoveOrdenTrabajoForm from "./forms/ordenesTrabajo/mover-orden-form";
 import { toast } from 'sonner';
+import { pdf } from "@react-pdf/renderer"; // Para generar manualmente el PDF
+import OrderPDF from "./OrderPDF";
+import { saveAs } from "file-saver";
 
 interface OrderDetailsProps {
   order: OrdenTrabajo | null;
@@ -19,14 +21,31 @@ interface OrderDetailsProps {
 const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
   const navigate = useNavigate(); // Definir el hook useNavigate
   const [isModalOpen, setIsModalOpen] = React.useState(false)
+  const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
 
   const handleEditClick = () => {
     if (order) {
       navigate(`/taller/ordenes/${order.id_orden}/edit`);
     }
   };
+
+  const handleGeneratePDF = async () => {
+    if (!order) return;
+
+    setIsGeneratingPDF(true);
+
+    try {
+      // Generar el PDF como blob
+      const blob = await pdf(<OrderPDF order={order} />).toBlob();
+      saveAs(blob, `orden-trabajo-${order.id_orden}.pdf`);
+    } catch (error) {
+      console.error("Error al generar el PDF:", error);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
   return (
-    <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4">
+    <Card className="overflow-x-hidden max-w-screen-lg mx-auto" x-chunk="dashboard-05-chunk-4">
       <CardHeader className="flex flex-row items-start bg-muted/50">
         <div className="grid gap-0.5">
           <CardTitle className="group flex items-center gap-2 text-lg">
@@ -41,25 +60,33 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
             </Button>
           </CardTitle>
           <CardDescription>
-            Fecha creación: {order ? new Date(order.created_at).toLocaleDateString() : "N/A"}
+            Fecha creación:{" "}
+            {order
+              ? new Date(order.created_at + "T00:00:00Z").toLocaleDateString("es-ES", {
+                timeZone: "UTC",
+              })
+              : "N/A"}
           </CardDescription>
         </div>
         <div className="ml-auto flex items-center gap-1">
-          <Button size="sm" variant="outline" className="h-8 gap-1">
-            <Truck className="h-3.5 w-3.5" />
-            <span className="lg:sr-only xl:not-sr-only xl:whitespace-nowrap">
-              Track Order
-            </span>
+          <Button
+            onClick={handleGeneratePDF}
+            disabled={isGeneratingPDF}
+            size="sm"
+            variant="outline"
+            className="h-7 gap-1 text-sm"
+          >
+            <Download className="h-3.5 w-3.5" />{isGeneratingPDF ? "Generando..." : "Descargar PDF"}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="icon" variant="outline" className="h-8 w-8">
                 <MoreVertical className="h-3.5 w-3.5" />
-                <span className="sr-only">More</span>
+                <span className="sr-only">Más</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleEditClick} className="cursor-pointer">Editar</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleEditClick} className="cursor-pointer">Editar</DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={() => {
@@ -80,76 +107,151 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
       </CardHeader>
       <CardContent className="p-6 text-sm">
         {order && order.imagenes && order.imagenes.length > 0 && (
-           <div className="mb-4">
-           <div className="font-semibold mb-2">Order Images</div>
-           <div className="relative w-full mx-auto max-w-md"> {/* Ajusta el ancho máximo */}
-             <Carousel className="w-full h-full">
-               <CarouselContent>
-                 {order.imagenes.map((imagen, index) => (
-                   <CarouselItem key={index}>
-                     <div className="flex items-center justify-center p-1">
-                       <Card className="overflow-hidden">
-                         <CardContent className="flex items-center justify-center p-2">
-                           <img
-                             src={imagen.url_imagen}
-                             alt={`Imagen ${index + 1}`}
-                             className="max-w-full max-h-[300px] object-contain" // Ajusta la altura máxima
-                             style={{ height: "auto", width: "auto" }} // Mantén la proporción
-                           />
-                         </CardContent>
-                       </Card>
-                     </div>
-                   </CarouselItem>
-                 ))}
-               </CarouselContent>
-               <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 w-8 h-8" />
-               <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 w-8 h-8" />
-             </Carousel>
-           </div>
-         </div>
+          <div className="mb-4">
+            <div className="font-semibold mb-2">Imágenes de la orden</div>
+            <div className="relative w-full mx-auto max-w-md"> {/* Ajusta el ancho máximo */}
+              <Carousel className="w-full h-full">
+                <CarouselContent>
+                  {order.imagenes.map((imagen, index) => (
+                    <CarouselItem key={index}>
+                      <div className="flex items-center justify-center p-1">
+                        <Card className="overflow-hidden">
+                          <CardContent className="flex items-center justify-center p-2">
+                            <img
+                              src={imagen.url_imagen}
+                              alt={`Imagen ${index + 1}`}
+                              className="max-w-full max-h-[300px] object-contain" // Ajusta la altura máxima
+                              style={{ height: "auto", width: "auto" }} // Mantén la proporción
+                            />
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 w-8 h-8" />
+                <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 w-8 h-8" />
+              </Carousel>
+            </div>
+          </div>
         )}
         {order ? (
           <>
             <div className="grid gap-3">
-              <div className="font-semibold">Order Details</div>
+              <div className="font-semibold">Descripción del trabajo</div>
               <ul className="grid gap-3">
                 <li className="flex items-center justify-between">
                   <span className="text-muted-foreground">
                     {order.descripcion}
                   </span>
-                  <span>${order.total}</span>
+                  <span><span className="font-semibold">Área:</span> {order.area}</span>
                 </li>
               </ul>
               <Separator className="my-2" />
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-3">
-                  <div className="font-semibold">Shipping Information</div>
-                  <address className="grid gap-0.5 not-italic text-muted-foreground">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+                {/* Información del cliente */}
+                <div className="rounded-md py-3 flex-1">
+                  <h2 className="font-semibold text-md mb-2">Información del cliente</h2>
+                  <address className="grid gap-1 not-italic text-muted-foreground">
                     <span>{order.equipo.cliente.nombre} {order.equipo.cliente.apellido}</span>
                     <span>{order.equipo.cliente.correo}</span>
                     <span>{order.equipo.cliente.celular}</span>
                   </address>
                 </div>
-                <div className="grid auto-rows-max gap-3">
-                  <div className="font-semibold">Billing Information</div>
-                  <div className="text-muted-foreground">
-                    Same as shipping address
-                  </div>
+
+                {/* Información del equipo */}
+                <div className="rounded-md py-3 flex-1">
+                  <h2 className="font-semibold text-md mb-2">Información del equipo</h2>
+                  <ul className="grid gap-1 text-muted-foreground">
+                    <li>{order.equipo.nserie}</li>
+                    <li>{order.equipo.modelo.nombre}</li>
+                    <li>{order.equipo.modelo.marca.nombre}</li>
+                  </ul>
                 </div>
               </div>
               <Separator className="my-4" />
-              <div className="grid gap-3">
-                <div className="font-semibold">Payment Information</div>
-                <dl className="grid gap-3">
-                  <div className="flex items-center justify-between">
-                    <dt className="flex items-center gap-1 text-muted-foreground">
-                      <CreditCard className="h-4 w-4" />
-                      Visa
-                    </dt>
-                    <dd>**** **** **** 4532</dd>
+              <div className="grid gap-4">
+                {/* Título */}
+                <div className="font-semibold text-lg">Detalles de la orden</div>
+
+                {/* Renderizado condicional para detalles */}
+                {order.detalles.length > 0 ? (
+                  <ul className="grid gap-2 rounded-md">
+                    {order.detalles.map((detalle, index) => (
+                      <li
+                        key={index}
+                        className="flex flex-col border-b last:border-b-0 pb-2 last:pb-0"
+                      >
+                        {/* Mostrar servicio si está presente */}
+                        {detalle.servicio && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">
+                              {detalle.servicio.nombre}
+                            </span>
+                            <span className="font-medium text-primary">
+                              ${detalle.precioservicio}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Mostrar producto si está presente */}
+                        {detalle.producto && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">
+                              {detalle.producto.nombreProducto}{" "}
+                              <span className="text-muted-foreground">(x{detalle.cantidad})</span>
+                            </span>
+                            <span className="font-medium text-primary">
+                              ${detalle.precioproducto}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Mostrar total del registro */}
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="text-sm font-semibold text-muted-foreground">
+                            Total del detalle:
+                          </span>
+                          <span className="font-bold text-success">${detalle.preciototal}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="bg-muted/10 rounded-md text-center text-sm text-muted-foreground p-3">
+                    Aún no se han agregado detalles a la orden.
                   </div>
-                </dl>
+                )}
+
+                {/* Presupuesto, adelanto y total */}
+                <div className="bg-muted/10 rounded-md">
+                  <dl className="grid gap-2">
+                    {order.presupuesto && (
+                      <div className="flex justify-between">
+                        <dt className="text-muted-foreground">Presupuesto:</dt>
+                        <dd className="font-medium text-primary">
+                          ${order.presupuesto}
+                        </dd>
+                      </div>
+                    )}
+                    {order.adelanto && (
+                      <div className="flex justify-between">
+                        <dt className="text-muted-foreground">Adelanto:</dt>
+                        <dd className="font-medium text-primary">
+                          ${order.adelanto}
+                        </dd>
+                      </div>
+                    )}
+                    <div className="flex justify-between border-t pt-2 mt-2">
+                      <dt className="text-muted-foreground">Total:</dt>
+                      <dd className="font-bold text-success">
+                        ${order.total}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
               </div>
+
             </div>
           </>
         ) : (
@@ -169,22 +271,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
               : "N/A"}
           </time>
         </div>
-        <Pagination className="ml-auto mr-0 w-auto">
-          <PaginationContent>
-            <PaginationItem>
-              <Button size="icon" variant="outline" className="h-6 w-6">
-                <ChevronLeft className="h-3.5 w-3.5" />
-                <span className="sr-only">Previous Order</span>
-              </Button>
-            </PaginationItem>
-            <PaginationItem>
-              <Button size="icon" variant="outline" className="h-6 w-6">
-                <ChevronRight className="h-3.5 w-3.5" />
-                <span className="sr-only">Next Order</span>
-              </Button>
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+
       </CardFooter>
       <ResponsiveDialog
         isOpen={isModalOpen}
@@ -192,7 +279,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
         title="Mover orden de trabajo"
         description='Selecciona el área al que deseas mover la orden'
       >
-          <MoveOrdenTrabajoForm  order={order} setIsOpen={setIsModalOpen}/>
+        <MoveOrdenTrabajoForm order={order} setIsOpen={setIsModalOpen} />
       </ResponsiveDialog>
     </Card>
   );

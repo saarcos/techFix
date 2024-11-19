@@ -34,7 +34,7 @@ const TechnicianPerformanceChart: React.FC<TechnicianPerformanceChartProps> = ({
     <Card className="flex flex-col border-none">
       <CardHeader className="items-center pb-0">
         <CardTitle>Empleado del mes</CardTitle>
-        <CardDescription>Ganancias generadas por cada técnico</CardDescription>
+        <CardDescription className="sm:justify-center sm:items-center">Ganancias generadas por cada técnico</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col lg:flex-row gap-6 items-center lg:items-start justify-center">
         {/* Contenedor del gráfico */}
@@ -59,7 +59,8 @@ const TechnicianPerformanceChart: React.FC<TechnicianPerformanceChartProps> = ({
               data={chartData}
               dataKey="revenue"
               nameKey="technician"
-              innerRadius={60}
+              innerRadius="50%" // Mejora el tamaño del anillo
+              outerRadius="70%" // Ajusta el radio externo
               strokeWidth={5}
               activeIndex={0}
               activeShape={({
@@ -79,7 +80,7 @@ const TechnicianPerformanceChart: React.FC<TechnicianPerformanceChartProps> = ({
                         x={viewBox.cx}
                         y={viewBox.cy}
                         textAnchor="middle"
-                        dominantBaseline="middle"
+                        dominantBaseline="central"
                       >
                         <tspan
                           x={viewBox.cx}
@@ -104,7 +105,7 @@ const TechnicianPerformanceChart: React.FC<TechnicianPerformanceChartProps> = ({
           </PieChart>
         </ChartContainer>
         {/* Leyenda */}
-        <div className="flex flex-col gap-4 w-full lg:w-1/3 p-5 text-center lg:text-left">
+        <div className="flex flex-col gap-4 w-full lg:w-1/3 text-center lg:text-left lg:py-20">
           <h3 className="text-lg font-semibold text-gray-800">Leyenda</h3>
           <ul className="flex flex-wrap lg:flex-col gap-2 justify-center lg:justify-start">
             {chartData.map((item, index) => (
