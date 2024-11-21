@@ -8,6 +8,13 @@ export interface Almacen {
   nombre: string;
 }
 
+export interface ProductoConStock {
+  id_producto: number;
+  nombreProducto: string;
+  precioFinal: number;
+  stocktotal: number;
+}
+
 // Método para recuperar todos los almacenes
 export const getAlmacenes = async (): Promise<Almacen[]> => {
   const response: AxiosResponse<Almacen[]> = await axiosInstance.get<Almacen[]>('/almacenes');
@@ -59,5 +66,17 @@ export const deleteAlmacen = async (almacenId: number) => {
     } else {
       throw new Error('Error inesperado');
     }
+  }
+};
+
+
+// Método para recuperar productos con stock disponible
+export const getProductosConStock = async (): Promise<ProductoConStock[]> => {
+  try {
+    const response: AxiosResponse<ProductoConStock[]> = await axiosInstance.get<ProductoConStock[]>('/almacenes/productosDisponibles');
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener productos con stock:', error);
+    throw error;
   }
 };

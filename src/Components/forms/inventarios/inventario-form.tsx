@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { createExistencia, updateExistencia, getExistenciaById } from '@/api/existenciasService';
+import { createExistencia, updateExistencia, getExistenciaById, getExistenciasByAlmacenId } from '@/api/existenciasService';
 import { getProducts, Product } from '@/api/productsService';
 import { Loader2 } from 'lucide-react';
 import { ProductCombobox } from '@/Components/comboBoxes/producto-combobox';
@@ -51,6 +51,10 @@ export default function ExistenciaForm({ setIsOpen, id_almacen, id_existencias, 
         queryFn: () => id_existencias ? getExistenciaById(id_existencias) : Promise.resolve(null),
         enabled: !!id_existencias,
     });
+    const { data: existencias = [] } = useQuery({
+        queryKey: ['existencias', id_almacen],
+        queryFn: () => getExistenciasByAlmacenId(id_almacen), // Una función para obtener existencias por almacén
+    });
 
     const createMutation = useMutation({
         mutationFn: createExistencia,
@@ -80,23 +84,35 @@ export default function ExistenciaForm({ setIsOpen, id_almacen, id_existencias, 
 
 
     const onSubmit = async (values: z.infer<typeof existenciaSchema>) => {
-        const existenciaData = {
-            id_almacen,
-            id_producto: values.id_producto,
-            cantidad: values.cantidad,
-            ...(id_existencias && { id_existencias }) // Solo incluye id_existencias si está definido
-        };
-
+        // Buscar si el producto ya existe en las existencias del almacén
+        const existenciaActual = existencias.find(
+            (existencia) => existencia.id_producto === values.id_producto
+        );
+    
         try {
-            if (id_existencias) {
-                updateMutation.mutate(existenciaData as { id_existencias: number; id_almacen: number; id_producto: number; cantidad: number });
+            if (existenciaActual) {
+                // Si el producto ya existe, sumar la cantidad actual
+                const nuevaCantidad = existenciaActual.cantidad + values.cantidad;
+    
+                updateMutation.mutate({
+                    id_existencias: existenciaActual.id_existencias, // ID existente
+                    id_almacen,
+                    id_producto: values.id_producto,
+                    cantidad: nuevaCantidad, // Cantidad actualizada
+                });
             } else {
-                createMutation.mutate({ id_almacen, ...values });
+                // Si el producto no existe, crear una nueva existencia
+                createMutation.mutate({
+                    id_almacen,
+                    ...values,
+                });
             }
         } catch (error) {
-            console.log(error);
+            toast.error('Error al procesar la existencia');
+            console.error('Error en onSubmit:', error);
         }
     };
+    
     useEffect(() => {
         if (existencia) {
             form.reset({

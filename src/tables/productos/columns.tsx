@@ -25,6 +25,15 @@ export const columns: ColumnDef<Product>[] = [
       header: ({column})=>(
         <DatatableColumnHeader title="Código" column={column}/>
       ),
+      cell: ({row}) => (
+        <>
+          {row.original.codigoProducto ? (
+            <span>{row.original.codigoProducto}</span>
+          ):(
+            <span className="text-gray-500">Sin código asignado</span>
+          )}
+        </>
+      )
     },
     {
         accessorKey: "precioFinal",

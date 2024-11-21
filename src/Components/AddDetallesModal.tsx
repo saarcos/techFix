@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useQuery } from '@tanstack/react-query';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus, faPlus, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { getProductosConStock, ProductoConStock } from "@/api/almacenesService";
 
 interface AddDetalleModalProps {
   isOpen: boolean;
@@ -23,19 +24,39 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
     queryFn: getProducts,
   });
 
+  // Query para obtener solo productos con stock
+  const { data: productosConStock = [] } = useQuery<ProductoConStock[]>({
+    queryKey: ['productosConStock'],
+    queryFn: getProductosConStock,
+  });
+
   const { data: services = [] } = useQuery<Service[]>({
     queryKey: ['services'],
     queryFn: getServices,
   });
 
-  const [selectedProduct, setSelectedProduct] = useState<{ producto: Product; cantidad: number | ''; precio: number } | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<{
+    producto: Product;
+    cantidad: number | '';
+    precio: number;
+    stocktotal: number; // Agregamos la propiedad stocktotal
+  } | null>(null);
   const [selectedService, setSelectedService] = useState<{ servicio: Service; precio: number } | null>(null);
 
+  // Filtra productos completos que están en stock
+  const filteredProducts = products.filter((product) =>
+    productosConStock.some((stockProduct) => stockProduct.id_producto === product.id_producto)
+  );
+
   const addProduct = (id_producto: number) => {
+    console.log("añadí producto")
     const product = products.find((prod) => prod.id_producto === id_producto);
-    if (product) {
-      setSelectedProduct({ producto: product, cantidad: 1, precio: product.precioFinal });
+    const stock = productosConStock.find((stockProd) => stockProd.id_producto === id_producto)?.stocktotal;
+  
+    if (product && stock !== undefined) {
+      setSelectedProduct({ producto: product, cantidad: 1, precio: product.precioFinal, stocktotal: stock });
     }
+    console.log(stock)
   };
 
   const addService = (id_servicio: number) => {
@@ -47,8 +68,8 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
 
   const updateProductQuantity = (cantidad: number | '') => {
     if (selectedProduct) {
-        const validatedCantidad = cantidad === '' || isNaN(cantidad) ? '' : cantidad;
-        setSelectedProduct({ ...selectedProduct, cantidad: validatedCantidad });
+      const validatedCantidad = cantidad === '' || isNaN(cantidad) ? '' : Math.min(cantidad, selectedProduct.stocktotal);
+      setSelectedProduct({ ...selectedProduct, cantidad: validatedCantidad });
     }
   };
 
@@ -88,7 +109,7 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
       <div className="mb-4">
         <ProductCombobox
           field={{ value: '', onChange: (id_producto: number) => addProduct(id_producto) }}
-          products={products}
+          products={filteredProducts} // Muestra solo productos con stock
         />
       </div>
       <Table className="min-w-full divide-y divide-gray-200">
@@ -121,6 +142,7 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
                     value={selectedProduct.cantidad}
                     onChange={(e) => updateProductQuantity(parseInt(e.target.value))}
                     min={1}
+                    max={selectedProduct.stocktotal} // Aseguramos que el máximo permitido sea visible
                     className="w-16 text-center"
                     onBlur={(e) => {
                       if (e.target.value === '') {

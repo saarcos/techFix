@@ -159,7 +159,7 @@ const Home = () => {
           <section className="flex justify-between">
             <div>
               <h2 className="text-xl font-bold text-gray-800">Órdenes recientes</h2>
-              <p className="text-sm text-gray-500">Haz iniciado 245 órdenes este mes.</p>
+              <p className="text-sm text-gray-500">Haz iniciado {totalOrdenes} órdenes este mes.</p>
             </div>
             <TooltipProvider>
               <Tooltip>

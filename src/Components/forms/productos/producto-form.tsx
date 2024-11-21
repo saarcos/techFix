@@ -29,7 +29,13 @@ import {
 const productSchema = z.object({
   id_catprod: z.number().min(1, 'Categoría es requerida'),
   nombreProducto: z.string().min(1, 'Nombre del producto es requerido'),
-  codigoProducto: z.string().min(1, 'Código del producto es requerido'),
+  codigoProducto: z
+  .string()
+  .optional()
+  .refine(
+    (value) => !value || (value.length >= 5 && value.length<=20),
+    { message: 'El código del producto debe tener al menos 5 caracteres y máximo 20 si se proporciona' }
+  ),  
   precioSinIVA: z.preprocess(
     (value) => parseFloat(value as string),
     z.number().min(1, 'El precio debe ser un número positivo mayor que cero')
@@ -227,7 +233,7 @@ export default function ProductForm({ setIsOpen, categorias, productId, setIsAdd
           render={({ field }) => (
             <FormItem className="col-span-1">
               <FormLabel htmlFor="codigoProducto">
-                Código del Producto <span className="text-red-500">*</span>
+                Código del Producto
               </FormLabel>
               <FormControl>
                 <Input

@@ -170,7 +170,7 @@ const Inventario = () => {
                                 <TableBody className='bg-white divide-y divide-gray-200'>
                                     {existencias?.length === 0 ? (
                                         <TableRow className='hover:cursor-pointer'>
-                                            <TableCell colSpan={3} className="h-24 text-center text-gray-500">
+                                            <TableCell colSpan={4} className="h-24 text-center text-gray-500">
                                                 No hay existencias en este almacén.
                                             </TableCell>
                                         </TableRow>
@@ -206,7 +206,6 @@ const Inventario = () => {
                                                                 }
                                                             }}
                                                             className="w-16 text-center"
-
                                                         />
                                                         <Button
                                                             type="button"

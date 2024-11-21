@@ -271,7 +271,7 @@ export default function OrdenTrabajoEditForm() {
             }
 
         } catch (error) {
-            console.error("Error al subir las imágenes:", error);
+            console.error("Error al editar la orden de trabajo:", error);
             toast.error('Error al subir las imágenes');
         }
     };

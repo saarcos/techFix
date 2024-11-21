@@ -30,16 +30,25 @@ export const columns: ColumnDef<Equipo>[] = [
             <Popover >
               <PopoverTrigger asChild>
                 <button
-                  className="text-darkGreen hover:text-customGreenHover underline flex items-center"
+                  className="text-darkGreen hover:text-customGreenHover flex items-center"
                   style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
                 >
-                  {row.original.nserie}
-                  <Info className="ml-2 text-darkGreen"  />
+                  {row.original.nserie ? (
+                    <>
+                      <Info className="mr-2 text-darkGreen" />
+                      <span className="underline">{row.original.nserie}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Info className="mr-2 text-gray-500 italic" />
+                      <span className="text-gray-500 italic underline">Sin N° de serie agregado</span>
+                    </>
+                  )}
                 </button>
               </PopoverTrigger>
               <PopoverContent
                 className="p-4 rounded-lg shadow-lg border-s-customGray bg-customGray"
-                
+
               >
                 <h3
                   className="font-bold mb-2 text-customGreen"
@@ -56,34 +65,34 @@ export const columns: ColumnDef<Equipo>[] = [
       );
     },
   },
-    {
-        accessorKey: "cliente.nombre", 
-        header: ({column})=>(
-          <DatatableColumnHeader title="Propietario" column={column}/>
-        ),
-        cell: info => `${info.row.original.cliente.nombre} ${info.row.original.cliente.apellido}`
-    },
-    {
-        accessorKey: "tipoEquipo.nombre",
-        header: ({column})=>(
-          <DatatableColumnHeader title="Tipo" column={column}/>
-        ),
-    },
-    {
-        accessorKey: "modelo.marca.nombre",
-        header: ({column})=>(
-          <DatatableColumnHeader title="Marca" column={column}/>
-        ),
-    },
-    {
-        accessorKey: "modelo.nombre",
-        header: ({column})=>(
-          <DatatableColumnHeader title="Modelo" column={column}/>
-        ),
-    },
-    {
-      id: 'actions',
-      header: "Acciones",
-      cell: ({ row }) => <DataTableRowActions row={row} />,
-    }
+  {
+    accessorKey: "propietario",
+    header: ({ column }) => (
+      <DatatableColumnHeader title="Propietario" column={column} />
+    ),
+    cell: info => `${info.row.original.cliente.nombre} ${info.row.original.cliente.apellido}`
+  },
+  {
+    accessorKey: "tipoEquipo.nombre",
+    header: ({ column }) => (
+      <DatatableColumnHeader title="Tipo" column={column} />
+    ),
+  },
+  {
+    accessorKey: "modelo.marca.nombre",
+    header: ({ column }) => (
+      <DatatableColumnHeader title="Marca" column={column} />
+    ),
+  },
+  {
+    accessorKey: "modelo.nombre",
+    header: ({ column }) => (
+      <DatatableColumnHeader title="Modelo" column={column} />
+    ),
+  },
+  {
+    id: 'actions',
+    header: "Acciones",
+    cell: ({ row }) => <DataTableRowActions row={row} />,
+  }
 ];

@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 import OrdenesTable from "@/tables/ordenesTrabajo/ordenes-table";
 import { useQuery } from "@tanstack/react-query";
 import {  ListFilter } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Spinner from '../assets/tube-spinner.svg';
@@ -33,6 +33,10 @@ const Ordenes = ({ ordenesProp }: OrdenesProps) => {
     queryKey: ['ordenesMetrics'], // Clave única para esta consulta
     queryFn: getOrdenesMetrics,
   });
+  useEffect(() => {
+    console.log(selectedOrder)
+  }, [selectedOrder])
+  
 
   // Usar las órdenes de `ordenesProp` si están definidas, de lo contrario usar las de la consulta `getOrdenesTrabajo`
   const ordenesData = ordenesProp || ordenes;

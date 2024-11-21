@@ -17,10 +17,14 @@ export interface DetalleOrden {
     producto?: {
         nombreProducto: string;
         preciofinal: number;
+        preciosiniva: number;
+        iva: number;
     }
     servicio?: {
         nombre: string;
         preciofinal: number;
+        preciosiniva: number;
+        iva: number;
     }
 }
 export interface ImagenOrden {
@@ -67,6 +71,11 @@ export interface OrdenTrabajo {
     email: string;
   };
   detalles: DetalleOrden[]; // Agregar aquí los detalles de la orden
+  accesorios:{
+    Accesorio:{
+      nombre: string;
+    }
+  }
 }
 export interface OrdenTrabajoCreate {
   id_equipo: number;

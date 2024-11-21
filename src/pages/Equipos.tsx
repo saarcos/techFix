@@ -34,6 +34,10 @@ const Equipos = () => {
         queryKey: ['devices'],
         queryFn: getEquipos,
     });
+    const flattenedDevices = devices.map((device) => ({
+        ...device,
+        propietario: `${device.cliente.nombre} ${device.cliente.apellido}`,
+    }));
     const { data: marcas = [], isLoadingError: marcasError } = useQuery<Brand[]>({
         queryKey: ['brands'],
         queryFn: getBrands,
@@ -140,7 +144,7 @@ const Equipos = () => {
                                 </span>
                             </Button>
                         </div>
-                        <DataTable data={devices ?? []} columns={columns} globalFilterColumn='nserie' />
+                        <DataTable data={flattenedDevices ?? []} columns={columns} globalFilterColumn='propietario' />
                     </CardContent>
                 </Card>
             </main>

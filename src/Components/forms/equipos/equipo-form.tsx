@@ -14,7 +14,7 @@ import { ArrowDown, Check, Loader2 } from 'lucide-react';
 import { FieldValues, useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getEquipoById, updateEquipo, createEquipo, Equipo, countEquipos } from '@/api/equipoService';
+import { getEquipoById, updateEquipo, createEquipo, Equipo } from '@/api/equipoService';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAsterisk, faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -48,10 +48,13 @@ const formSchema = z.object({
   id_tipoe: z.number().min(1, 'Tipo es requerido'),
   marca_id: z.number().min(1, 'Marca es requerido'),
   id_modelo: z.number().min(1, 'Modelo es requerido'),
-  nserie: z.string()
-    .regex(/^[A-Z0-9-]{8,20}$/, "Número de serie inválido")
-    .min(8, "El número de serie es demasiado corto")
-    .max(20, "El número de serie es demasiado largo"),
+  nserie: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || (val.length >= 5 && val.length <= 20),
+      { message: 'El número de serie debe tener entre 5 y 20 caracteres si se proporciona' }
+  ),
   descripcion: z.string(),
 });
 
@@ -154,45 +157,6 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
     },
   });
 
-  const { watch, setValue } = form;
-  const selectedTipo = watch('id_tipoe');
-  const selectedMarca = watch('marca_id');
-  const selectedModelo = watch('id_modelo');
-  const [loading, setLoading] = useState(false);  // Estado para manejar el loading
-
-
-  useEffect(() => {
-    const generateSerialNumber = async () => {
-      setLoading(true); // Muestra el indicador de carga
-      try {
-        const tipo = deviceTypes.find(t => t.id_tipoe === selectedTipo)?.nombre.substring(0, 2).toUpperCase() || '';
-        const marca = brands.find(b => b.id_marca === selectedMarca)?.nombre.substring(0, 2).toUpperCase() || '';
-        const modelo = models.find(m => m.id_modelo === selectedModelo)?.nombre.substring(0, 3).toUpperCase() || '';
-        const year = new Date().getFullYear().toString().slice(-2);
-
-        // Llamada al servicio para obtener el secuencial
-        const response = await countEquipos({
-          id_tipoe: selectedTipo,
-          marca_id: selectedMarca,
-          id_modelo: selectedModelo,
-        });
-
-        const sequential = response.nextSequential;
-
-        // Generar el número de serie completo
-        const serialNumber = `${tipo}-${marca}-${modelo}-${year}-${sequential}`;
-        setValue('nserie', serialNumber);  // Asignar el número de serie generado al campo nserie
-      } catch (error) {
-        console.error('Error al generar el número de serie:', error);
-      } finally {
-        setLoading(false);  // Deja de mostrar el indicador de carga
-      }
-    };
-
-    if (selectedTipo && selectedMarca && selectedModelo) {
-      generateSerialNumber();  // Llama a la función para generar el número de serie
-    }
-  }, [selectedTipo, selectedMarca, selectedModelo, setValue, deviceTypes, brands, models]);
 
   const queryClient = useQueryClient();
   const { data: equipo, isLoading: isEquipoLoading, isError, error } = useQuery<Equipo>({
@@ -459,25 +423,20 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
           render={({ field }) => (
             <FormItem className="col-span-1">
               <FormLabel htmlFor="nserie">
-                N° Serie <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className="w-3 h-3" /></span>
+                N° Serie 
               </FormLabel>
               <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-1">
                 <FormControl className="w-full sm:w-auto">
                   <Input
                     id="nserie"
-                    readOnly={true}  // Solo lectura
-                    className={cn(
-                      "w-full sm:w-auto",  // Ajuste responsivo
-                      !field.value ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-white text-black cursor-not-allowed"  // Estilos condicionales
-                    )}
-                    placeholder={loading ? 'Generando número de serie...' : 'N° Serie'}  // Mostrar mensaje de carga
+                    className= "w-full sm:w-auto bg-white text-black"
+                    placeholder='N° Serie'
                     {...field}
                     value={field.value}  // Acepta el valor generado
                     onChange={(e) => field.onChange(e.target.value.toUpperCase())}  // Convierte a mayúsculas
-                    disabled={isEquipoLoading || loading}  // Deshabilitar cuando está cargando o se está cargando el equipo
+                    disabled={isEquipoLoading }  // Deshabilitar cuando está cargando o se está cargando el equipo
                   />
                 </FormControl>
-                {loading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}  {/* Icono de carga */}
               </div>
               <FormMessage className="text-left text-sm text-red-500" />
             </FormItem>
