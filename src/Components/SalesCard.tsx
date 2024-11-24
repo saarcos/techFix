@@ -1,7 +1,7 @@
 interface SalesCardProps {
   name: string;
   email: string;
-  saleAmount: number;
+  saleAmount: number | null; // Ahora permite `null`
 }
 
 const SalesCard = ({ name, email, saleAmount }: SalesCardProps) => {
@@ -20,7 +20,9 @@ const SalesCard = ({ name, email, saleAmount }: SalesCardProps) => {
 
       {/* Monto de venta */}
       <div className="text-right">
-        <p className="text-sm font-semibold text-gray-900">${saleAmount.toLocaleString()}</p>
+        <p className="text-sm font-semibold text-gray-900">
+          ${saleAmount ? saleAmount.toLocaleString() : "0"}
+        </p>
       </div>
     </div>
   );

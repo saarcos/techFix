@@ -144,8 +144,8 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                   <span className="text-muted-foreground">
                     {order.descripcion}
                   </span>
-                  <span><span className="font-semibold">Área:</span> {order.area}</span>
                 </li>
+                <span><span className="font-semibold">Área:</span> {order.area}</span>
               </ul>
               <Separator className="my-2" />
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">

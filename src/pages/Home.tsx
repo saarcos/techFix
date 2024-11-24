@@ -29,7 +29,7 @@ const Home = () => {
 
   const monthly = data?.monthly ?? { earnings: 0, change: 0 };
   const totalRecaudado = metricasGlobales?.totalRecaudado ?? 0;
-  const totalOrdenes = metricasGlobales?.totalOrdenes ?? 0;
+  const totalOrdenes = recentOrders?.totalOrders ?? 0;
   const newClients = clientesMetrics?.newClients ?? 0;
   const percentageChange = clientesMetrics?.percentageChange ?? 0;
   const recurrentClients = recurrentClientsMetrics?.recurrentClients ?? 0;
