@@ -1,17 +1,16 @@
-import { getOrdenesMetrics, getOrdenesTrabajo, OrdenesMetrics, OrdenTrabajo } from "@/api/ordenTrabajoService";
+import { getOrdenesTrabajo, OrdenTrabajo } from "@/api/ordenTrabajoService";
 import OrderDetails from "@/Components/OrderDetails";
 import { Button } from "@/Components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/Components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/Components/ui/card";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/Components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 import OrdenesTable from "@/tables/ordenesTrabajo/ordenes-table";
 import { useQuery } from "@tanstack/react-query";
-import {  ListFilter } from "lucide-react";
+import { ListFilter } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Spinner from '../assets/tube-spinner.svg';
-import CardSummary from "@/Components/CardSummary";
 
 // Define el tipo para el estado de las órdenes
 interface OrdenesPorArea {
@@ -29,20 +28,16 @@ const Ordenes = ({ ordenesProp }: OrdenesProps) => {
     queryFn: getOrdenesTrabajo,
     enabled: !ordenesProp,
   });
-  const { data: metrics, isLoading: areMetricsLoading } = useQuery<OrdenesMetrics>({
-    queryKey: ['ordenesMetrics'], // Clave única para esta consulta
-    queryFn: getOrdenesMetrics,
-  });
   useEffect(() => {
     console.log(selectedOrder)
   }, [selectedOrder])
-  
+
 
   // Usar las órdenes de `ordenesProp` si están definidas, de lo contrario usar las de la consulta `getOrdenesTrabajo`
   const ordenesData = ordenesProp || ordenes;
 
   // Si está cargando, muestra el spinner
-  if (isLoading || areMetricsLoading && !ordenesProp) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
+  if (isLoading && !ordenesProp) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
 
   // Si hay un error, muestra un mensaje
   if (error) return toast.error('Error al recuperar los datos');
@@ -70,72 +65,47 @@ const Ordenes = ({ ordenesProp }: OrdenesProps) => {
   return (
     <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-2 xl:grid-cols-3 mt-3 overflow-x-hidden max-w-full">
       <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
-      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
-      <Card className="sm:col-span-2 transition-transform hover:scale-[1.02] cursor-pointer" x-chunk="dashboard-05-chunk-0">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-3xl font-semibold">Tus órdenes de trabajo</CardTitle>
-              <CardDescription className="text-balance max-w-lg leading-relaxed">
-                Administra y controla las órdenes de trabajo para los equipos ingresados al taller, para darles un seguimiento preciso durante el proceso de reparación.
-              </CardDescription>
-            </CardHeader>
-            <CardFooter>
-              <Button
-                className="bg-customGreen text-black hover:bg-customGreenHover"
-                onClick={() => navigate('/taller/nuevaOrden')}
-              >
-                Crear nueva orden
-              </Button>
-            </CardFooter>
-          </Card>
-          {metrics && (
-            <>
-              <CardSummary
-                description="Esta semana"
-                earnings={metrics.weekly.earnings}
-                percentage={metrics.weekly.change}
-                content="que la semana anterior"
-                className="dashboard-05-chunk-1"
-              />
-              <CardSummary
-                description="Este mes"
-                earnings={metrics.monthly.earnings}
-                percentage={metrics.monthly.change}
-                content="que el mes anterior."
-                className="dashboard-05-chunk-2"
-              />
-            </>
-          )}
-        </div>
-        <Tabs defaultValue={ordenTabs[0]}>
-          <div className="flex items-center">
-            <TabsList>
-              <TabsList>
-                {ordenTabs.map((area) => (
-                  <TabsTrigger key={area} value={area}>
-                    {area} ({ordenesCount[area]})
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+        <Tabs defaultValue={ordenTabs[0]} className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4">
+        <TabsList className="flex flex-wrap gap-2">
+              {ordenTabs.map((area) => (
+                <TabsTrigger
+                  key={area}
+                  value={area}
+                  className="text-xs sm:text-sm py-1 px-2 whitespace-nowrap"
+                >
+                  {area} ({ordenesCount[area]})
+                </TabsTrigger>
+              ))}
             </TabsList>
-            <div className="ml-auto flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => navigate("/taller/nuevaOrden")}
+                className="h-7 gap-1 text-sm sm:h-8 bg-customGreen text-black hover:bg-customGreenHover">
+                Nueva orden
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-7 gap-1 text-sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 sm:h-8 gap-1 text-sm flex items-center"
+                  >
                     <ListFilter className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only">Filtrar</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                  <DropdownMenuLabel>Filtrar por</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuCheckboxItem checked>
-                    Fulfilled
+                    Cumplidas
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem>
-                    Declined
+                    Rechazadas
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem>
-                    Refunded
+                    Reembolsadas
                   </DropdownMenuCheckboxItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -143,7 +113,7 @@ const Ordenes = ({ ordenesProp }: OrdenesProps) => {
           </div>
           {ordenTabs.map((area) => (
             <TabsContent key={area} value={area}>
-              <Card x-chunk={`dashboard-05-chunk-${area}`}>
+              <Card>
                 <CardHeader className="px-7">
                   <CardTitle>Órdenes de trabajo - {area}</CardTitle>
                   <CardDescription>
@@ -154,7 +124,7 @@ const Ordenes = ({ ordenesProp }: OrdenesProps) => {
                   <OrdenesTable
                     onSelectOrder={setSelectedOrder}
                     selectedOrder={selectedOrder}
-                    ordenes={ordenesPorArea[area] || []} // Usar el área correspondiente
+                    ordenes={ordenesPorArea[area] || []}
                   />
                 </CardContent>
               </Card>

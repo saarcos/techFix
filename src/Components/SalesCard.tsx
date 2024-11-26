@@ -6,18 +6,17 @@ interface SalesCardProps {
 
 const SalesCard = ({ name, email, saleAmount }: SalesCardProps) => {
   return (
-    <div className="flex items-center justify-between gap-4 border-b py-2 last:border-none">
+    <div className="flex items-center justify-between gap-4 border-b py-3 last:border-none">
       {/* Avatar e información del cliente */}
       <div className="flex items-center gap-4">
-        <div className="h-12 w-12 rounded-lg bg-customGreen/15 flex items-center justify-center text-gray-600 font-semibold">
+        <div className="h-11 w-11 rounded-lg bg-customGreen/15 flex items-center justify-center text-gray-600 font-semibold sm:text-sm">
           {name[0]} {/* Muestra la inicial del nombre */}
         </div>
         <div>
           <p className="text-sm font-medium text-gray-800">{name}</p>
-          <a href={`mailto:${email}`} className="text-sm text-gray-500 truncate max-w-[150px] sm:max-w-none hover:underline">{email}</a>
+          <a href={`mailto:${email}`} className="text-sm text-gray-500 truncate max-w-[150px] sm:max-w-none hover:underline hidden sm:table-cell">{email}</a>
         </div>
       </div>
-
       {/* Monto de venta */}
       <div className="text-right">
         <p className="text-sm font-semibold text-gray-900">

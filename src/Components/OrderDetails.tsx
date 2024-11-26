@@ -206,14 +206,6 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                             </span>
                           </div>
                         )}
-
-                        {/* Mostrar total del registro */}
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="text-sm font-semibold text-muted-foreground">
-                            Total del detalle:
-                          </span>
-                          <span className="font-bold text-success">${detalle.preciototal}</span>
-                        </div>
                       </li>
                     ))}
                   </ul>

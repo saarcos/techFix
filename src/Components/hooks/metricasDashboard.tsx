@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { getGlobalMetricsOrdenes, getMonthlyEarnings, getOrdenesMetrics, getRecentOrders, getRecurrentClients, MonthlyEarnings } from "@/api/ordenTrabajoService";
+import { getGlobalMetricsOrdenes, getMonthlyEarnings, getOrdenesMetrics, getRecentOrders, MonthlyEarnings } from "@/api/ordenTrabajoService";
 import { getNewClientsThisMonth } from '@/api/clientService';
-import { getProductStockAndSales, getTecnicosPerformance } from '@/api/detalleOrdenService';
+import {  getTecnicosPerformance } from '@/api/detalleOrdenService';
 
 export const useOrdenesMetrics = () => {
     return useQuery({
@@ -27,14 +27,6 @@ export const useClientesMetrics = () => {
       refetchOnWindowFocus: true, 
     });
 };
-export const useRecurrentClientesMetrics = () => {
-    return useQuery({
-      queryKey: ["recurrentClientesMetrics"], 
-      queryFn: getRecurrentClients, 
-      staleTime: 60000, 
-      refetchOnWindowFocus: true, 
-    });
-};
 export const useRecentOrdersMetrics = () => {
     return useQuery({
       queryKey: ["recentOrdersMetrics"], 
@@ -55,14 +47,6 @@ export const useTechnicianPerformance = () => {
     return useQuery({
       queryKey: ['technicianPerformance'],
       queryFn: getTecnicosPerformance,
-      staleTime: 60000, // Cachear por 1 minuto
-      refetchOnWindowFocus: true,
-    });
-};
-export const useTopProducts  = () => {
-    return useQuery({
-      queryKey: ['topProducts'],
-      queryFn: getProductStockAndSales,
       staleTime: 60000, // Cachear por 1 minuto
       refetchOnWindowFocus: true,
     });

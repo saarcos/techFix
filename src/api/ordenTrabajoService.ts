@@ -126,11 +126,6 @@ export interface GlobalOrdenesMetrics {
   totalRecaudado: number;
   totalOrdenes: number;
 }
-export interface RecurrentClientMetrics {
-  totalClients: number;
-  recurrentClients: number;
-  percentageRecurrent: number;
-}
 export interface RecentClient {
   id_cliente: number; // ID del cliente
   nombre: string; // Nombre del cliente
@@ -236,18 +231,6 @@ export const getOrdenesMetrics = async (): Promise<OrdenesMetrics> => {
 export const getGlobalMetricsOrdenes = async (): Promise<GlobalOrdenesMetrics> => {
   try {
     const response: AxiosResponse<GlobalOrdenesMetrics> = await axiosInstance.get<GlobalOrdenesMetrics>('/ordenes/globalMetrics');
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw error.response?.data; // Manejo de errores específicos de Axios
-    } else {
-      throw new Error('Error inesperado'); // Otro tipo de errores
-    }
-  }
-};
-export const getRecurrentClients = async (): Promise<RecurrentClientMetrics> => {
-  try {
-    const response: AxiosResponse<RecurrentClientMetrics> = await axiosInstance.get<RecurrentClientMetrics>('/ordenes/clientMetrics');
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

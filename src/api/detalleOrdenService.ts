@@ -114,15 +114,3 @@ export const getTecnicosPerformance = async (): Promise<PerformanceTecnicos[]> =
       }
     }
 };
-export const getProductStockAndSales = async (): Promise<ProductosMasVendidos[]> => {
-    try {
-      const response: AxiosResponse<ProductosMasVendidos[]> = await axiosInstance.get<ProductosMasVendidos[]>('/detalleorden/productosMasVendidos');
-      return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw error.response?.data; // Manejo de errores específicos de Axios
-      } else {
-        throw new Error('Error inesperado'); // Otro tipo de errores
-      }
-    }
-};
