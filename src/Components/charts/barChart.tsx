@@ -1,6 +1,5 @@
 import React from "react";
 import { Bar, BarChart, CartesianGrid, LabelList, XAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { TrendingDown, TrendingUp } from "lucide-react";
 
 interface BarChartProps {
   data: { month: string; value: number }[]; // Datos para el gráfico
@@ -20,8 +19,8 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
     <div className="flex w-full flex-col flex-grow">
       {/* Títulos */}
       <div className="mb-2">
-        <h2 className="text-base sm:text-lg md:text-lg lg:text-xl font-bold text-gray-800">{title}</h2>
-        <p className="text-sm sm:text-base text-gray-500">{description}</p>
+        <h2 className="text-balance font-bold text-gray-800">{title}</h2>
+        <p className="text-sm text-gray-500">{description}</p>
       </div>
 
       {/* Contenido del Gráfico */}
@@ -86,11 +85,7 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
             Se {isTrendingUp ? "aumentaron" : "redujeron"} las ganancias en un{" "}
             {Math.abs(trendingNumber)}% en {currentMonth} comparado al mes anterior
           </span>
-          {isTrendingUp ? (
-            <TrendingUp className="h-5 w-5" />
-          ) : (
-            <TrendingDown className="h-5 w-5" />
-          )}
+          
         </div>
       </div>
     </div>

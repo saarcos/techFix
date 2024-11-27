@@ -53,7 +53,7 @@ const Home = () => {
       showProgress: true,
     },
     {
-      label: `Nuevos clientes (${currentMonth})`,
+      label: `Clientes (${currentMonth})`,
       amount: newClients,
       percentage: percentageChange,
       description: "respecto al mes pasado",
@@ -86,78 +86,78 @@ const Home = () => {
 
   return (
     <div className="flex flex-col gap-4 w-full h-screen px-4 py-1">
-      {/* Tarjetas de Métricas */}
-      <section className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {cardData.map((metrica, i) => (
-          <CardHome
-            key={i}
-            amount={metrica.amount}
-            description={metrica.description}
-            Icon={metrica.icon}
-            label={metrica.label}
-            percentage={metrica.percentage}
-            secondaryIcon={metrica?.secondaryIcon}
-            secondaryLabel={metrica?.secondaryLabel}
-            showProgress={metrica?.showProgress}
-            secondaryValue={metrica?.secondaryValue}
-            isCurrency={metrica?.isCurrency}
-          />
-        ))}
-        <ChartCard>
-          <TechnicianPerformanceChart data={technicianData} />
-        </ChartCard>
-      </section>
+    {/* Tarjetas de Métricas */}
+    <section className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {cardData.map((metrica, i) => (
+        <CardHome
+          key={i}
+          amount={metrica.amount}
+          description={metrica.description}
+          Icon={metrica.icon}
+          label={metrica.label}
+          percentage={metrica.percentage}
+          secondaryIcon={metrica?.secondaryIcon}
+          secondaryLabel={metrica?.secondaryLabel}
+          showProgress={metrica?.showProgress}
+          secondaryValue={metrica?.secondaryValue}
+          isCurrency={metrica?.isCurrency}
+        />
+      ))}
+      <ChartCard>
+        <TechnicianPerformanceChart data={technicianData} />
+      </ChartCard>
+    </section>
 
-      {/* Sección de Gráficos y Ventas */}
-      <section className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2 flex-grow">
-        {/* Tabla de Ventas */}
-        <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow flex-grow overflow-y-auto">
-          <section className="flex justify-between">
-            <div className="-mb-2">
-              <h2 className="text-base sm:text-lg md:text-lg lg:text-xl font-bold text-gray-800">
-                Órdenes recientes
-              </h2>
-              <p className="text-sm sm:text-base md:text-lg text-gray-500">
-                Haz iniciado {totalOrdenes} órdenes este mes.
-              </p>
-            </div>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info
-                    className="w-5 h-5 text-gray-500 cursor-pointer hover:text-customGreen"
-                    onClick={() => navigate("/taller/ordenes")}
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Ir a la sección de órdenes</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </section>
-          <div className="flex flex-col gap-2 flex-grow">
-            {recentOrders?.recentClients.map((client, i) => (
-              <SalesCard
-                key={i}
-                name={`${client.nombre} ${client.apellido}`}
-                email={client.correo}
-                saleAmount={client.total_spent}
-              />
-            ))}
+    {/* Sección de Gráficos y Ventas */}
+    <section className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2">
+      {/* Tabla de Ventas */}
+      <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow max-h-[23.5rem]">
+        <section className="flex justify-between">
+          <div className="-mb-4">
+            <h2 className="text-balance font-bold text-gray-800">
+              Órdenes recientes
+            </h2>
+            <p className="text-sm text-gray-500">
+              Haz iniciado {totalOrdenes} órdenes este mes.
+            </p>
           </div>
-        </CardContent>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info
+                  className="w-5 h-5 text-gray-500 cursor-pointer hover:text-customGreen"
+                  onClick={() => navigate("/taller/ordenes")}
+                />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Ir a la sección de órdenes</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </section>
+        <div className="flex flex-col gap-1">
+          {recentOrders?.recentClients.map((client, i) => (
+            <SalesCard
+              key={i}
+              name={`${client.nombre} ${client.apellido}`}
+              email={client.correo}
+              saleAmount={client.total_spent}
+            />
+          ))}
+        </div>
+      </CardContent>
 
-        {/* Gráfico de Barras */}
-        <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow flex-grow overflow-y-auto">
-          <BarChartComponent
-            data={barChartData}
-            title="Ganancias Mensuales"
-            description={description}
-            trendingNumber={monthly.change}
-          />
-        </CardContent>
-      </section>
-    </div>
+      {/* Gráfico de Barras */}
+      <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow flex-grow">
+        <BarChartComponent
+          data={barChartData}
+          title="Ganancias Mensuales"
+          description={description}
+          trendingNumber={monthly.change}
+        />
+      </CardContent>
+    </section>
+  </div>
   );
 };
 export default Home;
