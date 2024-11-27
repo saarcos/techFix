@@ -38,7 +38,7 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
         isNavbarVisible ? "lg:ml-64" : "ml-0"
       } bg-gray-50 z-10`}
     >
-      <div className="py-3 px-6 bg-white flex items-center shadow-md shadow-black/5">
+      <div className="py-1.5 px-6 bg-white flex items-center shadow-md shadow-black/5">
         {!isNavbarVisible && (
           <button
             type="button"

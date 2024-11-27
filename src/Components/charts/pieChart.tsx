@@ -39,14 +39,14 @@ const TechnicianPerformanceChart: React.FC<TechnicianPerformanceChartProps> = ({
           Empleado del mes
         </CardTitle>
         <CardDescription className="text-sm text-gray-500 hidden lg:block">
-          Ganancias generadas por cada técnico
+          Ganancias generadas por técnico
         </CardDescription>
       </CardHeader>
       <CardContent className="pb-0 pt-0"> {/* Reducir padding inferior */}
         {/* Ícono del martillo */}
         <div className="flex justify-center items-center">
           <ChartContainer
-            className="aspect-square w-full max-w-[180px] max-h-[180px]" // Compactar gráfico
+            className="aspect-square w-full max-w-[180px] max-h-40" // Compactar gráfico
             config={{
               technicians: { label: "Technicians" },
               ...Object.fromEntries(

@@ -10,29 +10,29 @@ interface BarChartProps {
   trendingNumber: number; // Número que indica la tendencia (positivo o negativo)
 }
 
-const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, footerText, trendingNumber }) => {
+const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, trendingNumber }) => {
   const isTrendingUp = trendingNumber >= 0;
   const currentMonth = new Date().toLocaleDateString("es-ES", {
     month: "long",
   });
   return (
-    <div className="flex w-full flex-col gap-6bg-white ">
-      <div className="mb-3">
-        <h2 className="text-xl font-bold text-gray-800">{title}</h2>
+    <div className="flex w-full flex-col gap-1 ">
+      <div className="mb-0.5">
+        <h2 className="text-base font-bold text-gray-800">{title}</h2>
         <p className="text-sm text-gray-500">{description}</p>
       </div>
       {/* Contenido del Gráfico */}
-      <div className="h-[300px] w-full max-w-full">
+      <div className="h-[260px] w-full max-w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             width={500}
             height={300}
             data={data}
             margin={{
-              top: 20,
+              top: 10,
               right: 30,
               left: 20,
-              bottom: 20,
+              bottom: 10,
             }}
             style={{ cursor: "pointer" }} // Mantener cursor tipo pointer
           >
@@ -43,7 +43,7 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
               tickMargin={10}
               axisLine={false}
               tickFormatter={(value) => value.slice(0, 3)} // Muestra abreviatura del mes
-              className="text-gray-600"
+              className="text-gray-600 text-sm"
             />
             <Tooltip
               cursor={{
@@ -53,7 +53,7 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
                 backgroundColor: "#fff",
                 border: "1px solid #ddd",
                 borderRadius: "8px",
-                fontSize: "14px",
+                fontSize: "13px",
               }}
               formatter={(value) => [`${value}`, "Total"]} // Reemplaza "Value" por "Total"
             />
@@ -64,7 +64,7 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
                 dataKey="value"
                 position="top"
                 offset={10}
-                className="fill-gray-700 font-semibold"
+                className="fill-gray-700 font-semibold text-sm"
                 fontSize={12}
               />
             </Bar>
@@ -73,9 +73,9 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
       </div>
 
       {/* Footer */}
-      <div className="mt-2 text-gray-700 text-center">
+      <div className="mt-0.5 text-gray-700 text-center">
         <div
-          className={`flex items-center justify-center gap-2 font-sm lg:font-medium ${isTrendingUp ? "text-customGreen" : "text-red-500"
+          className={`flex items-center justify-center gap-2 text-sm lg:font-medium ${isTrendingUp ? "text-customGreen" : "text-red-500"
             }`}
         >
           <span>
@@ -87,7 +87,6 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
             <TrendingDown className="h-5 w-5" />
           )}
         </div>
-        <p className="text-sm text-gray-500">{footerText || "Showing data for the selected period"}</p>
       </div>
     </div>
   );

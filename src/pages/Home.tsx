@@ -6,7 +6,7 @@ import SalesCard from "@/Components/SalesCard";
 import Spinner from "../assets/tube-spinner.svg";
 import { CardContent } from "@/Components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/Components/ui/tooltip";
-import {  CreditCard, DollarSign, HandCoinsIcon, Info, Users } from "lucide-react";
+import { CreditCard, DollarSign, HandCoinsIcon, Info, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ChartCard from "@/Components/charts/chartCard";
@@ -32,8 +32,7 @@ const Home = () => {
   const firstMonth = monthlyEarningsData?.[0]?.month_label || "";
   const lastMonth = monthlyEarningsData?.[monthlyEarningsData.length - 1]?.month_label || "";
   // Descripción dinámica basada en los datos
-  const description = `Ganancias desde ${firstMonth} a ${lastMonth}`;
-  const footerText = `Muestra las ganancias totales de ${firstMonth} a ${lastMonth}`;
+  const description = `Ganancias totales desde ${firstMonth} a ${lastMonth}`;
   const cardData = [
     {
       label: "Total Recaudado",
@@ -46,7 +45,7 @@ const Home = () => {
       showProgress: false,
     },
     {
-      label: `Ingresos Mensuales (${currentMonth})`, // Incluye el mes actual
+      label: `Ingresos (${currentMonth})`, // Incluye el mes actual
       amount: monthly.earnings,
       percentage: monthly.change,
       description: "respecto al mes pasado",
@@ -54,10 +53,10 @@ const Home = () => {
       showProgress: true,
     },
     {
-      label: `Nuevos Clientes (${currentMonth})`,
+      label: `Nuevos clientes (${currentMonth})`,
       amount: newClients,
       percentage: percentageChange,
-      description: "respecto al mes anterior",
+      description: "respecto al mes pasado",
       icon: Users, // Representa usuarios o clientes
       showProgress: true,
       isCurrency: false,
@@ -74,21 +73,21 @@ const Home = () => {
     revenue: parseFloat(item.total_revenue), // Asegura que sea un número
   })) || [];
 
-  
-  if (isLoading || areGlobalMetricsLoading || areClientesMetricsLoading  || areRecentOrdersLoading || isMonthlyEarningsLoading || isTechnicianPerformanceLoading )
+
+  if (isLoading || areGlobalMetricsLoading || areClientesMetricsLoading || areRecentOrdersLoading || isMonthlyEarningsLoading || isTechnicianPerformanceLoading)
     return (
       <div className="flex justify-center items-center h-28">
         <img src={Spinner} className="w-16 h-16" />
       </div>
     );
 
-  if (isError || globalMetricsError || clientesMetricsError  || recentOrdersError || monthlyEarningsError || technicianPerformanceError )
+  if (isError || globalMetricsError || clientesMetricsError || recentOrdersError || monthlyEarningsError || technicianPerformanceError)
     return toast.error("Error al recuperar los datos");
 
   return (
-    <div className="flex flex-col gap-6 w-full p-6">
+    <div className="flex flex-col gap-3 w-full h-screen px-3">
       {/* Tarjetas de Métricas */}
-      <section className="grid w-full grid-cols-1 gap-4 gap-x-8 transition-all sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid w-full grid-cols-1 gap-4 gap-x-4 transition-all sm:grid-cols-2 xl:grid-cols-4">
         {cardData.map((metrica, i) => (
           <CardHome
             key={i}
@@ -109,19 +108,19 @@ const Home = () => {
         </ChartCard>
       </section>
       {/* Sección de Gráficos y Ventas */}
-      <section className="grid w-full grid-cols-1 gap-6 transition-all lg:grid-cols-2">
+      <section className="grid w-full grid-cols-1 gap-3 transition-all lg:grid-cols-2">
         {/* Tabla de Ventas */}
-        <CardContent className="flex flex-col gap-4 rounded-xl border p-6 shadow">
+        <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow max-h-[53vh]">
           <section className="flex justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">Órdenes recientes</h2>
+            <div className="-mb-2.5">
+              <h2 className="text-base font-bold text-gray-800">Órdenes recientes</h2>
               <p className="text-sm text-gray-500">Haz iniciado {totalOrdenes} órdenes este mes.</p>
             </div>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info
-                    className="w-6 h-6 text-gray-500 cursor-pointer hover:text-customGreen"
+                    className="w-5 h-5 text-gray-500 cursor-pointer hover:text-customGreen"
                     onClick={() => navigate("/taller/ordenes")}
                   />
                 </TooltipTrigger>
@@ -131,7 +130,7 @@ const Home = () => {
               </Tooltip>
             </TooltipProvider>
           </section>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
             {recentOrders?.recentClients.map((client, i) => (
               <SalesCard
                 key={i}
@@ -143,12 +142,11 @@ const Home = () => {
           </div>
         </CardContent>
         {/* Gráfico de Barras */}
-        <CardContent className="flex flex-col gap-4 rounded-xl border p-6 shadow">
+        <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow max-h-[53vh]">
           <BarChartComponent
             data={barChartData}
             title="Ganancias Mensuales"
             description={description}
-            footerText={footerText}
             trendingNumber={monthly.change}
           />
         </CardContent>
