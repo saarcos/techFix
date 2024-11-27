@@ -15,26 +15,27 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
   const currentMonth = new Date().toLocaleDateString("es-ES", {
     month: "long",
   });
+
   return (
-    <div className="flex w-full flex-col gap-1 ">
-      <div className="mb-0.5">
-        <h2 className="text-base font-bold text-gray-800">{title}</h2>
-        <p className="text-sm text-gray-500">{description}</p>
+    <div className="flex w-full flex-col flex-grow">
+      {/* Títulos */}
+      <div className="mb-2">
+        <h2 className="text-base sm:text-lg md:text-lg lg:text-xl font-bold text-gray-800">{title}</h2>
+        <p className="text-sm sm:text-base text-gray-500">{description}</p>
       </div>
+
       {/* Contenido del Gráfico */}
-      <div className="h-[260px] w-full max-w-full">
+      <div className="flex-grow w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            width={500}
-            height={300}
             data={data}
             margin={{
               top: 10,
-              right: 30,
+              right: 20,
               left: 20,
               bottom: 10,
             }}
-            style={{ cursor: "pointer" }} // Mantener cursor tipo pointer
+            style={{ cursor: "pointer" }}
           >
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <XAxis
@@ -47,7 +48,7 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
             />
             <Tooltip
               cursor={{
-                fill: isTrendingUp ? "rgba(0, 229, 153, 0.07)" : "rgba(255, 90, 90, 0.07)", // Verde translúcido o rojo translúcido
+                fill: isTrendingUp ? "rgba(0, 229, 153, 0.07)" : "rgba(255, 90, 90, 0.07)",
               }}
               contentStyle={{
                 backgroundColor: "#fff",
@@ -55,11 +56,13 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
                 borderRadius: "8px",
                 fontSize: "13px",
               }}
-              formatter={(value) => [`${value}`, "Total"]} // Reemplaza "Value" por "Total"
+              formatter={(value) => [`${value}`, "Total"]}
             />
-            <Bar dataKey="value"
-              fill={isTrendingUp ? "#00E599" : "#FF5A5A"} // Color dinámico del chart
-              radius={[8, 8, 0, 0]}>
+            <Bar
+              dataKey="value"
+              fill={isTrendingUp ? "#00E599" : "#FF5A5A"}
+              radius={[8, 8, 0, 0]}
+            >
               <LabelList
                 dataKey="value"
                 position="top"
@@ -73,13 +76,15 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
       </div>
 
       {/* Footer */}
-      <div className="mt-0.5 text-gray-700 text-center">
+      <div className="mt-2 text-gray-700 text-center">
         <div
-          className={`flex items-center justify-center gap-2 text-sm lg:font-medium ${isTrendingUp ? "text-customGreen" : "text-red-500"
-            }`}
+          className={`flex items-center justify-center gap-2 text-sm sm:text-base lg:font-medium ${
+            isTrendingUp ? "text-customGreen" : "text-red-500"
+          }`}
         >
           <span>
-            Se {isTrendingUp ? "aumentaron" : "redujeron"} las ganancias en un {Math.abs(trendingNumber)}% en {currentMonth} comparado al mes anterior
+            Se {isTrendingUp ? "aumentaron" : "redujeron"} las ganancias en un{" "}
+            {Math.abs(trendingNumber)}% en {currentMonth} comparado al mes anterior
           </span>
           {isTrendingUp ? (
             <TrendingUp className="h-5 w-5" />

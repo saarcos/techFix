@@ -38,91 +38,93 @@ const CardHome = ({
       ? percentage < 0
         ? 0
         : percentage > 100
-          ? 100
-          : percentage
+        ? 100
+        : percentage
       : 0;
 
   return (
-    <Card className="border-none flex-grow bg-gradient-to-br from-white to-gray-50 hover:from-gray-100 h-full">
-      <CardContent className="relative flex w-full flex-col gap-2 sm:gap-3 rounded-xl border p-3 sm:p-4 shadow-md cursor-pointer h-full max-h-[28vh] md:max-h-[35vh]">
+    <Card className="flex flex-col flex-grow rounded-lg shadow bg-gradient-to-br from-white to-gray-50 hover:from-gray-100 h-full sm:min-h-[12rem] lg:min-h-[14rem] 2xl:min-h-[16rem]">
+      <CardContent className="relative flex flex-col h-full gap-3 p-4 sm:p-5 lg:p-6">
         {/* Ícono de Fondo */}
-        <Icon className="absolute right-3 top-3 text-gray-200 opacity-20 w-12 h-12 sm:w-14 sm:h-14" />
+        <Icon className="absolute right-4 top-4 text-gray-200 opacity-20 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14" />
 
         {/* Sección Superior */}
-        <section className="flex justify-between items-center">
-          <p className="text-gray-700 font-medium text-sm sm:text-base">{label}</p>
-          <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+        <section className="flex justify-between items-center mb-1">
+          <p className="text-sm sm:text-base lg:text-lg font-medium text-gray-700">
+            {label}
+          </p>
+          <Icon className="h-6 w-6 text-gray-500" />
         </section>
 
-        {/* Sección Media */}
-        <section className="flex flex-col gap-2 sm:gap-3">
+        {/* Sección Media (crece proporcionalmente) */}
+        <section className="flex flex-col gap-2 justify-center">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900 mb-3">
               {isCurrency ? `$${amount.toLocaleString()}` : amount.toLocaleString()}
             </h2>
             {percentage !== undefined && (
-              <div className="flex items-center gap-2 mt-2 sm:mt-3">
+              <div className="flex items-center gap-1 mt-1">
                 <Badge
-                  className={`${isNegative
-                    ? "bg-red-500 text-white hover:bg-red-500/50"
-                    : "bg-customGreen text-black hover:bg-customGreen/50"
-                    } p-1 sm:p-2 rounded-full flex items-center justify-center`}
+                  className={`p-2 rounded-full ${
+                    isNegative
+                      ? "bg-red-500 text-white hover:bg-red-500/50"
+                      : "bg-customGreen text-black hover:bg-customGreen/50"
+                  }`}
                 >
                   {isNegative ? (
-                    <TrendingDownIcon strokeWidth={2} className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <TrendingDownIcon className="h-4 w-4" />
                   ) : (
-                    <TrendingUpIcon strokeWidth={2} className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <TrendingUpIcon className="h-4 w-4" />
                   )}
                 </Badge>
                 <span
-                  className={`text-xs sm:text-sm font-semibold ${isNegative ? "text-red-500" : "text-customGreen"
-                    }`}
+                  className={`text-sm font-semibold ${
+                    isNegative ? "text-red-500" : "text-customGreen"
+                  }`}
                 >
                   {`${symbol}${percentage}% ${description}`}
                 </span>
               </div>
             )}
           </div>
+
           {/* Información secundaria */}
           {secondaryLabel && secondaryValue !== undefined && (
-            <div className="flex items-center justify-between bg-customGreen/15 p-2 sm:p-3 rounded-lg">
+            <div className="flex justify-between bg-customGreen/10 p-3 rounded-lg">
               <div>
-                <p className="text-xs sm:text-sm text-gray-700">{secondaryLabel}</p>
-                <h3 className="text-sm sm:text-base font-bold text-gray-900">
+                <p className="text-sm lg:text-base text-gray-700">{secondaryLabel}</p>
+                <h3 className="text-base lg:text-lg font-bold text-gray-900">
                   {secondaryValue.toLocaleString()}
                 </h3>
               </div>
-              {SecondaryIcon && (
-                <SecondaryIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
-              )}
+              {SecondaryIcon && <SecondaryIcon className="h-6 w-6 text-gray-500" />}
             </div>
           )}
         </section>
 
-        {/* Área de Tendencias */}
-        {showProgress && percentage !== undefined ? (
-          <section className="mt-1 pt-2 sm:pt-3 border-t border-gray-200">
-            <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-1 sm:mb-2">Tendencia</h3>
-            <Progress
-              value={progressValue}
-              alert={isNegative}
-              aria-label={`${percentage}%`}
-              className="h-3 sm:h-4 w-full rounded-lg"
-            />
-          </section>
-        ) : (
-          <section className="flex justify-center mt-2">
+        {/* Área de Tendencias o Botón */}
+        <section className="mt-2">
+          {showProgress && percentage !== undefined ? (
+            <>
+              <h3 className="text-sm font-medium text-gray-600 mb-3">Tendencia</h3>
+              <Progress
+                value={progressValue}
+                alert={isNegative}
+                aria-label={`${percentage}%`}
+                className="h-6 rounded-full"
+              />
+            </>
+          ) : (
             <Button
               onClick={() => navigate("/taller/ordenes")}
-              className="w-full bg-customGreen text-black px-3 sm:px-4 rounded-xl shadow-sm text-xs sm:text-sm font-medium hover:bg-customGreen/90 transition-all flex items-center gap-1 justify-center"
+              className="w-full bg-customGreen text-black rounded-lg py-2 text-sm font-medium hover:bg-customGreen/90"
             >
               Ver Órdenes de Trabajo
             </Button>
-          </section>
-        )}
+          )}
+        </section>
       </CardContent>
     </Card>
-
   );
 };
 

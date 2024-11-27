@@ -85,9 +85,9 @@ const Home = () => {
     return toast.error("Error al recuperar los datos");
 
   return (
-    <div className="flex flex-col gap-3 w-full h-screen px-3">
+    <div className="flex flex-col gap-4 w-full h-screen px-4 py-1">
       {/* Tarjetas de Métricas */}
-      <section className="grid w-full grid-cols-1 gap-4 gap-x-4 transition-all sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cardData.map((metrica, i) => (
           <CardHome
             key={i}
@@ -107,14 +107,19 @@ const Home = () => {
           <TechnicianPerformanceChart data={technicianData} />
         </ChartCard>
       </section>
+
       {/* Sección de Gráficos y Ventas */}
-      <section className="grid w-full grid-cols-1 gap-3 transition-all lg:grid-cols-2">
+      <section className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2 flex-grow">
         {/* Tabla de Ventas */}
-        <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow max-h-[53vh]">
+        <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow flex-grow overflow-y-auto">
           <section className="flex justify-between">
-            <div className="-mb-2.5">
-              <h2 className="text-base font-bold text-gray-800">Órdenes recientes</h2>
-              <p className="text-sm text-gray-500">Haz iniciado {totalOrdenes} órdenes este mes.</p>
+            <div className="-mb-2">
+              <h2 className="text-base sm:text-lg md:text-lg lg:text-xl font-bold text-gray-800">
+                Órdenes recientes
+              </h2>
+              <p className="text-sm sm:text-base md:text-lg text-gray-500">
+                Haz iniciado {totalOrdenes} órdenes este mes.
+              </p>
             </div>
             <TooltipProvider>
               <Tooltip>
@@ -130,7 +135,7 @@ const Home = () => {
               </Tooltip>
             </TooltipProvider>
           </section>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-2 flex-grow">
             {recentOrders?.recentClients.map((client, i) => (
               <SalesCard
                 key={i}
@@ -141,8 +146,9 @@ const Home = () => {
             ))}
           </div>
         </CardContent>
+
         {/* Gráfico de Barras */}
-        <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow max-h-[53vh]">
+        <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow flex-grow overflow-y-auto">
           <BarChartComponent
             data={barChartData}
             title="Ganancias Mensuales"
