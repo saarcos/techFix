@@ -48,8 +48,8 @@ const CardHome = ({
         <Icon className="absolute right-3 top-3 text-gray-200 opacity-10 w-10 h-10" />
 
         {/* Título e Ícono */}
-        <section className="flex justify-between items-center">
-          <p className="text-base md:text-base  sm:text-sm font-semibold text-gray-700 py-1">{label}</p>
+        <section className="flex justify-between items-center -mb-1.5">
+          <p className="text-base md:text-base  sm:text-sm font-semibold text-gray-700">{label}</p>
           <Icon className="h-6 w-6 text-gray-500" />
         </section>
 
@@ -86,10 +86,10 @@ const CardHome = ({
         </section>
         {/* Información secundaria */}
         {secondaryLabel && secondaryValue !== undefined && (
-          <section className="flex justify-between items-center bg-customGreen/15 px-3 py-1 rounded-md mt-0.5">
+          <section className="flex justify-between items-center bg-customGreen/15 px-3 py-2 rounded-md mt-0.5">
             <div>
-              <p className="text-sm text-gray-600">{secondaryLabel}</p>
-              <h3 className="text-sm font-bold text-gray-950">{secondaryValue.toLocaleString()}</h3>
+              <p className="text-base text-gray-600">{secondaryLabel}</p>
+              <h3 className="text-base font-bold text-gray-950">{secondaryValue.toLocaleString()}</h3>
             </div>
             {SecondaryIcon && <SecondaryIcon className="h-5 w-5 text-gray-500" />}
           </section>
@@ -114,7 +114,7 @@ const CardHome = ({
         {!showProgress && (
           <Button
             onClick={() => navigate("/taller/ordenes")}
-            className="w-full bg-customGreen text-black rounded-md py-2 text-sm font-medium hover:bg-customGreen/90 mt-3"
+            className="w-full bg-customGreen text-black rounded-md py-1 text-sm font-medium hover:bg-customGreen/90 mt-3"
           >
             Ver Órdenes de Trabajo
           </Button>

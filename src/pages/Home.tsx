@@ -6,7 +6,7 @@ import SalesCard from "@/Components/SalesCard";
 import Spinner from "../assets/tube-spinner.svg";
 import { CardContent } from "@/Components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/Components/ui/tooltip";
-import { CreditCard, DollarSign, HandCoinsIcon, Info, Users } from "lucide-react";
+import { BarChart3, ClipboardList, CreditCard, DollarSign, HandCoinsIcon, Info, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ChartCard from "@/Components/charts/chartCard";
@@ -22,7 +22,6 @@ const Home = () => {
   const { data: recentOrders, isLoading: areRecentOrdersLoading, isError: recentOrdersError } = useRecentOrdersMetrics();
   const { data: monthlyEarningsData, isLoading: isMonthlyEarningsLoading, isError: monthlyEarningsError } = useMonthlyEarnings();
   const { data: technicianPerformanceData, isLoading: isTechnicianPerformanceLoading, isError: technicianPerformanceError } = useTechnicianPerformance();
-
   const monthly = data?.monthly ?? { earnings: 0, change: 0 };
   const totalRecaudado = metricasGlobales?.totalRecaudado ?? 0;
   const totalOrdenes = recentOrders?.totalOrders ?? 0;
@@ -62,102 +61,126 @@ const Home = () => {
       isCurrency: false,
     },
   ];
-
   const barChartData = monthlyEarningsData?.map((item) => ({
     month: item.month_label,
     value: item.total_earnings,
   })) || [];
-
   const technicianData = technicianPerformanceData?.map((item) => ({
     technician: item.technician_name,
     revenue: parseFloat(item.total_revenue), // Asegura que sea un número
   })) || [];
-
-
   if (isLoading || areGlobalMetricsLoading || areClientesMetricsLoading || areRecentOrdersLoading || isMonthlyEarningsLoading || isTechnicianPerformanceLoading)
     return (
       <div className="flex justify-center items-center h-28">
         <img src={Spinner} className="w-16 h-16" />
       </div>
     );
-
   if (isError || globalMetricsError || clientesMetricsError || recentOrdersError || monthlyEarningsError || technicianPerformanceError)
     return toast.error("Error al recuperar los datos");
-
   return (
-    <div className="flex flex-col gap-4 w-full h-screen px-4 py-1">
-    {/* Tarjetas de Métricas */}
-    <section className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {cardData.map((metrica, i) => (
-        <CardHome
-          key={i}
-          amount={metrica.amount}
-          description={metrica.description}
-          Icon={metrica.icon}
-          label={metrica.label}
-          percentage={metrica.percentage}
-          secondaryIcon={metrica?.secondaryIcon}
-          secondaryLabel={metrica?.secondaryLabel}
-          showProgress={metrica?.showProgress}
-          secondaryValue={metrica?.secondaryValue}
-          isCurrency={metrica?.isCurrency}
-        />
-      ))}
-      <ChartCard>
-        <TechnicianPerformanceChart data={technicianData} />
-      </ChartCard>
-    </section>
-
-    {/* Sección de Gráficos y Ventas */}
-    <section className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2">
-      {/* Tabla de Ventas */}
-      <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow max-h-[23.5rem]">
-        <section className="flex justify-between">
-          <div className="-mb-4">
-            <h2 className="text-balance font-bold text-gray-800">
-              Órdenes recientes
-            </h2>
-            <p className="text-sm text-gray-500">
-              Haz iniciado {totalOrdenes} órdenes este mes.
-            </p>
-          </div>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info
-                  className="w-5 h-5 text-gray-500 cursor-pointer hover:text-customGreen"
-                  onClick={() => navigate("/taller/ordenes")}
-                />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Ir a la sección de órdenes</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </section>
-        <div className="flex flex-col gap-1">
-          {recentOrders?.recentClients.map((client, i) => (
-            <SalesCard
-              key={i}
-              name={`${client.nombre} ${client.apellido}`}
-              email={client.correo}
-              saleAmount={client.total_spent}
+    <div className="flex flex-col gap-4 w-full  p-4">
+      {/* Tarjetas de Métricas */}
+      <section className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {cardData.map((metrica, i) => (
+          <CardHome
+            key={i}
+            amount={metrica.amount}
+            description={metrica.description}
+            Icon={metrica.icon}
+            label={metrica.label}
+            percentage={metrica.percentage}
+            secondaryIcon={metrica?.secondaryIcon}
+            secondaryLabel={metrica?.secondaryLabel}
+            showProgress={metrica?.showProgress}
+            secondaryValue={metrica?.secondaryValue}
+            isCurrency={metrica?.isCurrency}
+          />
+        ))}
+        <ChartCard>
+          {technicianData.length > 0 ? (
+            <TechnicianPerformanceChart data={technicianData} />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500 bg-customGreen/10 rounded-lg border border-dashed border-gray-300 p-2 w-full">
+              <Users className="h-14 w-14 sm:h-20 sm:w-20 text-darkGreen mb-4" />
+              <p className="text-base sm:text-sm font-medium text-gray-800 text-center">
+                Sin datos de desempeño técnico
+              </p>
+              <p className="text-sm text-gray-600 text-center max-w-xs">
+                Aún no hay datos para mostrar el rendimiento de los técnicos. Cuando haya registros, se reflejarán aquí.
+              </p>
+            </div>
+          )}
+        </ChartCard>
+      </section>
+      {/* Sección de Gráficos y Ventas */}
+      <section className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2 flex-grow">
+        {/* Tabla de Ventas */}
+        <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow flex-grow bg-white">
+          {recentOrders?.recentClients && recentOrders.recentClients.length > 0 ? (
+            <>
+              <section className="flex justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800">Órdenes recientes</h2>
+                  <p className="text-sm text-gray-500">
+                    Haz iniciado {totalOrdenes} órdenes este mes.
+                  </p>
+                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info
+                        className="w-5 h-5 text-gray-500 cursor-pointer hover:text-customGreen"
+                        onClick={() => navigate("/taller/ordenes")}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Ir a la sección de órdenes</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </section>
+              <div className="flex flex-col gap-2 flex-grow">
+                {recentOrders.recentClients.map((client, i) => (
+                  <SalesCard
+                    key={i}
+                    name={`${client.nombre} ${client.apellido}`}
+                    email={client.correo}
+                    saleAmount={client.total_spent}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500 bg-customGreen/10 ounded-lg border border-dashed border-gray-300 p-8">
+              <ClipboardList className="h-20 w-20 text-darkGreen mb-4" />
+              <p className="text-lg font-medium text-gray-800">No hay órdenes recientes</p>
+              <p className="text-sm text-gray-600 text-center">
+                No tienes datos para mostrar. Comienza a generar órdenes y aparecerán aquí.
+              </p>
+            </div>
+          )}
+        </CardContent>
+        {/* Gráfico de Barras */}
+        <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow flex-grow bg-white">
+          {barChartData.length > 0 ? (
+            <BarChartComponent
+              data={barChartData}
+              title="Ganancias Mensuales"
+              description={description}
+              trendingNumber={monthly.change}
             />
-          ))}
-        </div>
-      </CardContent>
-
-      {/* Gráfico de Barras */}
-      <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow flex-grow">
-        <BarChartComponent
-          data={barChartData}
-          title="Ganancias Mensuales"
-          description={description}
-          trendingNumber={monthly.change}
-        />
-      </CardContent>
-    </section>
-  </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500 bg-customGreen/10 rounded-lg border border-dashed border-gray-300 p-8">
+              <BarChart3 className="h-20 w-20 text-darkGreen mb-4" />
+              <p className="text-lg font-medium text-gray-800">Sin datos de ganancias</p>
+              <p className="text-sm text-gray-600 text-center">
+                Los datos de ganancias estarán disponibles cuando haya registros.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </section>
+    </div>
   );
 };
 export default Home;

@@ -89,7 +89,7 @@ const Tecnicos = () => {
   if (error || rolesError) return toast.error('Error al recuperar los datos');
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40 mt-5">
+    <div className="flex w-full flex-col bg-muted/40 mt-5">
       <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
         <Card className="w-full max-w-9xl overflow-x-auto">
           <CardHeader>
