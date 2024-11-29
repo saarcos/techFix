@@ -7,8 +7,6 @@ import { Copy, Download, MoreVertical } from "lucide-react";
 import { OrdenTrabajo } from "@/api/ordenTrabajoService";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/Components/ui/carousel";
 import { useNavigate } from "react-router-dom";
-import { ResponsiveDialog } from "./responsive-dialog";
-import MoveOrdenTrabajoForm from "./forms/ordenesTrabajo/mover-orden-form";
 import { toast } from 'sonner';
 import { pdf } from "@react-pdf/renderer"; // Para generar manualmente el PDF
 import OrderPDF from "./OrderPDF";
@@ -20,7 +18,6 @@ interface OrderDetailsProps {
 
 const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
   const navigate = useNavigate(); // Definir el hook useNavigate
-  const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
 
   const handleEditClick = () => {
@@ -28,12 +25,9 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
       navigate(`/taller/ordenes/${order.id_orden}/edit`);
     }
   };
-
   const handleGeneratePDF = async () => {
     if (!order) return;
-
     setIsGeneratingPDF(true);
-
     try {
       // Generar el PDF como blob
       const blob = await pdf(<OrderPDF order={order} />).toBlob();
@@ -71,11 +65,14 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
         <div className="ml-auto flex items-center gap-1">
           <Button
             onClick={handleGeneratePDF}
-            disabled={isGeneratingPDF}
+            disabled={(order?.area !== "Salida")}
             size="sm"
             variant="outline"
-            className="h-7 gap-1 text-sm"
-          >
+            className={`h-7 gap-1 text-sm ${
+              order?.area !== "Salida"
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer"
+            }`}            >
             <Download className="h-3.5 w-3.5" />{isGeneratingPDF ? "Generando..." : "Descargar PDF"}
           </Button>
           <DropdownMenu>
@@ -86,18 +83,16 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleEditClick} className="cursor-pointer">Editar</DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer"
                 onClick={() => {
                   if (order) {
-                    setIsModalOpen(true);
+                    handleEditClick(); // Llamar la función
                   } else {
                     toast.warning("Por favor, selecciona una orden de trabajo primero");
                   }
                 }}
-              >
-                Mover
+                className="cursor-pointer">
+                Editar
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer">Descartar</DropdownMenuItem>
@@ -265,14 +260,6 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
         </div>
 
       </CardFooter>
-      <ResponsiveDialog
-        isOpen={isModalOpen}
-        setIsOpen={setIsModalOpen}
-        title="Mover orden de trabajo"
-        description='Selecciona el área al que deseas mover la orden'
-      >
-        <MoveOrdenTrabajoForm order={order} setIsOpen={setIsModalOpen} />
-      </ResponsiveDialog>
     </Card>
   );
 };

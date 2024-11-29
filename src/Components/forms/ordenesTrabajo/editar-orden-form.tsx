@@ -128,11 +128,18 @@ export default function OrdenTrabajoEditForm() {
     useEffect(() => {
         if (ordenTrabajo) {
             setExistingImages(ordenTrabajo.imagenes.map(img => img.url_imagen));
+            // Modificar el área según las condiciones antes de hacer el reset
+            let areaActualizada = ordenTrabajo.area;
+            if (ordenTrabajo.area === 'Entrada') {
+                areaActualizada = 'Reparación';
+            } else if (ordenTrabajo.area === 'Reparación') {
+                areaActualizada = 'Salida';
+            }
             form.reset({
                 id_equipo: ordenTrabajo.id_equipo,
                 id_usuario: ordenTrabajo.id_usuario || 0,
                 cliente_id: ordenTrabajo.cliente_id,
-                area: ordenTrabajo.area,
+                area: areaActualizada,
                 prioridad: ordenTrabajo.prioridad,
                 descripcion: ordenTrabajo.descripcion,
                 estado: ordenTrabajo.estado,
@@ -142,18 +149,21 @@ export default function OrdenTrabajoEditForm() {
                 adelanto: ordenTrabajo.adelanto || undefined,
                 archivos: ordenTrabajo.imagenes || [],
             });
-            setAreaSeleccionada(ordenTrabajo.area); // Inicializar estado del área
-            setTecnicoSeleccionado(ordenTrabajo.id_usuario || null); // Inicializar estado del técnico
+            setAreaSeleccionada(areaActualizada); // Inicializar estado del área
+            setTecnicoSeleccionado(ordenTrabajo.id_usuario || 0); // Inicializar estado del técnico
         }
     }, [ordenTrabajo, form]);
     // Observa los cambios en el campo "area" y "id_usuario" en tiempo real
     useEffect(() => {
         const subscription = form.watch((value) => {
-            setAreaSeleccionada(value.area || "Entrada");
             setTecnicoSeleccionado(value.id_usuario || 0);
         });
         return () => subscription.unsubscribe();
     }, [form]);
+    useEffect(() => {
+        // Sincroniza el área seleccionada después de que se actualicen los valores del formulario
+        setAreaSeleccionada(form.getValues('area') || 'Entrada');
+    }, [form.getValues('area')]);
 
     // Llama a la función countRepairs para obtener la cantidad de reparaciones
     useEffect(() => {
@@ -209,11 +219,27 @@ export default function OrdenTrabajoEditForm() {
     const handleDetallesChange = (detalles: DetalleOrden[]) => {
         setDetallesSeleccionados(detalles);
     };
-
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        if ((areaSeleccionada === "Reparación" || areaSeleccionada === "Salida") && (!tecnicoSeleccionado || tecnicoSeleccionado === 0)) {
+            console.log("Hola")
+        }
         if (detallesSeleccionados.length === 0) {
             toast.warning("Debes ingresar al menos un detalle antes de guardar.");
             return;
+        }
+        if (areaSeleccionada==="Reparación") {
+            const tareasSinTecnico = detallesSeleccionados.some((detalle) => !detalle.id_usuario)
+            if(tareasSinTecnico) {
+                toast.warning("Todas las tareas deben ser asignadas a un técnico en el área Reparación");
+                return;
+            }
+        }
+        if (areaSeleccionada === "Salida") {
+            const tareasIncompletas = detallesSeleccionados.some((detalle) => !detalle.status);
+            if (tareasIncompletas) {
+                toast.warning("Todas las tareas deben marcarse como completas para finalizar la orden");
+                return;
+            }
         }
         try {
             const imageUrls = [...existingImages]; // Incluir imágenes existentes
@@ -290,7 +316,6 @@ export default function OrdenTrabajoEditForm() {
         }
 
     }, [ordenTrabajo, accesoriosOrden]);
-    const isSubmitDisabled = (areaSeleccionada === 'Reparación' || areaSeleccionada === 'Salida' ) && !tecnicoSeleccionado;
     if (isLoading || isLoadingAccesorios || isLoadingDetalles) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
     if (isError) return <div>Error al cargar los datos</div>;
     return (
@@ -412,9 +437,11 @@ export default function OrdenTrabajoEditForm() {
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Área</FormLabel>
-                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                <Select onValueChange={field.onChange}
+                                                    value={field.value}
+                                                    disabled={ordenTrabajo?.area === 'Entrada' || ordenTrabajo?.area === 'Reparación'}>
                                                     <FormControl>
-                                                        <SelectTrigger>
+                                                        <SelectTrigger className={cn(ordenTrabajo?.area === 'Entrada' || ordenTrabajo?.area === 'Reparación' ? 'cursor-not-allowed text-black' : 'cursor-pointer')}>
                                                             <SelectValue placeholder="Selecciona un área" />
                                                         </SelectTrigger>
                                                     </FormControl>
@@ -586,12 +613,14 @@ export default function OrdenTrabajoEditForm() {
                                 <OrdenTrabajoTabs
                                     detalles={detallesSeleccionados}
                                     onDetallesChange={handleDetallesChange}
-                                    ordenId={id_orden || 1} selectedImages={selectedImages}
+                                    ordenId={id_orden || 1}
+                                    selectedImages={selectedImages}
                                     setSelectedImages={setSelectedImages}
                                     existingImages={existingImages}
                                     setExistingImages={setExistingImages}
                                     tecnicos={tecnicos}
                                     onTotalChange={setTotalOrden}  // Pasar setTotalOrden como onTotalChange
+                                    area={areaSeleccionada}
                                 />
                                 <div className="flex justify-end">
                                     <Button
@@ -603,8 +632,8 @@ export default function OrdenTrabajoEditForm() {
                                         Cancelar
                                     </Button>
                                     <Button type="submit"
-                                        className={`cursor-pointer bg-darkGreen hover:bg-darkGreen/50 text-white font-semibold ${isSubmitDisabled ? 'cursor-not-allowed' : ''}`}
-                                        disabled={isSubmitDisabled}>
+                                        className={`cursor-pointer bg-darkGreen hover:bg-darkGreen/50 text-white font-semibold`}
+                                        >
                                         {form.formState.isSubmitting ? (
                                             <>
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -78,7 +78,7 @@ const Home = () => {
   if (isError || globalMetricsError || clientesMetricsError || recentOrdersError || monthlyEarningsError || technicianPerformanceError)
     return toast.error("Error al recuperar los datos");
   return (
-    <div className="flex flex-col gap-4 w-full  p-4">
+    <div className="flex flex-col gap-4 w-full px-4 ">
       {/* Tarjetas de Métricas */}
       <section className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cardData.map((metrica, i) => (

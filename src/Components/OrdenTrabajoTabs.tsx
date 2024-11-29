@@ -24,6 +24,7 @@ interface OrdenTrabajoTabsProps {
   setExistingImages: React.Dispatch<React.SetStateAction<string[]>>;
   tecnicos: User[],
   onTotalChange: (total: number) => void;  // Agregar esta línea
+  area: string;
 }
 
 export default function OrdenTrabajoTabs({
@@ -35,7 +36,8 @@ export default function OrdenTrabajoTabs({
   existingImages,
   setExistingImages,
   tecnicos,
-  onTotalChange
+  onTotalChange,
+  area
 }: OrdenTrabajoTabsProps) {
   const [showCombobox, setShowCombobox] = useState<{ [key: number]: boolean }>({});
   const [isAddDetalleModalOpen, setIsAddDetalleModalOpen] = useState(false);
@@ -250,6 +252,7 @@ export default function OrdenTrabajoTabs({
                       <Switch
                         checked={detalle.status}
                         onCheckedChange={(newStatus) => handleStatusChange(detalle.id_detalle, newStatus)}
+                        disabled={area !=="Salida"}
                       />
                     </TableCell>
                     <TableCell className="text-right">

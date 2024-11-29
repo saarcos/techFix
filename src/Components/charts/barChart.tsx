@@ -77,13 +77,13 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
       {/* Footer */}
       <div className="mt-2 text-gray-700 text-center">
         <div
-          className={`flex items-center justify-center gap-2 text-sm sm:text-base lg:font-medium ${
+          className={`flex items-center justify-center gap-2 text-sm lg:font-medium ${
             isTrendingUp ? "text-customGreen" : "text-red-500"
           }`}
         >
           <span>
-            Se {isTrendingUp ? "aumentaron" : "redujeron"} las ganancias en un{" "}
-            {Math.abs(trendingNumber)}% en {currentMonth} comparado al mes anterior
+            {isTrendingUp ? "Aumentaron" : "Redujeron"} las ganancias en un{" "}
+            {Math.abs(trendingNumber)}% en {currentMonth} respecto al mes anterior.
           </span>
           
         </div>
