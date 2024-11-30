@@ -433,9 +433,9 @@ export default function OrdenTrabajoForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Área</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={true}>
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className='cursor-not-allowed text-black'>
                               <SelectValue placeholder="Selecciona un área" />
                             </SelectTrigger>
                           </FormControl>

@@ -113,10 +113,6 @@ export interface OrdenTrabajoUpdate {
 
 // Método para recuperar las métricas de ganancias semanales y mensuales
 export interface OrdenesMetrics {
-  weekly: {
-    earnings: number;
-    change: number;
-  };
   monthly: {
     earnings: number;
     change: number;

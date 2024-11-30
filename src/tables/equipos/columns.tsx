@@ -23,44 +23,41 @@ export const columns: ColumnDef<Equipo>[] = [
     ),
     cell: ({ row }) => {
       const description = row.original.descripcion;
-
+      const nserie = row.original.nserie;
       return (
         <div className="flex items-center">
-          {description ? (
-            <Popover >
-              <PopoverTrigger asChild>
-                <button
-                  className="text-darkGreen hover:text-customGreenHover flex items-center"
-                  style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
-                >
-                  {row.original.nserie ? (
-                    <>
-                      <Info className="mr-2 text-darkGreen" />
-                      <span className="underline">{row.original.nserie}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Info className="mr-2 text-gray-500 italic" />
-                      <span className="text-gray-500 italic underline">Sin N° de serie agregado</span>
-                    </>
-                  )}
-                </button>
-              </PopoverTrigger>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                className="text-darkGreen hover:text-customGreenHover flex items-center"
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                }}
+              >
+                {nserie ? (
+                  <>
+                    <Info className="mr-2 text-darkGreen" />
+                    <span className="underline">{nserie}</span>
+                  </>
+                ) : (
+                  <>
+                    <Info className="mr-2 text-gray-500 italic" />
+                    <span className="text-gray-500 italic">Sin N° de serie agregado</span>
+                  </>
+                )}
+              </button>
+            </PopoverTrigger>
+            {description && (
               <PopoverContent
                 className="p-4 rounded-lg shadow-lg border-s-customGray bg-customGray"
-
               >
-                <h3
-                  className="font-bold mb-2 text-customGreen"
-                >
-                  Descripción
-                </h3>
+                <h3 className="font-bold mb-2 text-customGreen">Descripción</h3>
                 <p className="text-white font-thin">{description}</p>
               </PopoverContent>
-            </Popover>
-          ) : (
-            <span>{row.original.nserie}</span>
-          )}
+            )}
+          </Popover>
         </div>
       );
     },

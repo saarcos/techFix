@@ -49,14 +49,12 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
   );
 
   const addProduct = (id_producto: number) => {
-    console.log("añadí producto")
     const product = products.find((prod) => prod.id_producto === id_producto);
     const stock = productosConStock.find((stockProd) => stockProd.id_producto === id_producto)?.stocktotal;
   
     if (product && stock !== undefined) {
       setSelectedProduct({ producto: product, cantidad: 1, precio: product.precioFinal, stocktotal: stock });
     }
-    console.log(stock)
   };
 
   const addService = (id_servicio: number) => {

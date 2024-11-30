@@ -31,6 +31,7 @@ import { getAccesoriosByOrden, updateAccesoriosOrden } from '@/api/accesorioOrde
 import Spinner from '../../../assets/tube-spinner.svg';
 import { countRepairs } from '@/api/equipoService';
 import { createDetallesOrden, getDetallesByOrdenId } from '@/api/detalleOrdenService';
+import { CustomToast } from '@/Components/CustomToast';
 
 const formSchema = z.object({
     id_equipo: z.number().min(1, 'Equipo es requerido'),
@@ -55,14 +56,14 @@ const formSchema = z.object({
         .optional(),
     archivos: z.any().optional(),
 }).refine((data) => {
-    // Si el área es "Reparación" o "Salida", entonces `id_usuario` no debe ser null
+    // Si el área es "Reparación" o "Salida", entonces id_usuario no debe ser null
     if (data.area === 'Reparación' || data.area === 'Salida') {
         return data.id_usuario && data.id_usuario > 0;
     }
-    return true; // Para "Entrada" `id_usuario` puede ser null
+    return true; // Para "Entrada" id_usuario puede ser null
 }, {
     message: 'Técnico es requerido para el área de Reparación o Salida',
-    path: ['id_usuario'], // Especifica que el error es en `id_usuario`
+    path: ['id_usuario'], // Especifica que el error es en id_usuario
 });
 export default function OrdenTrabajoEditForm() {
     const { id } = useParams(); // Obtener el id desde la URL
@@ -74,7 +75,6 @@ export default function OrdenTrabajoEditForm() {
     const [repairCount, setRepairCount] = useState<number | null>(null); // Para almacenar la cantidad de reparaciones
     const [totalOrden, setTotalOrden] = useState<number>(0);
     const [areaSeleccionada, setAreaSeleccionada] = useState('Entrada'); // Valor inicial
-    const [tecnicoSeleccionado, setTecnicoSeleccionado] = useState<number | null>(null);
 
     // Consulta para obtener los datos de la orden de trabajo por ID
     const { data: ordenTrabajo, isLoading, isError } = useQuery({
@@ -105,7 +105,6 @@ export default function OrdenTrabajoEditForm() {
         queryFn: () => id_orden ? getDetallesByOrdenId(id_orden) : Promise.resolve([]),
         enabled: !!id_orden,
     });
-
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -150,21 +149,8 @@ export default function OrdenTrabajoEditForm() {
                 archivos: ordenTrabajo.imagenes || [],
             });
             setAreaSeleccionada(areaActualizada); // Inicializar estado del área
-            setTecnicoSeleccionado(ordenTrabajo.id_usuario || 0); // Inicializar estado del técnico
         }
     }, [ordenTrabajo, form]);
-    // Observa los cambios en el campo "area" y "id_usuario" en tiempo real
-    useEffect(() => {
-        const subscription = form.watch((value) => {
-            setTecnicoSeleccionado(value.id_usuario || 0);
-        });
-        return () => subscription.unsubscribe();
-    }, [form]);
-    useEffect(() => {
-        // Sincroniza el área seleccionada después de que se actualicen los valores del formulario
-        setAreaSeleccionada(form.getValues('area') || 'Entrada');
-    }, [form.getValues('area')]);
-
     // Llama a la función countRepairs para obtener la cantidad de reparaciones
     useEffect(() => {
         const fetchRepairCount = async () => {
@@ -181,11 +167,24 @@ export default function OrdenTrabajoEditForm() {
         fetchRepairCount();
     }, [ordenTrabajo, detallesOrden]);
 
+    useEffect(() => {
+        if (Object.keys(form.formState.errors).length > 0) {
+          // Desplazar hacia el inicio del formulario
+          const formElement = document.querySelector("form");
+          if (formElement) {
+            formElement.scrollIntoView({ behavior: "smooth" });
+          }
+        }
+      }, [form.formState.errors]);
     const updateMutation = useMutation({
         mutationFn: updateOrdenTrabajo,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['ordenesTrabajo'] });
-            toast.success('Orden de trabajo actualizada exitosamente');
+            CustomToast({
+                message:
+                  "Orden de trabajo actualizada exitosamente",
+                type: "success",
+            });
             navigate('/taller/ordenes'); // Redirige a la página
         },
         onError: (error) => {
@@ -219,25 +218,33 @@ export default function OrdenTrabajoEditForm() {
     const handleDetallesChange = (detalles: DetalleOrden[]) => {
         setDetallesSeleccionados(detalles);
     };
+    
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        if ((areaSeleccionada === "Reparación" || areaSeleccionada === "Salida") && (!tecnicoSeleccionado || tecnicoSeleccionado === 0)) {
-            console.log("Hola")
-        }
         if (detallesSeleccionados.length === 0) {
-            toast.warning("Debes ingresar al menos un detalle antes de guardar.");
+            CustomToast({
+                message: "Debes ingresar al menos un detalle antes de guardar.",
+                type: "warning",
+            });
             return;
         }
-        if (areaSeleccionada==="Reparación") {
+        if (areaSeleccionada === "Reparación") {
             const tareasSinTecnico = detallesSeleccionados.some((detalle) => !detalle.id_usuario)
-            if(tareasSinTecnico) {
-                toast.warning("Todas las tareas deben ser asignadas a un técnico en el área Reparación");
+            if (tareasSinTecnico) {
+                CustomToast({
+                    message: "Todas las tareas deben ser asignadas a un técnico en el área Reparación.",
+                    type: "warning",
+                });
                 return;
             }
         }
         if (areaSeleccionada === "Salida") {
             const tareasIncompletas = detallesSeleccionados.some((detalle) => !detalle.status);
             if (tareasIncompletas) {
-                toast.warning("Todas las tareas deben marcarse como completas para finalizar la orden");
+                CustomToast({
+                    message:
+                      "Todas las tareas deben marcarse como completas para finalizar la orden.",
+                    type: "warning",
+                });
                 return;
             }
         }
@@ -267,7 +274,6 @@ export default function OrdenTrabajoEditForm() {
 
             // Primero, actualizar la orden de trabajo
             await updateMutation.mutateAsync(ordenTrabajoData);
-
 
             // Agrega los detalles después de actualizar la orden
             if (id_orden && detallesSeleccionados.length > 0) {
@@ -302,7 +308,6 @@ export default function OrdenTrabajoEditForm() {
         }
     };
     useEffect(() => {
-
         if (accesoriosOrden && accesoriosOrden.length > 0) {
             // Establece los accesorios seleccionados basados en la consulta
             const accesoriosTransformados = accesoriosOrden.map(ordenAccesorio => ({
@@ -633,7 +638,7 @@ export default function OrdenTrabajoEditForm() {
                                     </Button>
                                     <Button type="submit"
                                         className={`cursor-pointer bg-darkGreen hover:bg-darkGreen/50 text-white font-semibold`}
-                                        >
+                                    >
                                         {form.formState.isSubmitting ? (
                                             <>
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

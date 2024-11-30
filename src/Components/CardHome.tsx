@@ -42,8 +42,8 @@ const CardHome = ({
       : 0;
 
   return (
-    <Card className="flex flex-col rounded-lg shadow bg-white hover:shadow-lg transition-shadow duration-200 max-h-[15rem] cursor-pointer">
-      <CardContent className="relative flex flex-col h-full gap-2 px-4 py-2">
+    <Card className="flex flex-col rounded-lg shadow bg-white hover:shadow-lg transition-shadow duration-200 h-auto cursor-pointer">
+      <CardContent className="relative flex flex-col h-full gap-2 p-4">
         {/* Ícono de Fondo */}
         <Icon className="absolute right-3 top-3 text-gray-200 opacity-10 w-10 h-10" />
 
@@ -98,14 +98,14 @@ const CardHome = ({
         {showProgress && percentage !== undefined && (
           <section className="mt-3">
             <div className="flex justify-between items-center mb-2">
-              <h4 className="text-base font-medium text-gray-600">Tendencia</h4>
+              <h4 className="text-base font-medium text-gray-600 mb-2">Tendencia</h4>
               <span className="text-sm text-gray-500">{progressValue}%</span>
             </div>
             <Progress
               value={progressValue}
               alert={isNegative}
               aria-label={`${percentage}%`}
-              className={`h-4 rounded-full ${isNegative ? "bg-red-100" : "bg-customGreen/15"}`}
+              className={`h-6 rounded-full ${isNegative ? "bg-red-100" : "bg-customGreen/15"}`}
               />
           </section>
         )}

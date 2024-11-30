@@ -7,10 +7,10 @@ import { Copy, Download, MoreVertical } from "lucide-react";
 import { OrdenTrabajo } from "@/api/ordenTrabajoService";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/Components/ui/carousel";
 import { useNavigate } from "react-router-dom";
-import { toast } from 'sonner';
 import { pdf } from "@react-pdf/renderer"; // Para generar manualmente el PDF
 import OrderPDF from "./OrderPDF";
 import { saveAs } from "file-saver";
+import { CustomToast } from "./CustomToast";
 
 interface OrderDetailsProps {
   order: OrdenTrabajo | null;
@@ -88,7 +88,11 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                   if (order) {
                     handleEditClick(); // Llamar la función
                   } else {
-                    toast.warning("Por favor, selecciona una orden de trabajo primero");
+                    CustomToast({
+                      message:
+                        "Por favor, selecciona una orden de trabajo primero.",
+                      type: "warning",
+                    });
                   }
                 }}
                 className="cursor-pointer">

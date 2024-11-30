@@ -32,7 +32,7 @@ const OrdenesTable = ({ onSelectOrder, ordenes, selectedOrder }: OrdenesTablePro
             ordenes.map((orden) => (
               <TableRow
                 key={orden.id_orden}
-                className={selectedOrder?.id_orden === orden.id_orden ? "bg-accent" : ""}
+                className={selectedOrder?.id_orden === orden.id_orden ? "bg-customGreen/10" : ""}
                 onClick={() => onSelectOrder(orden)}
               >
                 <TableCell>

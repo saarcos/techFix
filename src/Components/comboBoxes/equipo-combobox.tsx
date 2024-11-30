@@ -47,7 +47,7 @@ export function EquipoCombobox({ field, equipos, isEquipoLoading, disabled }: Eq
   const selectedEquipo = equipos.find(equipo => equipo.id_equipo.toString() === field.value?.toString());
 
   const getDisplayValue = (equipo: Equipo) =>
-    `${equipo.nserie} - ${equipo.cliente.nombre} ${equipo.cliente.apellido} - ${equipo.modelo.marca.nombre} ${equipo.modelo.nombre}`;
+    `${equipo.nserie || "Sin N° de serie"} - ${equipo.cliente.nombre} ${equipo.cliente.apellido} - ${equipo.modelo.marca.nombre} ${equipo.modelo.nombre}`;  
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

@@ -152,12 +152,10 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
       id_tipoe: 0,
       marca_id: 0,
       id_modelo: 0,
-      nserie: '',
+      nserie: undefined,
       descripcion: '',
     },
   });
-
-
   const queryClient = useQueryClient();
   const { data: equipo, isLoading: isEquipoLoading, isError, error } = useQuery<Equipo>({
     queryKey: ['equipo', equipoId],
@@ -225,6 +223,7 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
 
   const isLoading = form.formState.isSubmitting;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log(values)
     try {
       if (equipoId) {
         updateMutation.mutate({

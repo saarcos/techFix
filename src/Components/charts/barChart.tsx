@@ -65,8 +65,8 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
               <LabelList
                 dataKey="value"
                 position="top"
-                offset={10}
-                className="fill-gray-700 font-semibold text-sm"
+                offset={-15}
+                className="fill-white font-semibold text-sm"
                 fontSize={12}
               />
             </Bar>

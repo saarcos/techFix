@@ -11,6 +11,8 @@ import {
   ChartTooltip,
 } from "@/Components/ui/chart";
 import React from "react";
+import { useMediaQuery } from 'react-responsive';
+
 
 interface TechnicianPerformanceChartProps {
   data: {
@@ -31,6 +33,9 @@ const TechnicianPerformanceChart: React.FC<TechnicianPerformanceChartProps> = ({
     () => chartData.reduce((sum, item) => sum + item.revenue, 0),
     [chartData]
   );
+
+  // Detectar resolución móvil
+  const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
 
   return (
     <Card className="relative flex flex-col border-none shadow-none bg-gradient-to-br"> {/* Añadido relative */}
@@ -127,6 +132,26 @@ const TechnicianPerformanceChart: React.FC<TechnicianPerformanceChartProps> = ({
             </PieChart>
           </ChartContainer>
         </div>
+        {isMobile && (
+          <div
+            className="mt-4 flex flex-wrap gap-y-2 gap-x-4 text-sm text-gray-700 justify-center"
+          >
+            {chartData.map((item, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-start"
+                style={{ minWidth: "45%" }} // Ocupa la mitad del ancho disponible
+              >
+                <span
+                  className="w-3 h-3 rounded-full mr-2"
+                  style={{ backgroundColor: item.fill }}
+                ></span>
+                <span className="flex-1">{item.technician}</span>
+                <span className="font-medium ml-1">${item.revenue.toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

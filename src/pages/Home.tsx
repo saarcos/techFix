@@ -115,8 +115,8 @@ const Home = () => {
       {/* Sección de Gráficos y Ventas */}
       <section className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2 flex-grow">
         {/* Tabla de Ventas */}
-        <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow flex-grow bg-white">
-          {recentOrders?.recentClients && recentOrders.recentClients.length > 0 ? (
+        <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow flex-grow bg-white min-h-[30vh] overflow-y-auto">
+        {recentOrders?.recentClients && recentOrders.recentClients.length > 0 ? (
             <>
               <section className="flex justify-between">
                 <div>
@@ -161,8 +161,8 @@ const Home = () => {
           )}
         </CardContent>
         {/* Gráfico de Barras */}
-        <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow flex-grow bg-white">
-          {barChartData.length > 0 ? (
+        <CardContent className="flex flex-col gap-4 rounded-xl border p-4 shadow flex-grow bg-white min-h-[30vh]">
+        {barChartData.length > 0 ? (
             <BarChartComponent
               data={barChartData}
               title="Ganancias Mensuales"
