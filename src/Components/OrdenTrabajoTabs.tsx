@@ -49,11 +49,20 @@ export default function OrdenTrabajoTabs({
     precioservicio?: number;
     precioproducto?: number;
   }) => {
-    const cantidad = detalle.producto ? detalle.cantidad || 1 : 0;
-    const precioservicio = Number(detalle.precioservicio) || 0;
-    const precioproducto = Number(detalle.precioproducto) || 0;
-    const preciototal = Number(((precioproducto * cantidad) + precioservicio).toFixed(2));
-
+    const cantidad = detalle.producto && detalle.cantidad ? detalle.cantidad : 1; // Si no hay producto, se asume 1 por defecto
+    const precioservicio = detalle.servicio && detalle.precioservicio !== undefined
+      ? parseFloat(detalle.precioservicio.toString())
+      : 0; // Si no hay servicio, precio 0
+    const precioproducto = detalle.producto && detalle.precioproducto !== undefined
+      ? parseFloat(detalle.precioproducto.toString())
+      : 0; // Si no hay producto, precio 0
+    const preciototal = parseFloat(((precioproducto * cantidad) + precioservicio).toFixed(2));
+    console.log({
+      precioservicio,
+      precioproducto,
+      cantidad,
+      preciototal
+    });
     const nuevoDetalle: DetalleOrden = {
       id_detalle: Math.random(), // Esto es solo temporal; utiliza un ID adecuado si es necesario
       id_orden: ordenId,
@@ -149,7 +158,7 @@ export default function OrdenTrabajoTabs({
             <TableBody>
               {detalles.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7 } className="text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground">
                     No hay detalles agregados.
                   </TableCell>
                 </TableRow>
@@ -252,7 +261,7 @@ export default function OrdenTrabajoTabs({
                       <Switch
                         checked={detalle.status}
                         onCheckedChange={(newStatus) => handleStatusChange(detalle.id_detalle, newStatus)}
-                        disabled={area !=="Salida"}
+                        disabled={area !== "Salida"}
                       />
                     </TableCell>
                     <TableCell className="text-right">
@@ -268,7 +277,7 @@ export default function OrdenTrabajoTabs({
                   </TableRow>
                 ))
               )}
-            
+
             </TableBody>
           </Table>
           <div className="flex justify-end mt-4 pr-4">

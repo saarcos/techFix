@@ -32,6 +32,7 @@ import Spinner from '../../../assets/tube-spinner.svg';
 import { countRepairs } from '@/api/equipoService';
 import { createDetallesOrden, getDetallesByOrdenId } from '@/api/detalleOrdenService';
 import { CustomToast } from '@/Components/CustomToast';
+import { io } from 'socket.io-client';
 
 const formSchema = z.object({
     id_equipo: z.number().min(1, 'Equipo es requerido'),
@@ -75,6 +76,7 @@ export default function OrdenTrabajoEditForm() {
     const [repairCount, setRepairCount] = useState<number | null>(null); // Para almacenar la cantidad de reparaciones
     const [totalOrden, setTotalOrden] = useState<number>(0);
     const [areaSeleccionada, setAreaSeleccionada] = useState('Entrada'); // Valor inicial
+    const socket = io('http://localhost:3000'); // Asegúrate de que la URL coincide con la del servidor
 
     // Consulta para obtener los datos de la orden de trabajo por ID
     const { data: ordenTrabajo, isLoading, isError } = useQuery({
@@ -169,20 +171,20 @@ export default function OrdenTrabajoEditForm() {
 
     useEffect(() => {
         if (Object.keys(form.formState.errors).length > 0) {
-          // Desplazar hacia el inicio del formulario
-          const formElement = document.querySelector("form");
-          if (formElement) {
-            formElement.scrollIntoView({ behavior: "smooth" });
-          }
+            // Desplazar hacia el inicio del formulario
+            const formElement = document.querySelector("form");
+            if (formElement) {
+                formElement.scrollIntoView({ behavior: "smooth" });
+            }
         }
-      }, [form.formState.errors]);
+    }, [form.formState.errors]);
     const updateMutation = useMutation({
         mutationFn: updateOrdenTrabajo,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['ordenesTrabajo'] });
             CustomToast({
                 message:
-                  "Orden de trabajo actualizada exitosamente",
+                    "Orden de trabajo actualizada exitosamente",
                 type: "success",
             });
             navigate('/taller/ordenes'); // Redirige a la página
@@ -218,7 +220,7 @@ export default function OrdenTrabajoEditForm() {
     const handleDetallesChange = (detalles: DetalleOrden[]) => {
         setDetallesSeleccionados(detalles);
     };
-    
+
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         if (detallesSeleccionados.length === 0) {
             CustomToast({
@@ -242,7 +244,7 @@ export default function OrdenTrabajoEditForm() {
             if (tareasIncompletas) {
                 CustomToast({
                     message:
-                      "Todas las tareas deben marcarse como completas para finalizar la orden.",
+                        "Todas las tareas deben marcarse como completas para finalizar la orden.",
                     type: "warning",
                 });
                 return;
@@ -274,7 +276,11 @@ export default function OrdenTrabajoEditForm() {
 
             // Primero, actualizar la orden de trabajo
             await updateMutation.mutateAsync(ordenTrabajoData);
-
+            // Notificar al técnico asignado
+            if (values.id_usuario) {
+                socket.emit('asignarOrden', { userId: values.id_usuario, ordenId: id_orden });
+                console.log(`Notificación enviada al usuario ${values.id_usuario} para la orden ${id_orden}`);
+            }
             // Agrega los detalles después de actualizar la orden
             if (id_orden && detallesSeleccionados.length > 0) {
                 const detallesData = detallesSeleccionados.map((detalle) => ({
@@ -321,6 +327,7 @@ export default function OrdenTrabajoEditForm() {
         }
 
     }, [ordenTrabajo, accesoriosOrden]);
+
     if (isLoading || isLoadingAccesorios || isLoadingDetalles) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
     if (isError) return <div>Error al cargar los datos</div>;
     return (
@@ -460,7 +467,7 @@ export default function OrdenTrabajoEditForm() {
                                             </FormItem>
                                         )}
                                     />
-                                    {form.watch('area') === 'Reparación' && (
+                                    {['Reparación', 'Salida'].includes(form.watch('area')) && (
                                         <FormField
                                             name="id_usuario"
                                             control={form.control}
@@ -468,7 +475,11 @@ export default function OrdenTrabajoEditForm() {
                                                 <FormItem>
                                                     <FormLabel>Técnico</FormLabel>
                                                     <FormControl>
-                                                        <TecnicoCombobox field={field} tecnicos={tecnicos} isTecnicoLoading={isTecnicosLoading} />
+                                                        <TecnicoCombobox
+                                                            field={field}
+                                                            tecnicos={tecnicos}
+                                                            isTecnicoLoading={isTecnicosLoading}
+                                                        />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
