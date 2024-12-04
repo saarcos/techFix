@@ -229,7 +229,7 @@ export default function OrdenTrabajoEditForm() {
             });
             return;
         }
-        if (areaSeleccionada === "Reparación") {
+        if (areaSeleccionada === "Reparación" || areaSeleccionada === "Salida") {
             const tareasSinTecnico = detallesSeleccionados.some((detalle) => !detalle.id_usuario)
             if (tareasSinTecnico) {
                 CustomToast({

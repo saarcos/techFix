@@ -15,7 +15,7 @@ interface AuthContextType {
 }
 
 interface User {
-  id_usuario: number;
+  id: number;
   nombre: string;
   email: string;
   id_rol: number;
@@ -31,30 +31,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const queryClient = useQueryClient();
 
   const { data: notificaciones } = useQuery<Notificacion[]>({
-    queryKey: ['notificaciones', user?.id_usuario], // Clave de consulta dinámica por usuario
+    queryKey: ['notificaciones', user?.id],
     queryFn: () => {
-      if (!user?.id_usuario) {
-        // Devuelve un array vacío temporalmente si el usuario aún no está cargado
-        return Promise.resolve([]);
-      }
-      return getNotificacionesByUserId(user.id_usuario);
+      if (!user?.id) return Promise.resolve([]);
+      return getNotificacionesByUserId(user.id);
     },
-    enabled: !!user, // Solo se ejecuta si hay un usuario autenticado
-    initialData: [], // Devuelve un array vacío antes de que la consulta se complete
+    enabled: !!user?.id,
+    initialData: [],
   });
+
+  // Inicializar socket cuando el usuario cambia
+  useEffect(() => {
+    if (user?.id && !socket) {
+      const newSocket = io(API_URL);
+      newSocket.emit('register', user.id);
+      console.log(`Usuario registrado en Socket.IO con userId: ${user.id}`);
+      setSocket(newSocket);
+
+      newSocket.on('ordenAsignada', (data) => {
+        console.log('Notificación recibida:', data);
+        toast.success(data.message);
+        queryClient.invalidateQueries({queryKey: ['notificaciones']});
+      });
+
+      return () => {
+        newSocket.disconnect();
+      };
+    }
+  }, [user, socket, queryClient]);
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const response = await axios.get(`${API_URL}/auth/check-auth`, { withCredentials: true });
         setIsAuthenticated(response.data.isAuthenticated);
-        setUser(response.data.user);
-         // Si el usuario está autenticado, conectar a Socket.IO
-         if (response.data.isAuthenticated && response.data.user) {
-          const newSocket = io(API_URL); // Inicializar Socket.IO
-          newSocket.emit('register', response.data.user.id_usuario); // Registrar al usuario en el servidor
-          console.log(`Usuario registrado en Socket.IO con userId: ${response.data.user.id_usuario}`);
-          setSocket(newSocket);
-        }
+        setUser(response.data.user || null);
       } catch (error) {
         setIsAuthenticated(false);
         setUser(null);
@@ -62,38 +73,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     checkAuth();
   }, []);
-  useEffect(() => {
-    if (socket) {
-      // Escuchar notificaciones de órdenes asignadas
-      socket.on('ordenAsignada', (data) => {
-        console.log('Notificación recibida:', data);
-        toast.success(data.message); // Mostrar la notificación
-        queryClient.invalidateQueries({ queryKey: ['notificaciones'] });
-      });
-
-      return () => {
-        // Desconectar el socket al desmontar
-        socket.disconnect();
-      };
-    }
-  }, [socket, queryClient]);
-  
 
   const login = async (email: string, password: string) => {
     try {
       const response = await axios.post(`${API_URL}/auth/login`, { email, password }, { withCredentials: true });
       setIsAuthenticated(true);
-      setUser(response.data.user);
-
-      const newSocket = io(API_URL);
-      newSocket.emit('register', response.data.user.id_usuario);
-      console.log(`Usuario registrado en Socket.IO con userId: ${response.data.user.id_usuario}`);
-      setSocket(newSocket);
-
-      newSocket.on('ordenAsignada', (data) => {
-        console.log('Notificación recibida:', data);
-        toast.success(data.message);
-      });
+      setUser(response.data.user || null);
     } catch (error) {
       console.error('Error de autenticación', error);
       throw error;
@@ -105,7 +90,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
       setIsAuthenticated(false);
       setUser(null);
-
       if (socket) {
         socket.disconnect();
         setSocket(null);
@@ -116,7 +100,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, socket, notificaciones}}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, socket, notificaciones }}>
       {children}
     </AuthContext.Provider>
   );

@@ -5,7 +5,7 @@ import { useAuth } from "./AuthProvider";
 import { useEffect, useRef, useState } from "react";
 import { Notificacion, readNotification } from "@/api/notificacionesService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BellRing} from "lucide-react";
+import { BellRing } from "lucide-react";
 
 interface Props {
   toggleNavbar: () => void;
@@ -111,42 +111,42 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
               )}
             </button>
             {isNotificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-2 z-20">
-                <div className="px-4 py-2 flex justify-between items-center border-b">
+              <div
+                className="absolute top-full mt-2 sm:right-0 left-3 sm:left-auto transform sm:translate-x-0 -translate-x-1/2 min-w-[16rem] max-w-[90%] sm:max-w-[20rem] bg-white rounded-md  py-2 z-20 max-h-96 overflow-y-auto"
+              >
+                <div className="px-3 py-2 flex justify-between items-center border-b">
                   <p className="text-sm font-semibold text-gray-700">Notificaciones</p>
                   {notificaciones && notificaciones.length > 0 && (
                     <button
-                      className="text-xs text-customGreen hover:underline"
+                      className="text-sm text-customGreen hover:underline"
                       onClick={() =>
-                        notificaciones.forEach(n =>
+                        notificaciones.forEach((n) =>
                           updateNotificationMutation.mutate(n.id_notificacion)
                         )
                       }
                     >
-                      Marcar todas como leídas
+                      Leer todas
                     </button>
                   )}
                 </div>
                 {notificaciones && notificaciones.length > 0 ? (
-                  <div className="max-h-72 overflow-y-auto">
-                    {/* Lista de notificaciones */}
-                    {notificaciones.map(notificacion => (
+                  <div className="px-3 py-2">
+                    {notificaciones.map((notificacion) => (
                       <div
                         key={notificacion.id_notificacion}
-                        className="px-4 py-2 flex items-start gap-2 text-sm text-gray-800 hover:bg-gray-100 cursor-pointer"
+                        className="flex items-start gap-2 text-sm text-gray-800 hover:bg-gray-100 cursor-pointer p-2 border-b"
                         onClick={() => handleNotificationClick(notificacion)}
                       >
-                        {/* Ícono de Lucide */}
                         <div className="flex items-center justify-center w-5 h-5 mt-2.5">
-                          <BellRing className="w-5 h-5 text-customGreen"/>
+                          <BellRing className="w-5 h-5 text-customGreen" />
                         </div>
-                        <div>
+                        <div className="text-sm">
                           <p>{notificacion.mensaje}</p>
                           <span className="text-xs text-gray-500">
                             {new Date(notificacion.created_at).toLocaleString(undefined, {
                               dateStyle: "short",
                               timeStyle: "short",
-                            })}                          
+                            })}
                           </span>
                         </div>
                       </div>
@@ -160,7 +160,6 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
               </div>
             )}
           </div>
-
           <div className="relative" ref={dropdownRef}>
             <button
               type="button"
