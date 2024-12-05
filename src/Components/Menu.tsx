@@ -62,7 +62,7 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
   // Manejar clic en una notificación
   const handleNotificationClick = (notificacion: Notificacion) => {
     updateNotificationMutation.mutate(notificacion.id_notificacion); // Ejecutar la mutación
-    navigate(`taller/ordenes/${notificacion.id_referencia}`); // Redirigir al usuario
+    navigate(`taller/ordenes/${notificacion.id_referencia}/edit`); // Redirigir al usuario
   };
   return (
     <header

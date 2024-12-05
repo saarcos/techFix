@@ -1,5 +1,5 @@
 import React from "react";
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Bar, BarChart, CartesianGrid, LabelList, XAxis, Tooltip, ResponsiveContainer, YAxis } from "recharts";
 
 interface BarChartProps {
   data: { month: string; value: number }[]; // Datos para el gráfico
@@ -15,6 +15,10 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
     month: "long",
   });
 
+   // Encuentra el valor máximo para calcular el margen
+   const maxValue = Math.max(...data.map((item) => item.value));
+   const marginTop = maxValue * 0.2; // 20% más alto que la barra más alta
+   const roundedMaxValue = Math.ceil((maxValue + marginTop) / 50) * 50; // Redondea al múltiplo de 50
   return (
     <div className="flex w-full flex-col flex-grow">
       {/* Títulos */}
@@ -34,7 +38,7 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
               left: 20,
               bottom: 10,
             }}
-            style={{ cursor: "pointer" }}
+            style={{ cursor: "pointer"}}
           >
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <XAxis
@@ -43,6 +47,12 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
               tickMargin={10}
               axisLine={false}
               tickFormatter={(value) => value.slice(0, 3)} // Muestra abreviatura del mes
+              className="text-gray-600 text-sm"
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              domain={[0, roundedMaxValue]} // Usa el valor redondeado
               className="text-gray-600 text-sm"
             />
             <Tooltip

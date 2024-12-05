@@ -33,10 +33,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { data: notificaciones } = useQuery<Notificacion[]>({
     queryKey: ['notificaciones', user?.id],
     queryFn: () => {
-      if (!user?.id) return Promise.resolve([]);
+      if (!user?.id) return Promise.resolve([]); // Evitar consulta si no hay usuario
       return getNotificacionesByUserId(user.id);
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id, // Habilitar solo si hay usuario
     initialData: [],
   });
 
