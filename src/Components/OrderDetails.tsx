@@ -11,6 +11,8 @@ import { pdf } from "@react-pdf/renderer"; // Para generar manualmente el PDF
 import OrderPDF from "./OrderPDF";
 import { saveAs } from "file-saver";
 import { CustomToast } from "./CustomToast";
+import { ResponsiveDialog } from "./responsive-dialog";
+import DeleteOrdenForm from "./forms/ordenesTrabajo/delete-orden-form";
 
 interface OrderDetailsProps {
   order: OrdenTrabajo | null;
@@ -19,7 +21,7 @@ interface OrderDetailsProps {
 const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
   const navigate = useNavigate(); // Definir el hook useNavigate
   const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
-
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false)
   const handleEditClick = () => {
     if (order) {
       navigate(`/taller/ordenes/${order.id_orden}/edit`);
@@ -68,11 +70,10 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
             disabled={(order?.area !== "Salida")}
             size="sm"
             variant="outline"
-            className={`h-7 gap-1 text-sm ${
-              order?.area !== "Salida"
+            className={`h-7 gap-1 text-sm ${order?.area !== "Salida"
                 ? "opacity-50 cursor-not-allowed"
                 : "cursor-pointer"
-            }`}            >
+              }`}            >
             <Download className="h-3.5 w-3.5" />{isGeneratingPDF ? "Generando..." : "Descargar PDF"}
           </Button>
           <DropdownMenu>
@@ -99,7 +100,11 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                 Editar
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">Descartar</DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => setDeleteModalOpen(true)} >
+                Descartar
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -262,8 +267,15 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
               : "N/A"}
           </time>
         </div>
-
       </CardFooter>
+      <ResponsiveDialog
+        isOpen={deleteModalOpen}
+        setIsOpen={setDeleteModalOpen}
+        title={`Eliminar orden de trabajo`}
+        description='Por favor, ingresa la información solicitada'
+      >
+        <DeleteOrdenForm setIsOpen={setDeleteModalOpen} orderId={order?.id_orden || 0} />
+      </ResponsiveDialog>
     </Card>
   );
 };

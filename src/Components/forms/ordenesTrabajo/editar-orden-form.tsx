@@ -32,7 +32,6 @@ import Spinner from '../../../assets/tube-spinner.svg';
 import { countRepairs } from '@/api/equipoService';
 import { createDetallesOrden, getDetallesByOrdenId } from '@/api/detalleOrdenService';
 import { CustomToast } from '@/Components/CustomToast';
-import { io } from 'socket.io-client';
 
 const formSchema = z.object({
     id_equipo: z.number().min(1, 'Equipo es requerido'),
@@ -76,7 +75,6 @@ export default function OrdenTrabajoEditForm() {
     const [repairCount, setRepairCount] = useState<number | null>(null); // Para almacenar la cantidad de reparaciones
     const [totalOrden, setTotalOrden] = useState<number>(0);
     const [areaSeleccionada, setAreaSeleccionada] = useState('Entrada'); // Valor inicial
-    const socket = io('http://localhost:3000'); // Asegúrate de que la URL coincide con la del servidor
 
     // Consulta para obtener los datos de la orden de trabajo por ID
     const { data: ordenTrabajo, isLoading, isError } = useQuery({
@@ -182,6 +180,7 @@ export default function OrdenTrabajoEditForm() {
         mutationFn: updateOrdenTrabajo,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['ordenesTrabajo'] });
+            queryClient.invalidateQueries({ queryKey: ['notificaciones'] });
             CustomToast({
                 message:
                     "Orden de trabajo actualizada exitosamente",
@@ -276,11 +275,6 @@ export default function OrdenTrabajoEditForm() {
 
             // Primero, actualizar la orden de trabajo
             await updateMutation.mutateAsync(ordenTrabajoData);
-            // Notificar al técnico asignado
-            if (values.id_usuario) {
-                socket.emit('asignarOrden', { userId: values.id_usuario, ordenId: id_orden });
-                console.log(`Notificación enviada al usuario ${values.id_usuario} para la orden ${id_orden}`);
-            }
             // Agrega los detalles después de actualizar la orden
             if (id_orden && detallesSeleccionados.length > 0) {
                 const detallesData = detallesSeleccionados.map((detalle) => ({

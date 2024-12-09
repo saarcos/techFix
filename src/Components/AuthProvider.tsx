@@ -1,16 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import axios from 'axios';
-import { io, Socket } from 'socket.io-client';
-import { toast } from 'sonner';
 import { getNotificacionesByUserId, Notificacion } from '@/api/notificacionesService';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  socket: Socket | null;
   notificaciones: Notificacion[] | undefined;
 }
 
@@ -27,8 +24,6 @@ const API_URL = 'http://localhost:3000';
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const queryClient = useQueryClient();
 
   const { data: notificaciones } = useQuery<Notificacion[]>({
     queryKey: ['notificaciones', user?.id],
@@ -40,25 +35,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     initialData: [],
   });
 
-  // Inicializar socket cuando el usuario cambia
-  useEffect(() => {
-    if (user?.id && !socket) {
-      const newSocket = io(API_URL);
-      newSocket.emit('register', user.id);
-      console.log(`Usuario registrado en Socket.IO con userId: ${user.id}`);
-      setSocket(newSocket);
-
-      newSocket.on('ordenAsignada', (data) => {
-        console.log('Notificación recibida:', data);
-        toast.success(data.message);
-        queryClient.invalidateQueries({queryKey: ['notificaciones']});
-      });
-
-      return () => {
-        newSocket.disconnect();
-      };
-    }
-  }, [user, socket, queryClient]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -90,17 +66,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
       setIsAuthenticated(false);
       setUser(null);
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
-      }
     } catch (error) {
       console.error('Error al cerrar sesión', error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, socket, notificaciones }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, notificaciones }}>
       {children}
     </AuthContext.Provider>
   );
