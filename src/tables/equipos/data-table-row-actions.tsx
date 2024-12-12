@@ -24,6 +24,7 @@ import DeleteForm from '@/Components/forms/equipos/equipo-delete-form';
 import { ResponsiveDialog } from '@/Components/responsive-dialog';
 import BrandModelForm from '@/Components/forms/brandModel/brand-model-from';
 import TipoEquipoForm from '@/Components/forms/tiposEquipo/tipo-equipo-form';
+import { Link } from 'react-router-dom';
 interface DataTableRowActionsProps {
   row: Row<Equipo>;
 }
@@ -50,9 +51,11 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
     queryKey: ['deviceTypes'],
     queryFn: getDeviceTypes,
   });
-  if ( marcasError||modelsError||ownersError||deviceTypesError) return toast.error('Error al recuperar los datos');
 
   const deviceId = row.original.id_equipo;
+
+  if ( marcasError||modelsError||ownersError||deviceTypesError) return toast.error('Error al recuperar los datos');
+  
   return (
     <>
       <ResponsiveDialogExtended
@@ -118,10 +121,13 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               <IconMenu text="Modificar" icon={<SquarePen className="h-4 w-4" />} />
             </button>
           </DropdownMenuItem>
-          <DropdownMenuItem className="group flex w-full items-center justify-between  text-left p-0 text-sm font-base text-neutral-500  ">
-              <button className="w-full justify-start flex rounded-md p-2 transition-all duration-75 hover:bg-neutral-100" >
-                <IconMenu text="Ver historial" icon={<EyeIcon className="h-4 w-4" />} />
-              </button>
+          <DropdownMenuItem className="group flex w-full items-center justify-between text-left p-0 text-sm font-base text-neutral-500">
+            <Link
+              to={`/taller/equipo/${deviceId}/ordenes`}
+              className="w-full justify-start flex rounded-md p-2 transition-all duration-75 hover:bg-neutral-100"
+            >
+              <IconMenu text="Ver historial" icon={<EyeIcon className="h-4 w-4" />} />
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem className="group flex w-full items-center justify-between  text-left p-0 text-sm font-base text-neutral-500 ">

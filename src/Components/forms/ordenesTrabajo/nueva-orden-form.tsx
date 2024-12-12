@@ -63,7 +63,6 @@ const formSchema = z.object({
   area: z.string().min(1, 'Área es requerida'),
   prioridad: z.string().min(1, 'Prioridad es requerida'),
   descripcion: z.string().min(1, 'Descripción es requerida'),
-  estado: z.string().min(1, 'Estado es requerido'),
   passwordequipo: z.string().optional(),
   fecha_prometida: z
     .union([z.date(), z.null()])  // Permitir tanto Date como null
@@ -149,7 +148,6 @@ export default function OrdenTrabajoForm() {
       area: 'Entrada',
       prioridad: 'Normal',
       descripcion: '',
-      estado: 'CHEQUEO',
       passwordequipo: '',
       fecha_prometida: null, // Cambiar a null o undefined
       presupuesto: undefined,
@@ -190,7 +188,6 @@ export default function OrdenTrabajoForm() {
         area: values.area,
         prioridad: values.prioridad,
         descripcion: values.descripcion,
-        estado: values.estado,
         fecha_prometida: values.fecha_prometida ? new Date(values.fecha_prometida) : null,
         presupuesto: values.presupuesto || null,
         adelanto: values.adelanto || null,
@@ -465,28 +462,6 @@ export default function OrdenTrabajoForm() {
                       )}
                     />
                   )}
-                  <FormField
-                    name="estado"
-                    control={form.control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Estado</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecciona un estado" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="CHEQUEO">CHEQUEO</SelectItem>
-                            <SelectItem value="REPARACION">REPARACIÓN</SelectItem>
-                            <SelectItem value="TERMINADO">TERMINADO</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                   <FormField
                     name="fecha_prometida"
                     control={form.control}

@@ -14,6 +14,7 @@ import {
 import { Row } from '@tanstack/react-table';
 import { MoreHorizontal, SquarePen, Trash2, EyeIcon } from 'lucide-react';
 import { Client } from '@/api/clientService';
+import { Link } from 'react-router-dom';
 interface DataTableRowActionsProps {
   row: Row<Client>;
 }
@@ -61,9 +62,12 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             </button>
           </DropdownMenuItem>
           <DropdownMenuItem className="group flex w-full items-center justify-between  text-left p-0 text-sm font-base text-neutral-500  ">
-              <button className="w-full justify-start flex rounded-md p-2 transition-all duration-75 hover:bg-neutral-100" >
-                <IconMenu text="Ver historial" icon={<EyeIcon className="h-4 w-4" />} />
-              </button>
+            <Link
+              to={`/taller/cliente/${userId}/ordenes`}
+              className="w-full justify-start flex rounded-md p-2 transition-all duration-75 hover:bg-neutral-100"
+            >
+              <IconMenu text="Ver historial" icon={<EyeIcon className="h-4 w-4" />} />
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem className="group flex w-full items-center justify-between  text-left p-0 text-sm font-base text-neutral-500">

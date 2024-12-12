@@ -40,7 +40,6 @@ const formSchema = z.object({
     area: z.string().min(1, 'Área es requerida'),
     prioridad: z.string().min(1, 'Prioridad es requerida'),
     descripcion: z.string().min(1, 'Descripción es requerida'),
-    estado: z.string().min(1, 'Estado es requerido'),
     passwordequipo: z.string().optional(),
     fecha_prometida: z
         .string()  // Aquí especificamos que es un string
@@ -115,7 +114,6 @@ export default function OrdenTrabajoEditForm() {
             area: 'Entrada',
             prioridad: 'Normal',
             descripcion: '',
-            estado: 'CHEQUEO',
             passwordequipo: '',
             fecha_prometida: null,
             presupuesto: undefined,
@@ -141,7 +139,6 @@ export default function OrdenTrabajoEditForm() {
                 area: areaActualizada,
                 prioridad: ordenTrabajo.prioridad,
                 descripcion: ordenTrabajo.descripcion,
-                estado: ordenTrabajo.estado,
                 passwordequipo: ordenTrabajo.passwordequipo || '',
                 fecha_prometida: ordenTrabajo.fecha_prometida ? new Date(ordenTrabajo.fecha_prometida).toISOString().split('T')[0] : null,
                 presupuesto: ordenTrabajo.presupuesto || undefined,
@@ -263,12 +260,11 @@ export default function OrdenTrabajoEditForm() {
                 area: values.area,
                 prioridad: values.prioridad,
                 descripcion: values.descripcion,
-                estado: values.estado,
                 fecha_prometida: values.fecha_prometida ? new Date(values.fecha_prometida) : null,
                 presupuesto: values.presupuesto || null,
                 adelanto: values.adelanto || null,
                 total: totalOrden,
-                confirmacion: false,
+                confirmacion: values.area ==="Salida" ? true : false,
                 passwordequipo: values.passwordequipo || null,
                 imagenes: imageUrls, // Las imágenes subidas
             };
@@ -329,7 +325,17 @@ export default function OrdenTrabajoEditForm() {
             <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
                 <Card className="w-full max-w-9xl overflow-x-auto">
                     <CardHeader>
-                        <CardTitle>{ordenTrabajo?.numero_orden}</CardTitle>
+                        <CardTitle>{ordenTrabajo?.numero_orden}
+                            {ordenTrabajo?.confirmacion ? (
+                                <span className="ml-2 bg-green-100 text-green-800 text-base font-medium px-2.5 py-0.5 rounded-full">
+                                    Completada
+                                </span>
+                            ) : (
+                                <span className="ml-2 bg-gray-100 text-gray-700 text-base font-medium px-2.5 py-0.5 rounded-full">
+                                    Por completar
+                                </span>
+                            )}
+                        </CardTitle>
                         <CardDescription>
                             Administra la información de la orden de trabajo.
                         </CardDescription>

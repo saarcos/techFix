@@ -41,7 +41,6 @@ export interface OrdenTrabajo {
   prioridad: string;
   descripcion: string;
   created_at: Date;
-  estado: string;
   fecha_prometida: Date | null;
   presupuesto: number | null;
   adelanto: number | null;
@@ -84,7 +83,6 @@ export interface OrdenTrabajoCreate {
   area: string;
   prioridad: string;
   descripcion: string;
-  estado: string;
   fecha_prometida: Date | null;
   presupuesto: number | null;
   adelanto: number | null;
@@ -101,7 +99,6 @@ export interface OrdenTrabajoUpdate {
   area: string;
   prioridad: string;
   descripcion: string;
-  estado: string;
   fecha_prometida: Date | null;
   presupuesto: number | null;
   adelanto: number | null;
@@ -154,6 +151,11 @@ export const getOrdenTrabajoByEquipoId = async (id_equipo: number): Promise<Orde
   const response: AxiosResponse<OrdenTrabajo[]> = await axiosInstance.get<OrdenTrabajo[]>(`/ordenes-equipo/${id_equipo}`);
   return response.data;
 };
+// Método para recuperar una orden de trabajo por ID de equipo (getOrdenTrabajoByEquipoId)
+export const getOrdenTrabajoByClienteId = async (cliente_id: number): Promise<OrdenTrabajo[]> => {
+  const response: AxiosResponse<OrdenTrabajo[]> = await axiosInstance.get<OrdenTrabajo[]>(`/ordenes-cliente/${cliente_id}`);
+  return response.data;
+};
 
 // Método para crear una nueva orden de trabajo
 export const createOrdenTrabajo = async (ordenTrabajoData: OrdenTrabajoCreate): Promise<OrdenTrabajo> => {
@@ -186,23 +188,6 @@ export const updateOrdenTrabajo = async (ordenTrabajoData: OrdenTrabajoUpdate): 
 export const deleteOrdenTrabajo = async (ordenTrabajoId: number): Promise<void> => {
   try {
     const response = await axiosInstance.delete(`/ordenes/${ordenTrabajoId}`);
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw error.response?.data;
-    } else {
-      throw new Error('Error inesperado');
-    }
-  }
-};
-// Método para mover una orden de trabajo
-export const moveOrdenTrabajo = async (id_orden: number, area: string, estado: string, id_usuario: number | null): Promise<void> => {
-  try {
-    const response = await axiosInstance.put(`/ordenes/mover/${id_orden}`, {
-      area,
-      estado,
-      id_usuario,
-    });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
