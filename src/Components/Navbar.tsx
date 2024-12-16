@@ -4,7 +4,7 @@ import { faTools, faBox, faWarehouse, faGear, faChevronDown, faHouseChimney, faP
 import { useState } from "react";
 import useWindowSize from './hooks/useWindowSize'; // Asegúrate de importar el hook
 import { useAuth } from "./AuthProvider";
-import { MonitorSmartphone } from "lucide-react";
+import { BadgeCheck, Box, MonitorSmartphone } from "lucide-react";
 interface Props {
   isVisible: boolean;
   toggleNavbar: () => void;
@@ -87,6 +87,26 @@ const Navbar = ({ isVisible, toggleNavbar }: Props) => {
                 >
                   <MonitorSmartphone />
                   <span className="text-sm ml-1">Equipos</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/taller/marcas"
+                  className={`${getLinkClass("/taller/marcas")}`}
+                  onClick={handleLinkClick}
+                >
+                  <BadgeCheck />
+                  <span className="text-sm ml-1">Marcas</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/taller/modelos"
+                  className={`${getLinkClass("/taller/modelos")}`}
+                  onClick={handleLinkClick}
+                >
+                  <Box />
+                  <span className="text-sm ml-1">Modelos</span>
                 </Link>
               </li>
               <li>

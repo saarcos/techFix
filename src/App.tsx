@@ -22,6 +22,8 @@ import EquipoOrdenesPage from "./pages/EquipoOrdenesPage"
 import Almacenes from "./pages/Almacenes"
 import Inventario from "./pages/Inventario"
 import ClienteOrdenesPage from "./pages/ClienteOrdenesPage"
+import Marcas from "./pages/Marcas"
+import Modelos from "./pages/Modelos"
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -74,6 +76,8 @@ function App() {
           <Route path="/taller/cliente/:cliente_id/ordenes" element={<ClienteOrdenesPage />} />
           <Route path="/taller/almacenes" element={<ProtectedRoute><Almacenes /></ProtectedRoute>} />
           <Route path="/taller/almacenes/inventario/:id_almacen" element={<ProtectedRoute><Inventario /></ProtectedRoute>} />
+          <Route path="/taller/marcas" element={<ProtectedRoute><Marcas /></ProtectedRoute>} />
+          <Route path="/taller/modelos" element={<ProtectedRoute><Modelos /></ProtectedRoute>} />
         </Routes>
       </div>
     </div>

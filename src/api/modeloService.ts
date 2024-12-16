@@ -6,6 +6,9 @@ export interface Model {
   id_modelo: number;
   id_marca: number;
   nombre: string;
+  marca:{
+    nombre: string;
+  }
 }
 //Método para recuperar las modelos
 export const getModels = async (): Promise<Model[]> => {

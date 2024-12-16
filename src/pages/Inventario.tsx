@@ -29,6 +29,7 @@ const Inventario = () => {
     const [isAddingProduct, setIsAddingProduct] = useState(false);
     const [isAddingCategory, setIsAddingCategory] = useState(false);
     const [isDeletingExistencia, setIsDeletingExistencia] = useState(false);
+    const [searchTerm, setSearchTerm] = useState(''); // Estado para el término de búsqueda
     const [selectedExistenciaId, setSelectedExistenciaId] = useState<number | null>(null); // Define el ID seleccionado
     const queryClient = useQueryClient();
     const [editedStock, setEditedStock] = useState<{ [key: number]: number | '' }>({});
@@ -63,7 +64,6 @@ const Inventario = () => {
         setEditedStock((prev) => ({ ...prev, [id_existencias]: cantidad }));
     };
 
-
     const incrementStock = (id_existencias: number, currentQuantity: number) => {
         handleStockChange(id_existencias, currentQuantity + 1);
     };
@@ -94,6 +94,11 @@ const Inventario = () => {
         setSelectedExistenciaId(id_existencias);
         setIsDeletingExistencia(true);
     };
+
+    // Filtrar existencias basado en el término de búsqueda
+    const filteredExistencias = existencias?.filter((existencia) =>
+        existencia.producto?.nombreProducto.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     if (isLoading || isAlmacenLoading) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
     if (isError) return toast.error('Error al recuperar los datos');
@@ -157,6 +162,14 @@ const Inventario = () => {
                                 Agregar productos al almacén
                             </span>
                         </Button>
+                        <div className="flex items-center gap-2 mb-3">
+                            <Input
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="flex-1 p-2 shadow-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-400 focus:outline-none text-sm"
+                                placeholder="Buscar por nombre de producto"
+                            />
+                        </div>
                         <div className="overflow-x-auto w-full rounded-md border">
                             <Table className='min-w-full divide-y divide-gray-200'>
                                 <TableHeader className='bg-gray-100'>
@@ -168,14 +181,14 @@ const Inventario = () => {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody className='bg-white divide-y divide-gray-200'>
-                                    {existencias?.length === 0 ? (
+                                    {filteredExistencias?.length === 0 ? (
                                         <TableRow className='hover:cursor-pointer'>
                                             <TableCell colSpan={4} className="h-24 text-center text-gray-500">
-                                                No hay existencias en este almacén.
+                                                No se encontraron resultados para "{searchTerm}".
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        existencias?.map((existencia) => (
+                                        filteredExistencias?.map((existencia) => (
                                             <TableRow key={existencia.id_existencias} className='hover:cursor-pointer'>
                                                 <TableCell>{existencia.producto?.nombreProducto}</TableCell>
                                                 <TableCell className='hidden sm:table-cell'>{existencia.producto?.codigoProducto}</TableCell>
@@ -224,7 +237,7 @@ const Inventario = () => {
                                                     <Button
                                                         type="button"
                                                         className="h-8 w-8 bg-customGreen hover:bg-customGreen/50 hover:text-black rounded-full text-white"
-                                                        onClick={() => openDeleteDialog(existencia.id_existencias)} // Abre el diálogo de confirmación
+                                                        onClick={() => openDeleteDialog(existencia.id_existencias)}
                                                     >
                                                         <FontAwesomeIcon icon={faTrash} />
                                                     </Button>
