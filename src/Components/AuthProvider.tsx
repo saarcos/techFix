@@ -56,8 +56,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsAuthenticated(true);
       setUser(response.data.user || null);
     } catch (error) {
-      console.error('Error de autenticación', error);
-      throw error;
+      // Verifica si el error es un AxiosError
+      if (axios.isAxiosError(error) && error.response) {
+        const errorMessage = error.response.data.error || 'Error desconocido';
+        throw new Error(errorMessage); // Lanza un error con el mensaje específico del backend
+      }
+      throw new Error('Error desconocido al iniciar sesión');
     }
   };
 

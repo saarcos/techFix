@@ -2,13 +2,19 @@
 import { Badge } from "@/Components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
 import { OrdenTrabajo } from '@/api/ordenTrabajoService';
+import { AlertTriangle } from "lucide-react";
 interface OrdenesTableProps {
   ordenes: OrdenTrabajo[];
   onSelectOrder: (order: OrdenTrabajo) => void;
   selectedOrder: OrdenTrabajo | null;  // Añadir la orden seleccionada como prop
 }
 const OrdenesTable = ({ onSelectOrder, ordenes, selectedOrder }: OrdenesTableProps) => {
-
+  const isNearDueDate = (fechaPrometida: string) => {
+    const fechaActual = new Date();
+    const fechaPrometidaDate = new Date(fechaPrometida);
+    const diferenciaDias = (fechaPrometidaDate.getTime() - fechaActual.getTime()) / (1000 * 3600 * 24);
+    return diferenciaDias <= 3 && diferenciaDias >= 0; // Si la fecha está dentro de los próximos 3 días
+  };
   return (
     <div className="rounded-md border">
       <Table>
@@ -62,13 +68,19 @@ const OrdenesTable = ({ onSelectOrder, ordenes, selectedOrder }: OrdenesTablePro
                   </Badge>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
-                  {orden.fecha_prometida ? (
+                {orden.fecha_prometida ? (
                     <>
                       <span>{new Date(`${orden.fecha_prometida}T00:00:00`).toLocaleDateString('es-ES', {
                         day: '2-digit',
                         month: 'long',
                         year: 'numeric',
                       })}</span>
+                      {orden.fecha_prometida && isNearDueDate(orden.fecha_prometida.toString()) && (
+                        <div className="flex items-center mt-1 text-yellow-600 text-sm">
+                          <AlertTriangle className="h-4 w-4 mr-1" />
+                          <span>¡Se aproxima la fecha de entrega!</span>
+                        </div>
+                      )}
                     </>
                   ) : (
                     "N/A"

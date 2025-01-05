@@ -62,7 +62,7 @@ export function ProductCombobox({ field, products }: ProductComboboxProps) {
           <ArrowDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-        <PopoverContent className="w-full max-w-sm p-0">
+        <PopoverContent className="w-full max-w-sm p-0"   onWheel={(e) => e.stopPropagation()} >
           <Command>
             <CommandInput 
               placeholder="Buscar Producto..." 

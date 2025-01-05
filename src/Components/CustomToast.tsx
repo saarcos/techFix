@@ -1,36 +1,35 @@
-// src/components/CustomToast.tsx
 import { toast } from "sonner";
-import { AlertTriangle, Check, Info } from "lucide-react";
+import { AlertTriangle, BadgeCheck, Info } from "lucide-react";
 
 interface CustomToastProps {
   message: string;
-  type?: "warning" | "success" | "error" | "info"; // Define tipos opcionales para futuros usos.
+  type?: "warning" | "success" | "error" | "info";
 }
 
 const toastStyles = {
   warning: {
-    bgColor: "bg-[#FFF4E5]",
-    borderColor: "border-[#FFD6A5]",
-    textColor: "text-[#A1600B]",
-    icon: <AlertTriangle className="h-7 w-7 text-[#A1600B]" />,
+    bgColor: "bg-yellow-200",
+    borderColor: "border-yellow-500",
+    textColor: "text-black",
+    icon: <AlertTriangle className="h-6 w-6 text-black" />,
   },
   success: {
-    bgColor: "bg-[#E6F7E9]",
-    borderColor: "border-[#A7D7A8]",
-    textColor: "text-[#006D32]",
-    icon: <Check className="h-7 w-7 text-[#006D32]" />, // Cambia este icono si necesitas otro.
+    bgColor: "bg-customGreen",
+    borderColor: "border-green-800",
+    textColor: "text-black",
+    icon: <BadgeCheck className="h-6 w-6 text-black" />,
   },
   error: {
-    bgColor: "bg-[#FDECEA]",
-    borderColor: "border-[#F4BFBF]",
-    textColor: "text-[#9F3A38]",
-    icon: <AlertTriangle className="h-7 w-7 text-[#9F3A38]" />,
+    bgColor: "bg-red-700",
+    borderColor: "border-red-900",
+    textColor: "text-white",
+    icon: <AlertTriangle className="h-6 w-6 text-white" />,
   },
   info: {
-    bgColor: "bg-[#E8F4FD]",
-    borderColor: "border-[#A4D9F9]",
-    textColor: "text-[#0B75C9]",
-    icon: <Info className="h-7 w-7 text-[#0B75C9]" />,
+    bgColor: "bg-blue-600",
+    borderColor: "border-blue-800",
+    textColor: "text-white",
+    icon: <Info className="h-6 w-6 text-white" />,
   },
 };
 
@@ -39,10 +38,12 @@ export function CustomToast({ message, type = "warning" }: CustomToastProps) {
 
   toast.custom(() => (
     <div
-      className={`flex items-center space-x-3 ${styles.bgColor} ${styles.borderColor} border rounded-lg px-6 py-4 shadow-md max-w-lg w-[calc(100%-2rem)] mx-auto`}
+      className={`flex items-center space-x-4 ${styles.bgColor} ${styles.borderColor} border rounded-lg px-5 py-3 shadow-md w-full max-w-lg mx-auto`}
     >
-      {styles.icon}
-      <div className={`text-sm ${styles.textColor}`}>
+      <div className="flex items-center justify-center shrink-0">
+        {styles.icon}
+      </div>
+      <div className={`text-sm font-medium ${styles.textColor} break-words`}>
         {message}
       </div>
     </div>

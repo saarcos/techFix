@@ -272,7 +272,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
         isOpen={deleteModalOpen}
         setIsOpen={setDeleteModalOpen}
         title={`Eliminar orden de trabajo`}
-        description='Por favor, ingresa la información solicitada'
+        description='¿Estás seguro de que deseas eliminar esta orden de trabajo? Esta acción no se puede deshacer'
       >
         <DeleteOrdenForm setIsOpen={setDeleteModalOpen} orderId={order?.id_orden || 0} />
       </ResponsiveDialog>

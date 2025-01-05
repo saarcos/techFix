@@ -2,11 +2,11 @@ import { useAuth } from '../Components/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { toast } from 'sonner';
 import { useState } from 'react';
 import Spinner from '../Components/Spinner'; // Asegúrate de ajustar la ruta
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { CustomToast } from '@/Components/CustomToast';
 
 const LoginForm = () => {
   const { login } = useAuth();
@@ -35,7 +35,12 @@ const LoginForm = () => {
       } catch (error) {
         setIsLoading(false);
         console.error('Error de inicio de sesión', error);
-        toast.error(`Error al iniciar sesión: ${error}`);
+        if (error instanceof Error) {
+          // Muestra el mensaje del error en la alerta
+          CustomToast({ message: `Error al iniciar sesión: ${error.message}`, type: 'error' });
+        } else {
+          CustomToast({ message: 'Ocurrió un error inesperado. Intenta de nuevo.', type: 'error' });
+        }
       } finally {
         setSubmitting(false);
       }
