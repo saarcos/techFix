@@ -1,4 +1,4 @@
-import { faBars, faBell, faUserCircle, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faBell, faUserCircle, faSignOutAlt, faKey } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
@@ -14,7 +14,7 @@ interface Props {
 
 const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [isNotificationsOpen, setNotificationsOpen] = useState(false); // Estado para notificaciones
+  const [isNotificationsOpen, setNotificationsOpen] = useState(false);
   const { logout, user, notificaciones } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
@@ -27,7 +27,7 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
   const toggleNotifications = () => {
     setNotificationsOpen(!isNotificationsOpen);
   };
-  // Detecta clics fuera de los dropdowns
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -49,25 +49,26 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-  // Mutation para marcar una notificación como leída
+
   const updateNotificationMutation = useMutation({
-    mutationFn: (id_notificacion: number) => readNotification(id_notificacion), // Servicio para marcar como leída
+    mutationFn: (id_notificacion: number) => readNotification(id_notificacion),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notificaciones"] }); // Invalidar las notificaciones en caché
+      queryClient.invalidateQueries({ queryKey: ["notificaciones"] });
     },
     onError: (error) => {
       console.error("Error al actualizar notificación:", error);
     },
   });
-  // Manejar clic en una notificación
+
   const handleNotificationClick = (notificacion: Notificacion) => {
-    updateNotificationMutation.mutate(notificacion.id_notificacion); // Ejecutar la mutación
-    navigate(`taller/ordenes/${notificacion.id_referencia}/edit`); // Redirigir al usuario
+    updateNotificationMutation.mutate(notificacion.id_notificacion);
+    setDropdownOpen(false);
+    navigate(`taller/ordenes/${notificacion.id_referencia}/edit`);
   };
+
   return (
     <header
-      className={`fixed top-0 left-0 w-full lg:w-[calc(100%-256px)] ${isNavbarVisible ? "lg:ml-64" : "ml-0"
-        } bg-gray-50 z-10`}
+      className={`fixed top-0 left-0 w-full lg:w-[calc(100%-256px)] ${isNavbarVisible ? "lg:ml-64" : "ml-0"} bg-gray-50 z-10`}
     >
       <div className="py-1.5 px-6 bg-white flex items-center shadow-md shadow-black/5">
         {!isNavbarVisible && (
@@ -92,8 +93,7 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
         <div className="ml-auto flex items-center">
           {user && (
             <p className="hidden sm:block text-sm text-gray-600 mr-4">
-              <span className="font-semibold">Bienvenido/a,</span>{" "}
-              {user.nombre}
+              <span className="font-semibold">Bienvenido/a,</span> {user.nombre}
             </p>
           )}
           <div className="relative" ref={notificationsRef}>
@@ -103,7 +103,6 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
               className="text-gray-400 w-10 h-10 rounded flex items-center justify-center hover:bg-gray-50 hover:text-gray-600 relative"
             >
               <FontAwesomeIcon icon={faBell} className="w-5 h-5" />
-              {/* Badge de notificaciones no leídas */}
               {notificaciones && notificaciones.length > 0 && (
                 <span className="absolute top-1 right-1 bg-customGreen text-black text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
                   {notificaciones.length}
@@ -114,8 +113,8 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
               <div
                 className="absolute top-full mt-2 sm:right-0 left-3 sm:left-auto transform sm:translate-x-0 -translate-x-1/2 min-w-[16rem] max-w-[90%] sm:max-w-[20rem] bg-white rounded-md  py-2 z-20 max-h-96 overflow-y-auto"
               >
-                <div className="px-3 py-2 flex justify-between items-center border-b">
-                  <p className="text-sm font-semibold text-gray-700">Notificaciones</p>
+                <div className="px-3 py-2 flex justify-between items-center border-b bg-customGray">
+                  <p className="text-sm font-semibold text-white bg-cust">Notificaciones</p>
                   {notificaciones && notificaciones.length > 0 && (
                     <button
                       className="text-sm text-customGreen hover:underline"
@@ -153,9 +152,7 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
                     ))}
                   </div>
                 ) : (
-                  <p className="px-4 py-2 text-sm text-gray-500">
-                    No tienes notificaciones.
-                  </p>
+                  <p className="px-4 py-2 text-sm text-gray-500">No tienes notificaciones.</p>
                 )}
               </div>
             )}
@@ -164,33 +161,31 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
             <button
               type="button"
               onClick={toggleDropdown}
-              className="text-gray-400 w-10 h-10 rounded flex items-center justify-center hover:bg-gray-50 hover:text-gray-600 ml-3"
+              className="text-gray-400 w-12 h-12 rounded-full flex items-center justify-center hover:bg-gray-100 hover:text-gray-600 ml-3"
             >
-              <FontAwesomeIcon icon={faUserCircle} className="w-8 h-8" />
+              <FontAwesomeIcon icon={faUserCircle} className="w-10 h-10" />
             </button>
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-20">
+              <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg border border-gray-200 z-20">
                 {user && (
-                  <div className="px-3 py-2 text-white border-b border-gray-200 flex items-center bg-customGray rounded-t-md">
-                    <p className="text-customGreen mr-1">Bienvenido/a,</p>
-                    <span className="font-semibold">{user.nombre}</span>
+                  <div className="px-4 py-3 text-white border-b border-gray-200 flex flex-col items-start bg-customGray rounded-t-lg">
+                    <p className="text-customGreen font-semibold">{user.nombre} {user.apellido}</p>
+                    <span className="text-sm text-gray-400">Rol: {user.rol}</span>
                   </div>
                 )}
                 <Link
-                  to="/profile"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                  to="/cambiar-contrasena"
+                  className="flex items-center w-full text-left px-4 py-3 text-gray-800 hover:bg-gray-100 rounded-md"
                 >
-                  Perfil
+                  <FontAwesomeIcon icon={faKey} className="mr-3 text-gray-400" />
+                  <span className="text-sm font-medium">Cambiar contraseña</span>
                 </Link>
                 <button
                   onClick={logout}
-                  className="flex items-center w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
+                  className="flex items-center w-full text-left px-4 py-3 text-gray-800 hover:bg-gray-100 rounded-md"
                 >
-                  <FontAwesomeIcon
-                    icon={faSignOutAlt}
-                    className="mr-2 text-gray-400"
-                  />
-                  Cerrar sesión
+                  <FontAwesomeIcon icon={faSignOutAlt} className="mr-3 text-gray-400" />
+                  <span className="text-sm font-medium">Cerrar sesión</span>
                 </button>
               </div>
             )}
@@ -200,4 +195,5 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
     </header>
   );
 };
+
 export default Menu;

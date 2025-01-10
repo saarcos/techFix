@@ -14,8 +14,10 @@ interface AuthContextType {
 interface User {
   id: number;
   nombre: string;
+  apellido: string;
   email: string;
   id_rol: number;
+  rol: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

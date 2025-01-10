@@ -11,10 +11,22 @@ interface OrdenesTableProps {
 const OrdenesTable = ({ onSelectOrder, ordenes, selectedOrder }: OrdenesTableProps) => {
   const isNearDueDate = (fechaPrometida: string) => {
     const fechaActual = new Date();
-    const fechaPrometidaDate = new Date(fechaPrometida);
+    
+    // Desglosar el string "YYYY-MM-DD" y crear una fecha local
+    const [year, month, day] = fechaPrometida.split('-').map(Number);
+    const fechaPrometidaDate = new Date(year, month - 1, day); // Mes empieza en 0 (enero)
+  
+    // Ajustar horas a medianoche
+    fechaPrometidaDate.setHours(0, 0, 0, 0);
+    fechaActual.setHours(0, 0, 0, 0);
+  
+    // Calcular diferencia en días
     const diferenciaDias = (fechaPrometidaDate.getTime() - fechaActual.getTime()) / (1000 * 3600 * 24);
-    return diferenciaDias <= 3 && diferenciaDias >= 0; // Si la fecha está dentro de los próximos 3 días
+  
+    // Devuelve true si la fecha prometida está entre hoy y los próximos 3 días
+    return diferenciaDias <= 3 && diferenciaDias >= 0;
   };
+  
   return (
     <div className="rounded-md border">
       <Table>
