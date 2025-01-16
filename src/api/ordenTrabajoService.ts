@@ -130,6 +130,7 @@ export interface RecentClient {
 export interface RecentOrdersResponse {
   recentClients: RecentClient[]; // Lista de clientes recientes
   totalOrders: number; // Total de órdenes registradas
+  totalOrdersMonth: number;
 }
 export interface MonthlyEarnings {
   month_label: string; // Nombre del mes

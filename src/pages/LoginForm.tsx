@@ -55,7 +55,7 @@ const LoginForm = () => {
     <div className='flex w-full h-screen'>
       <div className='w-full flex items-center justify-center lg:w-1/2'>
         <div className='font-inter bg-customGray px-10 py-20 rounded-3xl border-2 border-gray-200'>
-          <h1 className='text-5xl font-semibold text-customGreen'>¡Bienvenido de nuevo!</h1>
+          <h1 className='text-5xl font-semibold text-customGreen'>¡Bienvenido al sistema!</h1>
           <p className='font-medium text-lg text-gray-50 mt-4'>Por favor, ingresa con tus credenciales.</p>
           <form onSubmit={formik.handleSubmit} className='mt-8'>
             <div>

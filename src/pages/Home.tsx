@@ -25,6 +25,7 @@ const Home = () => {
   const monthly = data?.monthly ?? { earnings: 0, change: 0 };
   const totalRecaudado = metricasGlobales?.totalRecaudado ?? 0;
   const totalOrdenes = recentOrders?.totalOrders ?? 0;
+  const totalOrdersMonth = recentOrders?.totalOrdersMonth ?? 0;
   const newClients = clientesMetrics?.newClients ?? 0;
   const percentageChange = clientesMetrics?.percentageChange ?? 0;
   // Verifica si hay datos de ganancias mensuales
@@ -122,7 +123,7 @@ const Home = () => {
                 <div>
                   <h2 className="text-xl font-semibold text-gray-800">Órdenes recientes</h2>
                   <p className="text-sm text-gray-500">
-                    Haz iniciado {totalOrdenes} órdenes este mes.
+                    Haz iniciado {totalOrdersMonth} órden(es) este mes.
                   </p>
                 </div>
                 <TooltipProvider>

@@ -59,7 +59,7 @@ const CardHome = ({
             {amount.toLocaleString()}
             {!isCurrency && (
               <span className="text-base text-gray-700">
-                nuevos clientes
+                nuevo(s) cliente(s)
               </span>
             )}
           </h2>
