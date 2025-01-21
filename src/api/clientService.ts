@@ -32,11 +32,12 @@ export const createCliente = async (clienteData: { nombre: string; apellido: str
     const response = await axiosInstance.post('/clientes', clienteData);
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw error.response?.data;
-    } else {
-      throw new Error('Error inesperado');
+    // Verifica si el error es un AxiosError
+    if (axios.isAxiosError(error) && error.response) {
+      const errorMessage = error.response.data.error || 'Error desconocido';
+      throw new Error(errorMessage); // Lanza un error con el mensaje específico del backend
     }
+    throw new Error('Error desconocido al crear el cliente');
   }
 };
 //Método para actualizar clientes
@@ -45,11 +46,12 @@ export const updateCliente = async (clienteData: { id_cliente:number, nombre: st
     const response = await axiosInstance.put(`/clientes/${clienteData.id_cliente}`, clienteData);
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw error.response?.data;
-    } else {
-      throw new Error('Error inesperado');
+    // Verifica si el error es un AxiosError
+    if (axios.isAxiosError(error) && error.response) {
+      const errorMessage = error.response.data.error || 'Error desconocido';
+      throw new Error(errorMessage); // Lanza un error con el mensaje específico del backend
     }
+    throw new Error('Error desconocido al actualizar el cliente');
   }
 };
 //Método para eliminar clientes

@@ -6,6 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { Notificacion, readNotification } from "@/api/notificacionesService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { BellRing } from "lucide-react";
+import { ResponsiveDialog } from "./responsive-dialog";
+import EditFormTecnicos from "./forms/users/user-profile-edit-form";
 
 interface Props {
   toggleNavbar: () => void;
@@ -15,6 +17,7 @@ interface Props {
 const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [isNotificationsOpen, setNotificationsOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const { logout, user, notificaciones } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
@@ -67,6 +70,7 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
   };
 
   return (
+    <>
     <header
       className={`fixed top-0 left-0 w-full lg:w-[calc(100%-256px)] ${isNavbarVisible ? "lg:ml-64" : "ml-0"} bg-gray-50 z-10`}
     >
@@ -173,13 +177,13 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
                     <span className="text-sm text-gray-400">Rol: {user.rol}</span>
                   </div>
                 )}
-                <Link
-                  to="/cambiar-contrasena"
+                <button
                   className="flex items-center w-full text-left px-4 py-3 text-gray-800 hover:bg-gray-100 rounded-md"
+                  onClick={()=>setIsEditOpen(!isEditOpen)}
                 >
                   <FontAwesomeIcon icon={faKey} className="mr-3 text-gray-400" />
-                  <span className="text-sm font-medium">Cambiar contraseña</span>
-                </Link>
+                  <span className="text-sm font-medium">Editar perfil</span>
+                </button>
                 <button
                   onClick={logout}
                   className="flex items-center w-full text-left px-4 py-3 text-gray-800 hover:bg-gray-100 rounded-md"
@@ -193,6 +197,14 @@ const Menu = ({ toggleNavbar, isNavbarVisible }: Props) => {
         </div>
       </div>
     </header>
+      <ResponsiveDialog
+        isOpen={isEditOpen}
+        setIsOpen={setIsEditOpen}
+        title={`Editar información de ${user?.nombre}`}
+      >
+        <EditFormTecnicos userId={user?.id || 0} setIsOpen={setIsEditOpen} />
+      </ResponsiveDialog>
+    </>
   );
 };
 

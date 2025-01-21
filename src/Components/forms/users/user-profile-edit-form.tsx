@@ -14,7 +14,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getUserById, updateUsuario, User } from '@/api/userService';
+import { getUserById, updateUsuariobyTecnico, User } from '@/api/userService';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAsterisk } from '@fortawesome/free-solid-svg-icons';
@@ -23,41 +23,36 @@ const formSchema = z.object({
   nombre: z.string().min(1, 'Nombre es requerido'),
   apellido: z.string().min(1, 'Apellido es requerido'),
   email: z.string().email('Correo inválido'),
-  role: z.string().min(1, 'Rol es requerido'),
   password_hash: z.string().min(6, 'Contraseña debe tener al menos 6 caracteres'),
 });
-
-interface Role {
-  id_rol: number;
-  nombrerol: string;
-}
 
 interface EditFormProps {
   userId: number;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  roles: Role[];
 }
 
-export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
+export default function EditFormTecnicos({ userId, setIsOpen }: EditFormProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isMatching, setIsMatching] = useState(true);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       nombre: '',
       apellido: '',
       email: '',
-      role: '',
       password_hash: '',
     },
   });
-  const queryClient=useQueryClient();
+
+  const queryClient = useQueryClient();
   const { data: user, isLoading: isUserLoading, isError, error } = useQuery<User>({
     queryKey: ['user', userId],
     queryFn: () => getUserById(userId),
   });
+
   const mutation = useMutation({
-    mutationFn: updateUsuario,
+    mutationFn: updateUsuariobyTecnico,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('Usuario actualizado exitosamente');
@@ -74,7 +69,6 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
         nombre: user.nombre,
         apellido: user.apellido,
         email: user.email,
-        role: user.id_rol.toString(),
         password_hash: '',
       });
     }
@@ -85,11 +79,13 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
   }, [user, isError, error, form]);
 
   const isLoading = form.formState.isSubmitting;
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!isMatching) {
       toast.error('Las contraseñas no coinciden.');
       return;
     }
+
     try {
       console.log('Submitting values:', values);
       mutation.mutate({
@@ -98,13 +94,13 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
         apellido: values.apellido,
         email: values.email,
         password_hash: values.password_hash,
-        id_rol: parseInt(values.role, 10),
       });
       setIsOpen(false);
     } catch (error) {
       console.log(error);
     }
   };
+
   const handleConfirmPasswordChange = (value: string) => {
     setConfirmPassword(value);
     setIsMatching(value === form.getValues('password_hash'));
@@ -119,7 +115,7 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
               <FormLabel htmlFor="nombre" className="text-right">
-                Nombre <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
+                Nombre <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className="w-3 h-3" /></span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -134,13 +130,14 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
             </FormItem>
           )}
         />
+
         <FormField
           name="apellido"
           control={form.control}
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
               <FormLabel htmlFor="apellido" className="text-right">
-                Apellido <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
+                Apellido <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className="w-3 h-3" /></span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -155,13 +152,14 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
             </FormItem>
           )}
         />
+
         <FormField
           name="email"
           control={form.control}
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
               <FormLabel htmlFor="email" className="text-right">
-                Correo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
+                Correo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className="w-3 h-3" /></span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -177,40 +175,14 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
             </FormItem>
           )}
         />
-        <FormField
-          name="role"
-          control={form.control}
-          render={({ field }) => (
-            <FormItem className="grid grid-cols-4 items-center gap-4">
-              <FormLabel htmlFor="role" className="text-right">
-                Rol <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
-              </FormLabel>
-              <FormControl>
-                <select
-                  id="role"
-                  className="col-span-3 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer"
-                  {...field}
-                  disabled={isUserLoading}
-                >
-                  <option value="">Seleccione un rol</option>
-                  {roles.map((role) => (
-                    <option key={role.id_rol} value={role.id_rol}>
-                      {role.nombrerol}
-                    </option>
-                  ))}
-                </select>
-              </FormControl>
-              <FormMessage className="col-span-4 text-right text-sm text-red-500" />
-            </FormItem>
-          )}
-        />
+
         <FormField
           name="password_hash"
           control={form.control}
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-center gap-4">
               <FormLabel htmlFor="password" className="text-right flex items-center justify-end">
-                Contraseña <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
+                Contraseña <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className="w-2 h-3 ml-1" /></span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -225,6 +197,7 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
             </FormItem>
           )}
         />
+
         <FormItem className="grid grid-cols-4 items-center gap-4">
             <FormLabel htmlFor="password" className="text-right flex items-center justify-end">
                 Confirmar Contraseña <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className="w-2 h-3 ml-1" /></span>
@@ -245,8 +218,13 @@ export default function EditForm({ userId, setIsOpen, roles }: EditFormProps) {
             </p>
           )}
         </FormItem>
+
         <div className="flex justify-end mt-4">
-          <Button type="submit" disabled={isLoading || isUserLoading} className="bg-customGreen text-white hover:bg-customGreenHover">
+          <Button
+            type="submit"
+            disabled={isLoading || isUserLoading}
+            className="bg-customGreen text-white hover:bg-customGreenHover"
+          >
             {isLoading || isUserLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

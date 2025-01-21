@@ -18,6 +18,7 @@ import { getClientById, updateCliente, createCliente, Client } from '@/api/clien
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAsterisk } from '@fortawesome/free-solid-svg-icons';
+import { CustomToast } from '@/Components/CustomToast';
 
 const formSchema = z.object({
   nombre: z.string().min(1, 'Nombre es requerido').max(50, 'Ingresa menos de 50 caracteres'),
@@ -72,7 +73,12 @@ export default function UserForm({ clienteId, setIsOpen }: UserFormProps) {
       toast.success('Cliente actualizado exitosamente');
     },
     onError: (error) => {
-      toast.error('Error al actualizar el cliente');
+      if (error instanceof Error) {
+        // Muestra el mensaje del error en la alerta
+        CustomToast({ message: `Error al actualizar el cliente: ${error.message}`, type: 'error' });
+      } else {
+        CustomToast({ message: 'Ocurrió un error inesperado. Intenta de nuevo.', type: 'error' });
+      }
       console.error('Error de actualización de cliente:', error);
     },
   });
@@ -84,7 +90,12 @@ export default function UserForm({ clienteId, setIsOpen }: UserFormProps) {
       toast.success('Cliente creado exitosamente');
     },
     onError: (error) => {
-      toast.error('Error al crear el cliente');
+      if (error instanceof Error) {
+        // Muestra el mensaje del error en la alerta
+        CustomToast({ message: `Error al crear el cliente: ${error.message}`, type: 'error' });
+      } else {
+        CustomToast({ message: 'Ocurrió un error inesperado. Intenta de nuevo.', type: 'error' });
+      }
       console.error('Error de creación de cliente:', error);
     },
   });

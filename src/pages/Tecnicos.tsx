@@ -1,10 +1,10 @@
-import {  useRef } from 'react';
+import { useRef, useState } from 'react';
 import Spinner from '../assets/tube-spinner.svg';
 import { toast } from 'sonner';
 import { createUsuario, getUsers, User } from '@/api/userService';
 import { DataTable } from '@/Components/data-table';
 import { Button } from '@/Components/ui/button';
-import {columns} from '../tables/usuarios/columns'
+import { columns } from '../tables/usuarios/columns'
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import {
 } from "@/Components/ui/dialog";
 import { Input } from '@/Components/ui/input';
 import { Label } from "@/Components/ui/label"
-import { 
+import {
   PlusCircle,
 } from 'lucide-react';
 import { useFormik } from 'formik';
@@ -30,7 +30,8 @@ import { faAsterisk } from '@fortawesome/free-solid-svg-icons';
 const Tecnicos = () => {
   const queryClient = useQueryClient();
   const dialogRef = useRef<HTMLButtonElement>(null);
-
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isMatching, setIsMatching] = useState(true);
   const { data: users = [], isLoading, error } = useQuery<User[]>({
     queryKey: ['users'],
     queryFn: getUsers,
@@ -53,6 +54,11 @@ const Tecnicos = () => {
       console.error('Error de creación de usuario:', error);
     },
   });
+
+  const handleConfirmPasswordChange = (value: string) => {
+    setConfirmPassword(value);
+    setIsMatching(value === formik.values.password);
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -99,7 +105,7 @@ const Tecnicos = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-          <Dialog>
+            <Dialog>
               <DialogTrigger asChild>
                 <Button
                   size="sm"
@@ -123,7 +129,7 @@ const Tecnicos = () => {
                 <form onSubmit={formik.handleSubmit} className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="nombre" className="text-right">
-                      Nombre <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
+                      Nombre <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3' /></span>
                     </Label>
                     <Input
                       id="nombre"
@@ -137,7 +143,7 @@ const Tecnicos = () => {
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="apellido" className="text-right">
-                      Apellido <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
+                      Apellido <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3' /></span>
                     </Label>
                     <Input
                       id="apellido"
@@ -151,7 +157,7 @@ const Tecnicos = () => {
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="email" className="text-right">
-                      Correo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
+                      Correo <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3' /></span>
                     </Label>
                     <Input
                       id="email"
@@ -166,7 +172,7 @@ const Tecnicos = () => {
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="role" className="text-right">
-                      Rol <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
+                      Rol <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3' /></span>
                     </Label>
                     <select
                       id="role"
@@ -187,7 +193,7 @@ const Tecnicos = () => {
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="password" className="text-right flex items-center justify-end">
-                      Contraseña <span className="text-red-500 ml-1"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3'/></span>
+                      Contraseña <span className="text-red-500 ml-1"><FontAwesomeIcon icon={faAsterisk} className='w-3 h-3' /></span>
                     </Label>
                     <Input
                       id="password"
@@ -200,19 +206,36 @@ const Tecnicos = () => {
                       <div className="text-red-500 col-span-4 text-right text-sm">{formik.errors.password}</div>
                     ) : null}
                   </div>
-                  
-                  <DialogFooter>
-                    <Button type="submit" className="bg-customGreen text-white hover:bg-customGreenHover">
-                      Guardar
-                    </Button>
-                  </DialogFooter>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="password" className="text-right flex items-center justify-end">
+                      Confirmar Contraseña <span className="text-red-500"><FontAwesomeIcon icon={faAsterisk} className="w-2 h-3 ml-1" /></span>
+                    </Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="*********"
+                      className={`col-span-3 ${isMatching ? '' : 'border-red-500'}`}
+                      value={confirmPassword}
+                      onChange={(e) => handleConfirmPasswordChange(e.target.value)}
+                    />
+                    {!isMatching && (
+                      <p className="col-span-4 text-right text-sm text-red-500">
+                        Las contraseñas no coinciden.
+                      </p>
+                    )}
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit" className="bg-customGreen text-white hover:bg-customGreenHover">
+                        Guardar
+                      </Button>
+                    </DialogFooter>
                 </form>
               </DialogContent>
             </Dialog>
-          <DataTable data={users ?? []} columns={columns} globalFilterColumn='nombre' />
-        </CardContent>  
+            <DataTable data={users ?? []} columns={columns} globalFilterColumn='nombre' />
+          </CardContent>
         </Card>
-        </main>
+      </main>
     </div>
   );
 };

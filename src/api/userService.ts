@@ -49,6 +49,19 @@ export const updateUsuario = async (usuarioData: {id_usuario: number, nombre: st
     }
   }
 };
+//Método para actualizar usuarios
+export const updateUsuariobyTecnico = async (usuarioData: {id_usuario: number, nombre: string; apellido: string; email: string; password_hash: string; }) => {
+  try {
+    const response = await axiosInstance.put(`/usuarios/modificar-tecnico/${usuarioData.id_usuario}`, usuarioData);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw error.response?.data;
+    } else {
+      throw new Error('Error inesperado');
+    }
+  }
+};
 //Método para eliminar usuarios
 export const deleteUser = async (userId: number) => {
   try {

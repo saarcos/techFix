@@ -40,11 +40,12 @@ export const createEquipo = async (equipoData: { id_cliente: number; id_tipoe: n
     const response = await axiosInstance.post('/equipos', equipoData);
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw error.response?.data;
-    } else {
-      throw new Error('Error inesperado');
+    // Verifica si el error es un AxiosError
+    if (axios.isAxiosError(error) && error.response) {
+      const errorMessage = error.response.data.error || 'Error desconocido';
+      throw new Error(errorMessage); // Lanza un error con el mensaje específico del backend
     }
+    throw new Error('Error desconocido al crear el equipo');
   }
 };
 //Método para actualizar equipos
@@ -53,11 +54,12 @@ export const updateEquipo = async (equipoData: { id_equipo: number; id_cliente: 
     const response = await axiosInstance.put(`/equipos/${equipoData.id_equipo}`, equipoData);
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw error.response?.data;
-    } else {
-      throw new Error('Error inesperado');
+    // Verifica si el error es un AxiosError
+    if (axios.isAxiosError(error) && error.response) {
+      const errorMessage = error.response.data.error || 'Error desconocido';
+      throw new Error(errorMessage); // Lanza un error con el mensaje específico del backend
     }
+    throw new Error('Error desconocido al actualizar el equipo');
   }
 };
 //Método para eliminar equipos

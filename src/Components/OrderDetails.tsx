@@ -3,7 +3,7 @@ import { Button } from "@/Components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/Components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/Components/ui/dropdown-menu";
 import { Separator } from "@/Components/ui/separator";
-import { Copy, Download, MoreVertical } from "lucide-react";
+import { Copy, Download, MoreVertical, X } from "lucide-react";
 import { OrdenTrabajo } from "@/api/ordenTrabajoService";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/Components/ui/carousel";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,16 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
   const navigate = useNavigate(); // Definir el hook useNavigate
   const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false)
+  const [expandedImage, setExpandedImage] = React.useState<string | null>(null);
+
+  const handleImageClick = (url: string) => {
+    setExpandedImage(url);
+  };
+
+  const closeModal = () => {
+    setExpandedImage(null);
+  };
+
   const handleEditClick = () => {
     if (order) {
       navigate(`/taller/ordenes/${order.id_orden}/edit`);
@@ -71,8 +81,8 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
             size="sm"
             variant="outline"
             className={`h-7 gap-1 text-sm ${order?.area !== "Salida"
-                ? "opacity-50 cursor-not-allowed"
-                : "cursor-pointer"
+              ? "opacity-50 cursor-not-allowed"
+              : "cursor-pointer"
               }`}            >
             <Download className="h-3.5 w-3.5" />{isGeneratingPDF ? "Generando..." : "Descargar PDF"}
           </Button>
@@ -124,8 +134,9 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                             <img
                               src={imagen.url_imagen}
                               alt={`Imagen ${index + 1}`}
-                              className="max-w-full max-h-[300px] object-contain" // Ajusta la altura máxima
+                              className="max-w-full max-h-[300px] object-contain cursor-pointer" // Ajusta la altura máxima
                               style={{ height: "auto", width: "auto" }} // Mantén la proporción
+                              onClick={() => handleImageClick(imagen.url_imagen)} // Expandir imagen
                             />
                           </CardContent>
                         </Card>
@@ -252,6 +263,27 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
           </>
         ) : (
           <p>Ninguna orden seleccionada, por favor haz clic en alguna</p>
+        )}
+        {/* Modal para imagen expandida */}
+        {expandedImage && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+            onClick={closeModal} // Cerrar al hacer clic fuera
+          >
+            <div className="relative">
+              <img
+                src={expandedImage}
+                alt="Imagen expandida"
+                className="max-w-full max-h-screen object-contain"
+              />
+              <button
+                className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full p-2"
+                onClick={closeModal} // Botón para cerrar
+              >
+                <X className="w-8 h-8" />
+              </button>
+            </div>
+          </div>
         )}
       </CardContent>
       <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">

@@ -42,6 +42,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/Components/ui/tooltip"
+import { CustomToast } from '@/Components/CustomToast';
 
 const formSchema = z.object({
   id_cliente: z.number().min(1, 'Cliente es requerido'),
@@ -177,7 +178,12 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
       toast.success('Equipo actualizado exitosamente');
     },
     onError: (error) => {
-      toast.error('Error al actualizar el equipo');
+      if (error instanceof Error) {
+        // Muestra el mensaje del error en la alerta
+        CustomToast({ message: `Error al actualizar el equipo: ${error.message}`, type: 'error' });
+      } else {
+        CustomToast({ message: 'Ocurrió un error inesperado. Intenta de nuevo.', type: 'error' });
+      }      
       console.error('Error de actualización de equipo:', error);
     },
   });
@@ -189,7 +195,12 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
       toast.success('Equipo creado exitosamente');
     },
     onError: (error) => {
-      toast.error('Error al crear el equipo');
+      if (error instanceof Error) {
+        // Muestra el mensaje del error en la alerta
+        CustomToast({ message: `Error al crear el equipo: ${error.message}`, type: 'error' });
+      } else {
+        CustomToast({ message: 'Ocurrió un error inesperado. Intenta de nuevo.', type: 'error' });
+      }
       console.error('Error de creación de equipo:', error);
     },
   });
