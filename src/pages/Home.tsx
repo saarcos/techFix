@@ -101,15 +101,15 @@ const Home = () => {
           {technicianData.length > 0 ? (
             <TechnicianPerformanceChart data={technicianData} />
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500 bg-customGreen/10 rounded-lg border border-dashed border-gray-300 p-2 w-full">
-              <Users className="h-14 w-14 sm:h-20 sm:w-20 text-darkGreen mb-4" />
-              <p className="text-base sm:text-sm font-medium text-gray-800 text-center">
-                Sin datos de desempeño técnico
-              </p>
-              <p className="text-sm text-gray-600 text-center max-w-xs">
-                Aún no hay datos para mostrar el rendimiento de los técnicos. Cuando haya registros, se reflejarán aquí.
-              </p>
-            </div>
+            <div className="flex flex-col items-center justify-center h-full text-gray-500 bg-customGreen/10 rounded-lg border border-dashed border-gray-300 p-4 w-full shadow-md">
+            <Users className="h-14 w-14 sm:h-20 sm:w-20 text-darkGreen mb-4" />
+            <p className="text-base sm:text-sm font-medium text-gray-800 text-center">
+              Sin datos de desempeño técnico
+            </p>
+            <p className="text-sm text-gray-600 text-center max-w-xs">
+              Aún no hay datos para mostrar el rendimiento de los técnicos. Cuando haya registros, se reflejarán aquí.
+            </p>
+          </div>
           )}
         </ChartCard>
       </section>

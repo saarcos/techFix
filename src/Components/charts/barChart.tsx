@@ -65,7 +65,7 @@ const BarChartComponent: React.FC<BarChartProps> = ({ data, title, description, 
                 borderRadius: "8px",
                 fontSize: "13px",
               }}
-              formatter={(value) => [`${value}`, "Total"]}
+              formatter={(value) => [`$${value}`, "Total"]}
             />
             <Bar
               dataKey="value"

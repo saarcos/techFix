@@ -1,7 +1,7 @@
 import Spinner from '../assets/tube-spinner.svg';
 import { toast } from 'sonner';
 import { Button } from '@/Components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { AlertTriangle, PlusCircle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -95,10 +95,9 @@ const Inventario = () => {
         setIsDeletingExistencia(true);
     };
 
-    // Filtrar existencias basado en el término de búsqueda
     const filteredExistencias = existencias?.filter((existencia) =>
-        existencia.producto?.nombreProducto.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+        existencia.producto?.nombreProducto?.toLowerCase().includes(searchTerm.toLowerCase())
+    ).sort((a, b) => a.cantidad - b.cantidad);
 
     if (isLoading || isAlmacenLoading) return <div className="flex justify-center items-center h-28"><img src={Spinner} className="w-16 h-16" /></div>;
     if (isError) return toast.error('Error al recuperar los datos');
@@ -190,7 +189,17 @@ const Inventario = () => {
                                     ) : (
                                         filteredExistencias?.map((existencia) => (
                                             <TableRow key={existencia.id_existencias} className='hover:cursor-pointer'>
-                                                <TableCell>{existencia.producto?.nombreProducto}</TableCell>
+                                                <TableCell>
+                                                    <TableCell>
+                                                        {existencia.producto?.nombreProducto}
+                                                        {existencia.cantidad < 5 && (
+                                                            <div className="flex items-center mt-1 text-red-500 text-sm">
+                                                            <AlertTriangle className="h-4 w-4 mr-1" />
+                                                            <span>¡Stock bajo!</span>
+                                                          </div>
+                                                        )}
+                                                    </TableCell>
+                                                </TableCell>
                                                 <TableCell className='hidden sm:table-cell'>{existencia.producto?.codigoProducto}</TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">

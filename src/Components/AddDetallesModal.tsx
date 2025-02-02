@@ -6,7 +6,7 @@ import { ServiceCombobox } from "@/Components/comboBoxes/servicio-combobox";
 import { Input } from '@/Components/ui/input';
 import { getProducts, Product } from '@/api/productsService';
 import { getServices, Service } from '@/api/servicioService';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from '@tanstack/react-query';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus, faPlus, faXmark } from "@fortawesome/free-solid-svg-icons";
@@ -42,6 +42,7 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
     stocktotal: number; // Agregamos la propiedad stocktotal
   } | null>(null);
   const [selectedService, setSelectedService] = useState<{ servicio: Service; precio: number } | null>(null);
+  const [maxStockReached, setMaxStockReached] = useState(false);
 
   // Filtra productos completos que están en stock
   const filteredProducts = products.filter((product) =>
@@ -66,8 +67,14 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
 
   const updateProductQuantity = (cantidad: number | '') => {
     if (selectedProduct) {
-      const validatedCantidad = cantidad === '' || isNaN(cantidad) ? '' : Math.min(cantidad, selectedProduct.stocktotal);
-      setSelectedProduct({ ...selectedProduct, cantidad: validatedCantidad });
+      if (cantidad === '' || isNaN(cantidad)) {
+        setSelectedProduct({ ...selectedProduct, cantidad: '' });
+        setMaxStockReached(false);
+      } else {
+        const validatedCantidad = Math.min(cantidad, selectedProduct.stocktotal);
+        setSelectedProduct({ ...selectedProduct, cantidad: validatedCantidad });
+        setMaxStockReached(cantidad > selectedProduct.stocktotal);
+      }
     }
   };
 
@@ -88,12 +95,18 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
   const resetSelection = () => {
     setSelectedProduct(null);
     setSelectedService(null);
+    setMaxStockReached(false)
   };
 
   const handleCancel = () => {
     resetSelection();
     setIsOpen(false);
   };
+  useEffect(() => {
+    if (!isOpen) {
+      resetSelection();
+    }
+  }, [isOpen]);
 
   return (
     <ResponsiveDialogExtended
@@ -121,7 +134,11 @@ const AddDetalleModal = ({ isOpen, setIsOpen, onAddDetalle }: AddDetalleModalPro
         <TableBody>
           {selectedProduct ? (
             <TableRow>
-              <TableCell>{selectedProduct.producto.nombreProducto}</TableCell>
+              <TableCell>{selectedProduct.producto.nombreProducto}
+                {maxStockReached && (
+                  <p className="text-red-500 text-xs">Cantidad máxima alcanzada</p>
+                )}
+              </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <Button
