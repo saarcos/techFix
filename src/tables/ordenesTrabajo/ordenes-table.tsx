@@ -63,9 +63,11 @@ const OrdenesTable = ({ onSelectOrder, ordenes, selectedOrder }: OrdenesTablePro
                 </TableCell>
                 <TableCell>
                   <div className="font-medium">{orden.equipo.modelo.nombre}</div>
-                  <div className="hidden text-sm text-muted-foreground md:inline font-medium">
+                  {orden.equipo.nserie ? (<div className="hidden text-sm text-muted-foreground md:inline font-medium">
                     N° serie: {orden.equipo.nserie}
-                  </div>
+                  </div>) : (<div className="hidden text-sm text-muted-foreground md:inline font-medium">
+                    N° serie: No disponible
+                  </div>)}
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">
                   <Badge
