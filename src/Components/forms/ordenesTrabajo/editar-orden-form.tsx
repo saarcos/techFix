@@ -402,7 +402,9 @@ export default function OrdenTrabajoEditForm() {
                                             </div>
                                             <div className="flex items-center space-x-2">
                                                 <CreditCard className="w-4 h-4 text-darkGreen" />
-                                                <p className="text-sm font-medium">Número de Serie: {ordenTrabajo?.equipo?.nserie}</p>
+                                                {ordenTrabajo?.equipo?.nserie ? ( <p className="text-sm font-medium">Número de Serie: {ordenTrabajo?.equipo?.nserie}</p>)
+                                                :( <p className="text-sm font-medium">Número de Serie: No disponible</p>)}
+                                               
                                             </div>
                                         </CardContent>
                                     </Card>

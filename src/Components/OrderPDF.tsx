@@ -113,7 +113,7 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order }) => {
                         <Text>Correo: contacto@tallerxyz.com</Text>
                     </View>
                     <View style={styles.headerRight}>
-                        <Text style={styles.title}>Factura #{order?.numero_orden || "N/A"}</Text>
+                        <Text style={styles.title}>Orden #{order?.numero_orden || "N/A"}</Text>
                         <Text>Fecha: {order?.created_at ? new Date(order.created_at).toLocaleDateString("es-ES") : "N/A"}</Text>
                     </View>
                 </View>

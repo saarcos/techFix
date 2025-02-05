@@ -197,8 +197,8 @@ const Ordenes = ({ ordenesProp }: OrdenesProps) => {
           ))}
         </Tabs>
       </div>
-      <div>
-        <OrderDetails order={selectedOrder} />
+      <div >
+      <OrderDetails order={selectedOrder} />
       </div>
     </main>
   );

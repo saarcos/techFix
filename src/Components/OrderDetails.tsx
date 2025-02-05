@@ -3,7 +3,7 @@ import { Button } from "@/Components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/Components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/Components/ui/dropdown-menu";
 import { Separator } from "@/Components/ui/separator";
-import { Copy, Download, MoreVertical, X } from "lucide-react";
+import {Download, MoreVertical, X } from "lucide-react";
 import { OrdenTrabajo } from "@/api/ordenTrabajoService";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/Components/ui/carousel";
 import { useNavigate } from "react-router-dom";
@@ -54,18 +54,10 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
     <Card className="overflow-x-hidden max-w-screen-lg mx-auto" x-chunk="dashboard-05-chunk-4">
       <CardHeader className="flex flex-row items-start bg-muted/50">
         <div className="grid gap-0.5">
-          <CardTitle className="group flex items-center gap-2 text-lg">
+          <CardTitle className="group flex items-center gap-2 3xl:text-lg text-[14px]">
             N° {order ? order.numero_orden : "N/A"}
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
-            >
-              <Copy className="h-3 w-3" />
-              <span className="sr-only">Copiar número de orden</span>
-            </Button>
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-[13px]">
             Fecha creación:{" "}
             {order
               ? new Date(order.created_at + "T00:00:00Z").toLocaleDateString("es-ES", {
@@ -152,9 +144,9 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
         )}
         {order ? (
           <>
-            <div className="grid gap-3">
-              <div className="font-semibold">Descripción del trabajo</div>
-              <ul className="grid gap-3">
+            <div className="grid gap-2">
+              <div className="font-semibold text-md">Descripción del trabajo</div>
+              <ul className="grid gap-2">
                 <li className="flex items-center justify-between">
                   <span className="text-muted-foreground">
                     {order.descripcion}
@@ -162,12 +154,12 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                 </li>
                 <span><span className="font-semibold">Área:</span> {order.area}</span>
               </ul>
-              <Separator className="my-2" />
+              <Separator className="my-1" />
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
                 {/* Información del cliente */}
                 <div className="rounded-md py-3 flex-1">
                   <h2 className="font-semibold text-md mb-2">Información del cliente</h2>
-                  <address className="grid gap-1 not-italic text-muted-foreground">
+                  <address className="grid gap-1 not-italic text-muted-foreground text-[13px]">
                     <span>{order.equipo.cliente.nombre} {order.equipo.cliente.apellido}</span>
                     <span>{order.equipo.cliente.correo}</span>
                     <span>{order.equipo.cliente.celular}</span>
@@ -177,17 +169,17 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                 {/* Información del equipo */}
                 <div className="rounded-md py-3 flex-1">
                   <h2 className="font-semibold text-md mb-2">Información del equipo</h2>
-                  <ul className="grid gap-1 text-muted-foreground">
+                  <ul className="grid gap-1 text-muted-foreground text-[13px]">
                     <li>{order.equipo.nserie}</li>
                     <li>{order.equipo.modelo.nombre}</li>
                     <li>{order.equipo.modelo.marca.nombre}</li>
                   </ul>
                 </div>
               </div>
-              <Separator className="my-4" />
-              <div className="grid gap-4">
+              <Separator className="my-2" />
+              <div className="grid gap-2">
                 {/* Título */}
-                <div className="font-semibold text-lg">Detalles de la orden</div>
+                <div className="font-semibold text-md">Detalles de la orden</div>
 
                 {/* Renderizado condicional para detalles */}
                 {order.detalles.length > 0 ? (
@@ -200,7 +192,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                         {/* Mostrar servicio si está presente */}
                         {detalle.servicio && (
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-muted-foreground">
+                            <span className="text-[14px] text-muted-foreground">
                               {detalle.servicio.nombre}
                             </span>
                             <span className="font-medium text-primary">
@@ -212,7 +204,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                         {/* Mostrar producto si está presente */}
                         {detalle.producto && (
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-muted-foreground">
+                            <span className="text-[14px] text-muted-foreground">
                               {detalle.producto.nombreProducto}{" "}
                               <span className="text-muted-foreground">(x{detalle.cantidad})</span>
                             </span>
@@ -235,7 +227,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                   <dl className="grid gap-2">
                     {order.presupuesto && (
                       <div className="flex justify-between">
-                        <dt className="text-muted-foreground">Presupuesto:</dt>
+                        <dt className="text-muted-foreground text-[14px]">Presupuesto:</dt>
                         <dd className="font-medium text-primary">
                           ${order.presupuesto}
                         </dd>
@@ -243,7 +235,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                     )}
                     {order.adelanto && (
                       <div className="flex justify-between">
-                        <dt className="text-muted-foreground">Adelanto:</dt>
+                        <dt className="text-muted-foreground text-[14px]">Adelanto:</dt>
                         <dd className="font-medium text-primary">
                           ${order.adelanto}
                         </dd>

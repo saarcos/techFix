@@ -104,15 +104,15 @@ function ClienteCombobox({ field, owners, isEquipoLoading }: ClienteComboboxProp
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between h-10"
+          className="w-full justify-between h-10 sm:h-10 text-sm overflow-hidden text-ellipsis whitespace-nowrap"
           disabled={isEquipoLoading}
         >
           {selectedOwner ? `${selectedOwner.nombre} ${selectedOwner.apellido}` : "Propietario"}
           <ArrowDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
-        <Command>
+      <PopoverContent className="w-full max-w-sm p-0"   onWheel={(e) => e.stopPropagation()} >
+      <Command>
           <CommandInput
             placeholder="Buscar Propietario..."
             className="h-9"
@@ -445,6 +445,7 @@ export default function EquipoForm({ equipoId, setIsOpen, brands, models, owners
                     value={field.value}  // Acepta el valor generado
                     onChange={(e) => field.onChange(e.target.value.toUpperCase())}  // Convierte a mayúsculas
                     disabled={isEquipoLoading }  // Deshabilitar cuando está cargando o se está cargando el equipo
+                    maxLength={20}
                   />
                 </FormControl>
               </div>

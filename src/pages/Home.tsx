@@ -121,7 +121,7 @@ const Home = () => {
             <>
               <section className="flex justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-800">Órdenes recientes</h2>
+                  <h2 className="text-balance font-bold text-gray-800">Órdenes recientes</h2>
                   <p className="text-sm text-gray-500">
                     Haz iniciado {totalOrdersMonth} órden(es) este mes.
                   </p>

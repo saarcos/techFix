@@ -90,9 +90,9 @@ const OrdenesTable = ({ onSelectOrder, ordenes, selectedOrder }: OrdenesTablePro
                         year: 'numeric',
                       })}</span>
                       {orden.fecha_prometida && isNearDueDate(orden.fecha_prometida.toString()) && (
-                        <div className="flex items-center mt-1 text-yellow-600 text-sm">
+                        <div className="flex items-center mt-1 text-yellow-600 text-[14px]">
                           <AlertTriangle className="h-4 w-4 mr-1" />
-                          <span>¡Se aproxima la fecha de entrega!</span>
+                          <span>¡Por vencer!</span>
                         </div>
                       )}
                     </>

@@ -39,12 +39,12 @@ export const columns: ColumnDef<Equipo>[] = [
                 {nserie ? (
                   <>
                     <Info className="mr-2 text-darkGreen" />
-                    <span className="underline">{nserie}</span>
+                    <span className={description ? "underline" : ""}>{nserie}</span>
                   </>
                 ) : (
                   <>
                     <Info className="mr-2 text-gray-500 italic" />
-                    <span className="text-gray-500 italic">Sin N° de serie agregado</span>
+                    <span className={description ? "underline text-gray-500 italic" : "text-gray-500 italic"}>Sin N° de serie agregado</span>
                   </>
                 )}
               </button>
