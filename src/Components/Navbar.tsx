@@ -205,7 +205,9 @@ const Navbar = ({ isVisible, toggleNavbar }: Props) => {
           )}
         </li>
         <li className="mb-2">
-          <Link to="/taller/almacenes" className="flex items-center text-gray-300 py-2 px-4 hover:bg-gray-950 hover:text-gray-100  rounded-full" onClick={handleLinkClick}>
+          <Link to="/taller/almacenes" 
+            className={`${getLinkClass("/taller/almacenes")}`}
+            onClick={handleLinkClick}>
             <FontAwesomeIcon icon={faWarehouse} className="mr-3 text-lg" />
             <span className="text-sm">Almacenes</span>
           </Link>

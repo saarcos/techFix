@@ -62,7 +62,7 @@ const Ordenes = ({ ordenesProp }: OrdenesProps) => {
       // Calcular diferencia en días
       const daysUntilDue = (fechaPrometidaDate.getTime() - today.getTime()) / (1000 * 3600 * 24);
       // Incluir solo órdenes que vencen en los próximos 7 días
-      if (daysUntilDue >= 3 || daysUntilDue <= 0) return acc;
+      if (daysUntilDue > 3 || daysUntilDue < 0) return acc;
     }
     if (!acc[area]) {
       acc[area] = [];
